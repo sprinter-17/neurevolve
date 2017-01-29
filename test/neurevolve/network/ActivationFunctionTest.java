@@ -16,7 +16,7 @@ public class ActivationFunctionTest {
     }
 
     @Test
-    public void testOrigin() {
+    public void testMidpoint() {
         assertThat(function.apply(0), is(0));
     }
 
@@ -36,8 +36,12 @@ public class ActivationFunctionTest {
 
     @Test
     public void testSigmoid() {
-        assertTrue(function.apply(200) < 200);
-        assertTrue(function.apply(900) > 900);
+        assertTrue(function.apply(200) > 200);
+        assertTrue(function.apply(400) > 400);
+        assertTrue(function.apply(600) > 600);
+        assertTrue(function.apply(-200) < -200);
+        assertTrue(function.apply(-400) < -400);
+        assertTrue(function.apply(-600) < -600);
     }
 
     public static void main(String[] arguments) {
@@ -45,7 +49,7 @@ public class ActivationFunctionTest {
     }
 
     private static void printGraph(ActivationFunction function) {
-        for (int i = -60; i <= 60; i++) {
+        for (int i = -55; i <= 55; i++) {
             int value = function.apply(i);
             System.out.print(String.format("%+03d  ", i));
             for (int j = -50; j <= value; j++) {

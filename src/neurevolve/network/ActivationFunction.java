@@ -13,14 +13,15 @@ public class ActivationFunction {
     /**
      * Construct an <code>ActivationFunction</code> that generates values in a given range
      *
-     * @param range the negative and positive limits to the function
+     * @param range the negative and positive limits to the function. The function generates values
+     * in the inclusive range <tt>[-range, +range]</tt> which has a total size of
+     * <tt>range * 2 + 2</tt>.
      */
     public ActivationFunction(int range) {
         this.range = range;
         values = new int[range * 2 + 1];
         for (int i = 0; i < values.length; i++) {
-            double output = range / (1d + Math.pow(Math.E, range - i));
-            values[i] = (int) output - range;
+            values[i] = (int) (2 * range / (1 + Math.pow(Math.E, range - i)) - range);
         }
     }
 
