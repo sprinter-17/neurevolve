@@ -16,7 +16,7 @@ public class SigmoidFunction implements ActivationFunction {
      *
      * @param range the negative and positive limits to the function. The function generates values
      * in the inclusive range <tt>[-range, +range]</tt> which has a total size of
-     * <tt>range * 2 + 2</tt>.
+     * <tt>range * 2 + 1</tt>.
      */
     public SigmoidFunction(int range) {
         this.range = range;
