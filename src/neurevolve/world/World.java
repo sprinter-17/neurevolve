@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
@@ -23,7 +24,7 @@ import neurevolve.organism.Recipe;
  * <li>A variable value that represents the amount of resources available for organisms</li>
  * </ul>
  */
-public class World {
+public class World implements Environment {
 
     private final int width;
     private final int height;
@@ -39,13 +40,18 @@ public class World {
     private int maxTemp = 0;
     private int tempVariation = 0;
 
+    private final ActivationFunction function;
+    private Position currentPosition;
+
     /**
      * Construct a world with the provide width and height
      *
+     * @param function the activation function to use for all organisms in the world
      * @param width the width of the world
      * @param height the height of the world;
      */
-    public World(int width, int height) {
+    public World(ActivationFunction function, int width, int height) {
+        this.function = function;
         this.width = width;
         this.height = height;
         int size = width * height;
@@ -122,10 +128,10 @@ public class World {
         this.maxTemp = maxTemp;
     }
 
-    public void tick(WorldEnvironment environment) {
+    public void tick() {
         moveNewOrganisms();
         growResources();
-        processPopulation(environment);
+        processPopulation();
         time++;
     }
 
@@ -140,19 +146,22 @@ public class World {
         }
     }
 
-    private void processPopulation(WorldEnvironment environment) {
+    private void processPopulation() {
         graveyard.clear();
-        population.forEach((i, o) -> processOrganism(i, o, environment));
+        population.forEach((i, o) -> processOrganism(i, o));
         population.keySet().removeAll(graveyard);
     }
 
-    private void processOrganism(int index, Organism organism, WorldEnvironment environment) {
-        Position position = Position.fromIndex(index, width, height);
-        reduceEnergyByTemperature(position, organism);
-        environment.setContext(position, organism);
+    private void processOrganism(int index, Organism organism) {
+        setCurrentPosition(Position.fromIndex(index, width, height));
+        reduceEnergyByTemperature(currentPosition, organism);
         organism.activate();
         if (organism.isDead())
             graveyard.add(index);
+    }
+
+    protected void setCurrentPosition(Position position) {
+        this.currentPosition = position;
     }
 
     public void moveOrganism(Position position, Direction direction) {
@@ -226,5 +235,20 @@ public class World {
         int timeOfYear = time % yearLength;
         int timeFromMidYear = Math.abs(yearLength / 2 - timeOfYear);
         return tempVariation * 2 * timeFromMidYear / yearLength;
+    }
+
+    @Override
+    public ActivationFunction getActivationFunction() {
+        return function;
+    }
+
+    @Override
+    public int getInput(int input) {
+        return WorldInput.getValue(input, this, currentPosition);
+    }
+
+    @Override
+    public void performActivity(int activity) {
+        WorldActivity.perform(activity, this, currentPosition);
     }
 }

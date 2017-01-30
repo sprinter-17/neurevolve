@@ -11,20 +11,18 @@ import org.junit.Test;
 public class WorldActivityTest {
 
     private World world;
-    private WorldEnvironment environment;
     private Position position;
 
     @Before
     public void setup() {
-        world = new World(10, 10);
-        environment = new WorldEnvironment(world, n -> n);
+        world = new World(n -> n, 10, 10);
         position = new Position(60, 32);
     }
 
     @Test
     public void testMoveEast() {
-        world.addOrganism(position, new Organism(environment, 50));
-        world.tick(environment);
+        world.addOrganism(position, new Organism(world, 50));
+        world.tick();
         assertFalse(world.hasOrganism(Direction.EAST.move(position)));
         WorldActivity.MOVE_EAST.perform(world, position);
         assertTrue(world.hasOrganism(Direction.EAST.move(position)));
@@ -32,10 +30,10 @@ public class WorldActivityTest {
 
     @Test
     public void testEat() {
-        Organism organism = new Organism(environment, 50);
+        Organism organism = new Organism(world, 50);
         world.setTemperatureRange(100, 100);
         world.addOrganism(position, organism);
-        world.tick(environment);
+        world.tick();
         WorldActivity.EAT.perform(world, position);
         assertThat(world.getResource(position), is(80));
         assertThat(organism.getEnergy(), is(70));
@@ -43,9 +41,9 @@ public class WorldActivityTest {
 
     @Test
     public void testDivide() {
-        Organism organism = new Organism(environment, 50);
+        Organism organism = new Organism(world, 50);
         world.addOrganism(position, organism);
-        world.tick(environment);
+        world.tick();
         WorldActivity.DIVIDE.perform(world, position);
         assertThat(organism.getEnergy(), is(25));
         assertThat(world.getPopulationSize(), is(2));

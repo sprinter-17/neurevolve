@@ -12,7 +12,7 @@ public class WorldInputTest {
 
     @Before
     public void setup() {
-        world = new World(10, 10);
+        world = new World(n -> n, 10, 10);
         position = new Position(5, 6);
     }
 
