@@ -43,6 +43,10 @@ public class Organism {
         return energy;
     }
 
+    public int size() {
+        return brain.size();
+    }
+
     public Organism divide() {
         int childEnergy = energy / 2;
         reduceEnergy(childEnergy);
@@ -80,7 +84,9 @@ public class Organism {
     }
 
     public void activate() {
-        brain.activate();
+        reduceEnergy(brain.size());
+        if (!isDead())
+            brain.activate();
     }
 
     public Input getInput(int value) {

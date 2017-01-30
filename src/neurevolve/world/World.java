@@ -1,11 +1,8 @@
 package neurevolve.world;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import neurevolve.network.ActivationFunction;
@@ -30,11 +27,12 @@ public class World implements Environment {
     private final int height;
     private final int[] resources;
     private final int[] elevation;
-    private final Map<Integer, Organism> population = new HashMap<>();
-    private final Map<Integer, Organism> newOrganisms = new HashMap<>();
-    private final List<Integer> graveyard = new ArrayList<>();
+    private final Organism[] population;
+    private final Random random = new Random();
 
+    private int mutationRate = 0;
     private int time = 0;
+    private int populationSize = 0;
     private int yearLength = 1;
     private int minTemp = 0;
     private int maxTemp = 0;
@@ -42,6 +40,7 @@ public class World implements Environment {
 
     private final ActivationFunction function;
     private Position currentPosition;
+    private Organism largestOrganism;
 
     /**
      * Construct a world with the provide width and height
@@ -57,6 +56,11 @@ public class World implements Environment {
         int size = width * height;
         this.resources = new int[size];
         this.elevation = new int[size];
+        this.population = new Organism[size];
+    }
+
+    public void setMutationRate(int mutationRate) {
+        this.mutationRate = mutationRate;
     }
 
     /**
@@ -69,7 +73,7 @@ public class World implements Environment {
     }
 
     public int getPopulationSize() {
-        return population.size() + newOrganisms.size();
+        return populationSize;
     }
 
     public int getResource(Position position) {
@@ -89,37 +93,47 @@ public class World implements Environment {
     }
 
     public boolean hasOrganism(Position position) {
-        return hasCurrentOrganism(position) || hasNewOrganism(position);
+        return hasOrganism(position.toIndex(width, height));
     }
 
-    private boolean hasCurrentOrganism(Position position) {
-        int index = position.toIndex(width, height);
-        return population.containsKey(index);
-    }
-
-    private boolean hasNewOrganism(Position position) {
-        int index = position.toIndex(width, height);
-        return newOrganisms.containsKey(index);
+    private boolean hasOrganism(int position) {
+        return population[position] != null;
     }
 
     private Organism getOrganism(Position position) {
-        return population.get(position.toIndex(width, height));
+        return getOrganism(position.toIndex(width, height));
+    }
+
+    private Organism getOrganism(int position) {
+        return population[position];
     }
 
     public void addOrganism(Position position, Organism organism) {
         if (hasOrganism(position))
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
-        newOrganisms.put(position.toIndex(width, height), organism);
+        addOrganism(position.toIndex(width, height), organism);
     }
 
-    public void seed(Environment environment, Recipe recipe, int count) {
-        Random random = new Random();
+    private void addOrganism(int position, Organism organism) {
+        if (population[position] == null) {
+            population[position] = organism;
+            populationSize++;
+        }
+    }
+
+    private void removeOrganism(int position) {
+        if (population[position] != null) {
+            population[position] = null;
+            populationSize--;
+        }
+    }
+
+    public void seed(Recipe recipe, int count) {
         for (int i = 0; i < Math.min(count, size()); i++) {
-            Position position = random.ints(0, size())
-                    .mapToObj(p -> Position.fromIndex(p, width, height))
+            int position = random.ints(0, size())
                     .filter(p -> !hasOrganism(p))
                     .findAny().orElseThrow(IllegalStateException::new);
-            addOrganism(position, recipe.make(environment, 1000));
+            addOrganism(position, recipe.make(this, 1000));
         }
     }
 
@@ -129,15 +143,9 @@ public class World implements Environment {
     }
 
     public void tick() {
-        moveNewOrganisms();
         growResources();
         processPopulation();
         time++;
-    }
-
-    private void moveNewOrganisms() {
-        population.putAll(newOrganisms);
-        newOrganisms.clear();
     }
 
     private void growResources() {
@@ -147,17 +155,26 @@ public class World implements Environment {
     }
 
     private void processPopulation() {
-        graveyard.clear();
-        population.forEach((i, o) -> processOrganism(i, o));
-        population.keySet().removeAll(graveyard);
+        largestOrganism = null;
+        Organism[] previous = Arrays.copyOf(population, size());
+        for (int i = 0; i < size(); i++) {
+            if (previous[i] != null)
+                processPosition(i, previous[i]);
+        }
     }
 
-    private void processOrganism(int index, Organism organism) {
-        setCurrentPosition(Position.fromIndex(index, width, height));
+    private void processPosition(int position, Organism organism) {
+        setCurrentPosition(Position.fromIndex(position, width, height));
         reduceEnergyByTemperature(currentPosition, organism);
         organism.activate();
         if (organism.isDead())
-            graveyard.add(index);
+            removeOrganism(position);
+        else if (largestOrganism == null || organism.size() > largestOrganism.size())
+            largestOrganism = organism;
+    }
+
+    public Organism getLargestOrganism() {
+        return largestOrganism;
     }
 
     protected void setCurrentPosition(Position position) {
@@ -165,14 +182,16 @@ public class World implements Environment {
     }
 
     public void moveOrganism(Position position, Direction direction) {
-        if (hasCurrentOrganism(position) && !hasOrganism(direction.move(position))) {
-            Organism organism = population.remove(position.toIndex(width, height));
+        if (hasOrganism(position) && !hasOrganism(direction.move(position))) {
+            int index = position.toIndex(width, height);
+            Organism organism = population[index];
+            removeOrganism(index);
             addOrganism(direction.move(position), organism);
         }
     }
 
     public void feedOrganism(Position position, int amount) {
-        if (hasCurrentOrganism(position)) {
+        if (hasOrganism(position)) {
             if (amount > getResource(position))
                 amount = getResource(position);
             getOrganism(position).increaseEnergy(amount);
@@ -181,10 +200,11 @@ public class World implements Environment {
     }
 
     public void splitOrganism(Position position) {
-        if (hasCurrentOrganism(position)) {
+        if (hasOrganism(position)) {
             Organism organism = getOrganism(position);
-            openPositionNextTo(position)
-                    .ifPresent(pos -> addOrganism(pos, organism.divide()));
+            if (organism.getEnergy() > 10)
+                openPositionNextTo(position)
+                        .ifPresent(pos -> addOrganism(pos, organism.divide()));
         }
     }
 
@@ -204,13 +224,13 @@ public class World implements Environment {
     }
 
     public void killOrganism(Position position) {
-        if (!hasCurrentOrganism(position))
+        if (!hasOrganism(position))
             throw new IllegalArgumentException("Attempt to kill organism in empty position");
         int index = position.toIndex(width, height);
-        Organism organism = population.get(index);
+        Organism organism = population[index];
         resources[index] += organism.getEnergy();
         organism.reduceEnergy(organism.getEnergy());
-        population.remove(index);
+        population[index] = null;
     }
 
     public int getTime() {
@@ -250,5 +270,26 @@ public class World implements Environment {
     @Override
     public void performActivity(int activity) {
         WorldActivity.perform(activity, this, currentPosition);
+    }
+
+    @Override
+    public Recipe copyInstructions(int[] instructions, int size) {
+        Recipe copy = new Recipe();
+        int pos = 0;
+        while (pos < size) {
+            if (pos >= 0) {
+                int value = instructions[pos];
+                if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
+                    value += random.nextInt(20) - 10;
+                copy.add(value);
+            }
+            if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
+                pos += random.nextInt(5);
+            else if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
+                pos -= random.nextInt(5);
+            else
+                pos++;
+        }
+        return copy;
     }
 }

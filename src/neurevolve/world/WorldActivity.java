@@ -24,7 +24,7 @@ public enum WorldActivity {
     }
 
     public static void perform(int activity, World world, Position position) {
-        if (activity >= 0 && activity < values().length)
-            values()[activity].perform(world, position);
+        if (activity >= 0)
+            values()[activity % values().length].perform(world, position);
     }
 }

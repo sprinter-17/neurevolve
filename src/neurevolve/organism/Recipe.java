@@ -45,6 +45,17 @@ public class Recipe {
         add(instruction.getCode());
     }
 
+    public void add(Instruction instruction, int value) {
+        add(instruction.getCode());
+        add(value);
+    }
+
+    public void add(Instruction instruction, int value1, int value2) {
+        add(instruction.getCode());
+        add(value1);
+        add(value2);
+    }
+
     /**
      * Add a new value at the end of the recipe. This value will be used by the last instruction.
      *
@@ -69,15 +80,8 @@ public class Recipe {
      */
     public Organism make(Environment environment, int initialHealth) {
         Organism organism = new Organism(environment, initialHealth);
-        makeCopy(environment).applyTo(organism);
+        environment.copyInstructions(instructions, size).applyTo(organism);
         return organism;
-    }
-
-    private Recipe makeCopy(Environment environment) {
-        Recipe copy = new Recipe();
-        copy.instructions = Arrays.copyOf(instructions, instructions.length);
-        copy.size = size;
-        return copy;
     }
 
     private void applyTo(Organism organism) {

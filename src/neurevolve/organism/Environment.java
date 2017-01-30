@@ -10,4 +10,5 @@ public interface Environment {
 
     public void performActivity(int activity);
 
+    public Recipe copyInstructions(int[] instructions, int size);
 }

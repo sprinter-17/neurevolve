@@ -216,7 +216,7 @@ public class WorldTest {
     @Test
     public void testSeedWorld() {
         Recipe recipe = new Recipe();
-        world.seed(world, recipe, 5);
+        world.seed(recipe, 5);
         assertThat(world.getPopulationSize(), is(5));
     }
 
@@ -246,14 +246,22 @@ public class WorldTest {
     }
 
     @Test
+    public void testMoveAsPartOfRecipe() {
+        Recipe recipe = new Recipe();
+        recipe.add(Instruction.ADD_NEURON, -10);
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE_EAST.ordinal());
+        Organism organism = recipe.make(world, 50);
+        world.addOrganism(new Position(5, 5), organism);
+        world.tick();
+        assertTrue(world.hasOrganism(new Position(6, 5)));
+    }
+
+    @Test
     public void testInitialGrowth() {
         Recipe recipe = new Recipe();
-        recipe.add(Instruction.ADD_NEURON);
-        recipe.add(Instruction.SET_THRESHOLD);
-        recipe.add(-10);
-        recipe.add(Instruction.SET_ACTIVITY);
-        recipe.add(WorldActivity.DIVIDE.ordinal());
-        world.seed(world, recipe, 5);
+        recipe.add(Instruction.ADD_NEURON, -10);
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
+        world.seed(recipe, 5);
         assertThat(world.getPopulationSize(), is(5));
         world.tick();
         assertThat(world.getPopulationSize(), is(10));

@@ -15,10 +15,6 @@ public enum Instruction {
      */
     ADD_NEURON(Instruction::addNeuron),
     /**
-     * Set the threshold of the last neuron to the next value
-     */
-    SET_THRESHOLD(Instruction::setThreshold),
-    /**
      * Add a link to the last neuron from the neuron indexed in the next value and with the weight
      * specified in the following value.
      */
@@ -53,7 +49,7 @@ public enum Instruction {
      * @return the instruction, or <tt>Optional.empty()</tt> if there is no instruction for the code
      */
     public static Optional<Instruction> decode(int code) {
-        if (code < 0 || code > values().length)
+        if (code < 0 || code >= values().length)
             return Optional.empty();
         else
             return Optional.of(values()[code]);
@@ -73,29 +69,32 @@ public enum Instruction {
 
     private static void addNeuron(Organism organism, Queue<Integer> values) {
         organism.getBrain().addNeuron();
-    }
-
-    private static void setThreshold(Organism organism, Queue<Integer> values) {
         int threshold = value(values);
         organism.getBrain().setThreshold(threshold);
     }
 
     private static void addLink(Organism organism, Queue<Integer> values) {
-        int from = value(values);
-        int weight = value(values);
-        if (from >= 0 && from < organism.getBrain().size() - 1)
-            organism.getBrain().addLink(from, weight);
+        if (!organism.getBrain().isEmpty()) {
+            int from = value(values);
+            int weight = value(values);
+            if (from >= 0 && from < organism.getBrain().size() - 1)
+                organism.getBrain().addLink(from, weight);
+        }
     }
 
     private static void addInput(Organism organism, Queue<Integer> values) {
-        Input input = organism.getInput(value(values));
-        int weight = value(values);
-        organism.getBrain().addInput(input, weight);
+        if (!organism.getBrain().isEmpty()) {
+            Input input = organism.getInput(value(values));
+            int weight = value(values);
+            organism.getBrain().addInput(input, weight);
+        }
     }
 
     private static void setActivity(Organism organism, Queue<Integer> values) {
-        Activity activity = organism.getActivity(value(values));
-        organism.getBrain().setActivity(activity);
+        if (!organism.getBrain().isEmpty()) {
+            Activity activity = organism.getActivity(value(values));
+            organism.getBrain().setActivity(activity);
+        }
     }
 
     private static int value(Queue<Integer> values) {

@@ -57,7 +57,7 @@ public class NetworkTest {
     public void testAddInput() {
         Input input = mock(Input.class);
         network.addNeuron();
-        network.addInput(input, 100);
+        network.addInput(input, 10);
         when(input.getValue()).thenReturn(17);
         network.activate();
         assertThat(network.getValue(0), is(17));
@@ -84,7 +84,7 @@ public class NetworkTest {
         network.addNeuron();
         network.setThreshold(-28);
         network.addNeuron();
-        network.addLink(0, 100);
+        network.addLink(0, 10);
         network.activate();
         assertThat(network.getValue(1), is(28));
     }

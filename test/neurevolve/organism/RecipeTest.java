@@ -42,13 +42,9 @@ public class RecipeTest {
 
     @Test
     public void testComplexRecipe() {
-        recipe.add(Instruction.ADD_NEURON);
-        recipe.add(Instruction.SET_THRESHOLD);
-        recipe.add(-18);
-        recipe.add(Instruction.ADD_NEURON);
-        recipe.add(Instruction.ADD_LINK);
-        recipe.add(0);
-        recipe.add(50);
+        recipe.add(Instruction.ADD_NEURON, -18);
+        recipe.add(Instruction.ADD_NEURON, 0);
+        recipe.add(Instruction.ADD_LINK, 0, 5);
         Organism organism = recipe.make(environment, 400);
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(1), is(9));

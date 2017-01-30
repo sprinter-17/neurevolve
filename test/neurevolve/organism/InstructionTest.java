@@ -32,7 +32,6 @@ public class InstructionTest {
     public void testSetThreshold() {
         values.add(-27);
         Instruction.ADD_NEURON.complete(organism, values);
-        Instruction.SET_THRESHOLD.complete(organism, values);
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(0), is(27));
         assertTrue(values.isEmpty());
@@ -40,15 +39,12 @@ public class InstructionTest {
 
     @Test
     public void testAddLink() {
-        Instruction.ADD_NEURON.complete(organism, values);
-
         values.add(-27);
-        Instruction.SET_THRESHOLD.complete(organism, values);
-
+        Instruction.ADD_NEURON.complete(organism, values);
         Instruction.ADD_NEURON.complete(organism, values);
 
         values.add(0);
-        values.add(200);
+        values.add(20);
         Instruction.ADD_LINK.complete(organism, values);
 
         organism.getBrain().activate();
@@ -60,7 +56,7 @@ public class InstructionTest {
         Instruction.ADD_NEURON.complete(organism, values);
 
         values.add(5);
-        values.add(50);
+        values.add(5);
         Instruction.ADD_INPUT.complete(organism, values);
 
         organism.getBrain().activate();

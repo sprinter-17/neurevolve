@@ -32,23 +32,23 @@ public class NeuronTest {
 
     @Test
     public void testSingleInput() {
-        neuron.addInput(() -> 17, 100);
+        neuron.addInput(() -> 17, 10);
         neuron.activate();
         assertThat(neuron.getValue(), is(17));
     }
 
     @Test
     public void testMultipleInputs() {
-        neuron.addInput(() -> 11, 100);
-        neuron.addInput(() -> -5, 100);
+        neuron.addInput(() -> 11, 10);
+        neuron.addInput(() -> -5, 10);
         neuron.activate();
         assertThat(neuron.getValue(), is(6));
     }
 
     @Test
     public void testInputsWithThreshold() {
-        neuron.addInput(() -> 11, 100);
-        neuron.addInput(() -> -5, 100);
+        neuron.addInput(() -> 11, 10);
+        neuron.addInput(() -> -5, 10);
         neuron.setThreshold(3);
         neuron.activate();
         assertThat(neuron.getValue(), is(3));
@@ -57,7 +57,7 @@ public class NeuronTest {
     @Test
     public void testActivationFunction() {
         neuron = new Neuron(n -> -n);
-        neuron.addInput(() -> 10, 100);
+        neuron.addInput(() -> 10, 10);
         neuron.activate();
         assertThat(neuron.getValue(), is(-10));
     }

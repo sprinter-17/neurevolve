@@ -61,4 +61,16 @@ public class OrganismTest {
         verify(recipe).make(environment, 15);
     }
 
+    @Test
+    public void testActivationCostEnergyBySize() {
+        organism.activate();
+        assertThat(organism.getEnergy(), is(100));
+        organism.getBrain().addNeuron();
+        organism.activate();
+        assertThat(organism.getEnergy(), is(99));
+        organism.getBrain().addNeuron();
+        organism.activate();
+        assertThat(organism.getEnergy(), is(97));
+    }
+
 }

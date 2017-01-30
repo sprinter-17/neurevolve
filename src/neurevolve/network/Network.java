@@ -29,6 +29,10 @@ public class Network {
         return neurons.size();
     }
 
+    public boolean isEmpty() {
+        return neurons.isEmpty();
+    }
+
     /**
      * Add a new neuron at the end of the network
      */
