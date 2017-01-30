@@ -8,11 +8,11 @@ import org.junit.Test;
 
 public class ActivationFunctionTest {
 
-    private ActivationFunction function;
+    private SigmoidFunction function;
 
     @Before
     public void setup() {
-        function = new ActivationFunction(1000);
+        function = new SigmoidFunction(1000);
     }
 
     @Test
@@ -45,10 +45,10 @@ public class ActivationFunctionTest {
     }
 
     public static void main(String[] arguments) {
-        printGraph(new ActivationFunction(50));
+        printGraph(new SigmoidFunction(50));
     }
 
-    private static void printGraph(ActivationFunction function) {
+    private static void printGraph(SigmoidFunction function) {
         for (int i = -55; i <= 55; i++) {
             int value = function.apply(i);
             System.out.print(String.format("%+03d  ", i));
