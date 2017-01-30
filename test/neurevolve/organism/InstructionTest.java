@@ -2,6 +2,7 @@ package neurevolve.organism;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
+import neurevolve.TestEnvironment;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -10,19 +11,21 @@ import org.junit.Test;
 
 public class InstructionTest {
 
+    private TestEnvironment environment;
     private Organism organism;
     private Queue<Integer> values;
 
     @Before
     public void setup() {
-        organism = new Organism(n -> n, 100);
+        environment = new TestEnvironment();
+        organism = new Organism(environment, 100);
         values = new ArrayDeque<>();
     }
 
     @Test
     public void testAddNeuron() {
         Instruction.ADD_NEURON.complete(organism, values);
-        assertThat(organism.size(), is(1));
+        assertThat(organism.getBrain().size(), is(1));
     }
 
     @Test
@@ -37,16 +40,30 @@ public class InstructionTest {
 
     @Test
     public void testAddLink() {
-        values.add(-27);
         Instruction.ADD_NEURON.complete(organism, values);
+
+        values.add(-27);
         Instruction.SET_THRESHOLD.complete(organism, values);
+
+        Instruction.ADD_NEURON.complete(organism, values);
 
         values.add(0);
         values.add(200);
-        Instruction.ADD_NEURON.complete(organism, values);
         Instruction.ADD_LINK.complete(organism, values);
 
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(1), is(54));
+    }
+
+    @Test
+    public void testAddInput() {
+        Instruction.ADD_NEURON.complete(organism, values);
+
+        values.add(5);
+        values.add(50);
+        Instruction.ADD_INPUT.complete(organism, values);
+
+        organism.getBrain().activate();
+        assertThat(organism.getBrain().getValue(0), is(25));
     }
 }

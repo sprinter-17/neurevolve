@@ -1,5 +1,6 @@
 package neurevolve.organism;
 
+import neurevolve.TestEnvironment;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -7,11 +8,12 @@ import org.junit.Test;
 
 public class RecipeTest {
 
+    private Environment environment = new TestEnvironment();
     private Recipe recipe;
 
     @Before
     public void setup() {
-        recipe = new Recipe(n -> n);
+        recipe = new Recipe();
     }
 
     @Test
@@ -21,9 +23,9 @@ public class RecipeTest {
 
     @Test
     public void testMakeDefaultOrganism() {
-        assertThat(recipe.make(100).getHealth(), is(100));
-        assertThat(recipe.make(20).getHealth(), is(20));
-        assertThat(recipe.make(50).size(), is(0));
+        assertThat(recipe.make(environment, 100).getEnergy(), is(100));
+        assertThat(recipe.make(environment, 20).getEnergy(), is(20));
+        assertThat(recipe.make(environment, 50).getBrain().size(), is(0));
     }
 
     @Test
@@ -35,7 +37,7 @@ public class RecipeTest {
     @Test
     public void testSimpleRecipe() {
         recipe.add(Instruction.ADD_NEURON);
-        assertThat(recipe.make(100).size(), is(1));
+        assertThat(recipe.make(environment, 100).getBrain().size(), is(1));
     }
 
     @Test
@@ -47,7 +49,7 @@ public class RecipeTest {
         recipe.add(Instruction.ADD_LINK);
         recipe.add(0);
         recipe.add(50);
-        Organism organism = recipe.make(400);
+        Organism organism = recipe.make(environment, 400);
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(1), is(9));
     }

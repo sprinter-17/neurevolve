@@ -75,7 +75,7 @@ public class Neuron {
     /**
      * Set the activity to occur at activation, if the inputs meet the threshold.
      *
-     * @param activity
+     * @param activity the activity to perform if the neuron fires during activation
      */
     public void setActivity(Activity activity) {
         this.activity = Optional.of(activity);

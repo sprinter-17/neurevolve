@@ -1,9 +1,10 @@
 package neurevolve.network;
 
 /**
- * The function used to calculate the input for a {@link Neuron} based on a provided value.
- *
- * @author simon
+ * A function that can be used as an activation function in a {@link Network}. The defining feature
+ * of a sigmoid is that, at its upper and lower limits it has a gradient approaching zero. A cached
+ * array generated at construction is used to make the {@link #apply} method as efficient as
+ * possible.
  */
 public class SigmoidFunction implements ActivationFunction {
 
@@ -11,7 +12,7 @@ public class SigmoidFunction implements ActivationFunction {
     private final int[] values;
 
     /**
-     * Construct an <code>ActivationFunction</code> that generates values in a given range
+     * Construct a function that generates values in a given range
      *
      * @param range the negative and positive limits to the function. The function generates values
      * in the inclusive range <tt>[-range, +range]</tt> which has a total size of
