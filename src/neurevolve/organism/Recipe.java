@@ -2,6 +2,7 @@ package neurevolve.organism;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.stream.IntStream;
 
@@ -23,6 +24,22 @@ public class Recipe {
      * Construct a new <code>Recipe</code>
      */
     public Recipe() {
+    }
+
+    public String toString(RecipePrinter printer) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        Queue<Integer> queue = instructionInQueue();
+        boolean first = true;
+        while (!queue.isEmpty()) {
+            Optional<Instruction> instruction = Instruction.decode(queue.remove());
+            if (!first)
+                builder.append(",");
+            builder.append(instruction.map(i -> i.toString(printer, queue)).orElse("#"));
+            first = false;
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
     /**
@@ -96,13 +113,18 @@ public class Recipe {
     }
 
     private void applyTo(Organism organism) {
-        Queue<Integer> values = new ArrayDeque<>();
-        IntStream.range(0, size).forEach(i -> values.add(instructions[i]));
+        Queue<Integer> values = instructionInQueue();
         while (!values.isEmpty()) {
             int code = values.remove();
             Instruction.decode(code)
                     .ifPresent(c -> c.complete(organism, values));
         }
         organism.setRecipe(this);
+    }
+
+    private Queue<Integer> instructionInQueue() {
+        Queue<Integer> values = new ArrayDeque<>();
+        IntStream.range(0, size).forEach(i -> values.add(instructions[i]));
+        return values;
     }
 }

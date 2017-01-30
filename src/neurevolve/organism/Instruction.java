@@ -13,30 +13,34 @@ public enum Instruction {
     /**
      * Add a new neuron with a given threshold.
      */
-    ADD_NEURON(Instruction::addNeuron),
+    ADD_NEURON("Add", Instruction::addNeuron, 1),
     /**
      * Add a link to the last neuron from the neuron indexed in the next value and with the weight
      * specified in the following value.
      */
-    ADD_LINK(Instruction::addLink),
+    ADD_LINK("Link", Instruction::addLink, 2),
     /**
      * Add an input to the last neuron
      */
-    ADD_INPUT(Instruction::addInput),
+    ADD_INPUT("Input", Instruction::addInput, 2),
     /**
      * Set an activity to perform if the last neuron is activated.
      */
-    SET_ACTIVITY(Instruction::setActivity);
+    SET_ACTIVITY("Action", Instruction::setActivity, 1);
 
     private interface Operation {
 
         void operate(Organism organism, Queue<Integer> values);
     }
 
+    private final String name;
     private final Operation operation;
+    private final int valueCount;
 
-    private Instruction(Operation operation) {
+    private Instruction(String name, Operation operation, int valueCount) {
+        this.name = name;
         this.operation = operation;
+        this.valueCount = valueCount;
     }
 
     /**
@@ -55,10 +59,10 @@ public enum Instruction {
      * @return the instruction, or <tt>Optional.empty()</tt> if there is no instruction for the code
      */
     public static Optional<Instruction> decode(int code) {
-        if (code < 0 || code >= values().length)
+        if (code < 0)
             return Optional.empty();
         else
-            return Optional.of(values()[code]);
+            return Optional.of(values()[code % values().length]);
     }
 
     /**
@@ -101,6 +105,30 @@ public enum Instruction {
             Activity activity = organism.getActivity(value(values));
             organism.getBrain().setActivity(activity);
         }
+    }
+
+    public String toString(RecipePrinter printer, Queue<Integer> values) {
+        StringBuilder builder = new StringBuilder();
+        switch (this) {
+            case ADD_INPUT:
+                builder.append(printer.getInput(value(values)));
+                builder.append("(").append(value(values)).append(")");
+                break;
+            case SET_ACTIVITY:
+                builder.append(printer.getActivity(value(values)));
+                break;
+            default:
+                builder.append(name);
+                builder.append("(");
+                for (int i = 0; i < valueCount; i++) {
+                    if (i > 0)
+                        builder.append(",");
+                    builder.append(value(values));
+                }
+                builder.append(")");
+                break;
+        }
+        return builder.toString();
     }
 
     private static int value(Queue<Integer> values) {

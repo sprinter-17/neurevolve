@@ -39,6 +39,10 @@ public class Organism {
         this.recipe = recipe;
     }
 
+    public String toString(RecipePrinter printer) {
+        return recipe.toString(printer);
+    }
+
     /**
      * Get the current energy of the organism.
      *

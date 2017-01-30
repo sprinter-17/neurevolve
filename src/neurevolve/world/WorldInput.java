@@ -1,22 +1,24 @@
 package neurevolve.world;
 
 public enum WorldInput {
-    ELEVATION((w, p) -> w.getElevation(p)),
-    TEMPERATURE((w, p) -> w.getTemperature(p)),
-    RESOURCES((w, p) -> w.getResource(p)),
-    RESOURCES_EAST((w, p) -> w.getResource(Direction.EAST.move(p))),
-    RESOURCES_WEST((w, p) -> w.getResource(Direction.WEST.move(p))),
-    RESOURCES_NORTH((w, p) -> w.getResource(Direction.NORTH.move(p))),
-    RESOURCES_SOUTH((w, p) -> w.getResource(Direction.SOUTH.move(p))),;
+    ELEVATION("Height", (w, p) -> w.getElevation(p)),
+    TEMPERATURE("Temp", (w, p) -> w.getTemperature(p)),
+    RESOURCES("Look Down", (w, p) -> w.getResource(p)),
+    RESOURCES_EAST("Look East", (w, p) -> w.getResource(Direction.EAST.move(p))),
+    RESOURCES_WEST("Look West", (w, p) -> w.getResource(Direction.WEST.move(p))),
+    RESOURCES_NORTH("Look North", (w, p) -> w.getResource(Direction.NORTH.move(p))),
+    RESOURCES_SOUTH("Look South", (w, p) -> w.getResource(Direction.SOUTH.move(p))),;
 
     private interface ValueGetter {
 
         public int getValue(World world, Position position);
     }
 
+    private final String name;
     private final ValueGetter getter;
 
-    private WorldInput(ValueGetter getter) {
+    private WorldInput(String name, ValueGetter getter) {
+        this.name = name;
         this.getter = getter;
     }
 
@@ -29,5 +31,9 @@ public enum WorldInput {
             return 0;
         else
             return values()[input % values().length].getValue(world, position);
+    }
+
+    public static String print(int code) {
+        return code < 0 ? "#" : values()[code % values().length].name;
     }
 }

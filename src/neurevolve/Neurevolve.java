@@ -3,8 +3,10 @@ package neurevolve;
 import neurevolve.network.SigmoidFunction;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Recipe;
+import neurevolve.organism.RecipePrinter;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
+import neurevolve.world.WorldInput;
 
 public class Neurevolve {
 
@@ -23,7 +25,18 @@ public class Neurevolve {
 
         for (int t = 0; t < 1000; t++) {
             world.tick();
-            System.out.println(world.getTime() + ":" + world.getPopulationSize() + " ^ " + world.getLargestOrganism().size());
+            System.out.println(world.getTime() + ":" + world.getPopulationSize()
+                    + " ^ " + world.getLargestOrganism().toString(new RecipePrinter() {
+                        @Override
+                        public String getInput(int code) {
+                            return WorldInput.print(code);
+                        }
+
+                        @Override
+                        public String getActivity(int code) {
+                            return WorldActivity.print(code);
+                        }
+                    }));
         }
     }
 }
