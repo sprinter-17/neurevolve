@@ -9,5 +9,5 @@ public interface Activity {
     /**
      * Called when a neuron with this activity is activated.
      */
-    void fire();
+    void perform();
 }

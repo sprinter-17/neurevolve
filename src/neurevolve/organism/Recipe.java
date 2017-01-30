@@ -20,9 +20,7 @@ public class Recipe {
     private int size = 0;
 
     /**
-     * Construct a new <code>Recipe</code> with a given activation function
-     *
-     * @param function the activation function to use with any organisms built by this recipe
+     * Construct a new <code>Recipe</code>
      */
     public Recipe() {
     }
@@ -45,11 +43,24 @@ public class Recipe {
         add(instruction.getCode());
     }
 
+    /**
+     * Add a new instruction and one associated value at the end of the recipe
+     *
+     * @param instruction the instruction to add
+     * @param value the associated value
+     */
     public void add(Instruction instruction, int value) {
         add(instruction.getCode());
         add(value);
     }
 
+    /**
+     * Add a new instruction and two associated values at the end of the recipe
+     *
+     * @param instruction the instruction to add
+     * @param value1 the first associated value
+     * @param value2 the second associated value
+     */
     public void add(Instruction instruction, int value1, int value2) {
         add(instruction.getCode());
         add(value1);

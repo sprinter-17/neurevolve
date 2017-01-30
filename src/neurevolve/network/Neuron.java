@@ -91,6 +91,6 @@ public class Neuron {
         value = inputs.stream().mapToInt(Synapse::getValue).sum() - threshold;
         value = function.apply(value);
         if (value > 0)
-            activity.ifPresent(Activity::fire);
+            activity.ifPresent(Activity::perform);
     }
 }

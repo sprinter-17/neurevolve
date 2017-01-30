@@ -29,6 +29,11 @@ public class Network {
         return neurons.size();
     }
 
+    /**
+     * Checks if the network is empty
+     *
+     * @return <code>true</code> if <tt>size() == 0</tt>
+     */
     public boolean isEmpty() {
         return neurons.isEmpty();
     }
@@ -41,7 +46,7 @@ public class Network {
     }
 
     /**
-     * Set the threshold for the last neuron to the given threshold
+     * Set the threshold for the last neuron to the given value
      *
      * @param threshold the threshold for the neuron
      * @throws IllegalStateException if the network is empty

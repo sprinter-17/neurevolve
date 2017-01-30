@@ -30,6 +30,11 @@ public class Organism {
         setRecipe(new Recipe());
     }
 
+    /**
+     * Set the recipe used to create the organism.
+     *
+     * @param recipe the recipe which was used to create the organism
+     */
     public final void setRecipe(Recipe recipe) {
         this.recipe = recipe;
     }
@@ -43,16 +48,32 @@ public class Organism {
         return energy;
     }
 
+    /**
+     * Get the size of the organism, as defined by the number of neurons in its brain.
+     *
+     * @return the number of neurons in the network associated with this organism
+     */
     public int size() {
         return brain.size();
     }
 
+    /**
+     * Divide the current organism in two, creating a new descendent from the recipe used to create
+     * this organism. The energy of this organism is split even between itself and its descendent.
+     *
+     * @return the descendent organism
+     */
     public Organism divide() {
         int childEnergy = energy / 2;
         reduceEnergy(childEnergy);
         return recipe.make(environment, childEnergy);
     }
 
+    /**
+     * Reduce the organism's energy, to a minimum of 0
+     *
+     * @param reduction the amount by which to reduce the organism's energy
+     */
     public void reduceEnergy(int reduction) {
         assert reduction >= 0;
         energy -= reduction;
@@ -60,6 +81,11 @@ public class Organism {
             energy = 0;
     }
 
+    /**
+     * Increase the organism's energy
+     *
+     * @param addition the amount by which to increase the organism's energy
+     */
     public void increaseEnergy(int addition) {
         assert addition >= 0;
         energy += addition;
@@ -83,16 +109,32 @@ public class Organism {
         return brain;
     }
 
+    /**
+     * Activate the organism by using energy relative to its size then activating the associated
+     * network.
+     */
     public void activate() {
         reduceEnergy(brain.size());
         if (!isDead())
             brain.activate();
     }
 
+    /**
+     * Get an input value from the environment
+     *
+     * @param value the code for the type of input to retrieve
+     * @return the resulting input
+     */
     public Input getInput(int value) {
         return () -> environment.getInput(value);
     }
 
+    /**
+     * Get an activity to perform in the environment
+     *
+     * @param value the code for the type of activity to perform
+     * @return the resulting activity
+     */
     public Activity getActivity(int value) {
         return () -> environment.performActivity(value);
     }

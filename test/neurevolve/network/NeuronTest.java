@@ -76,10 +76,10 @@ public class NeuronTest {
         neuron.setActivity(activity);
         neuron.setThreshold(1);
         neuron.activate();
-        verify(activity, never()).fire();
+        verify(activity, never()).perform();
         neuron.setThreshold(-1);
         neuron.activate();
-        verify(activity, times(1)).fire();
+        verify(activity, times(1)).perform();
     }
 
 }

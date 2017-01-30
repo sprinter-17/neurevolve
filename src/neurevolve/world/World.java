@@ -59,6 +59,13 @@ public class World implements Environment {
         this.population = new Organism[size];
     }
 
+    /**
+     * Set the mutation rate for the world. The mutation rate determines the likelihood of
+     * transcription errors when copying a recipe. A mutation rate of 0 means that no errors occur.
+     * A mutation rate of 1000 means that errors occur on every transcription.
+     *
+     * @param mutationRate the rate of mutation (range 0-1000)
+     */
     public void setMutationRate(int mutationRate) {
         this.mutationRate = mutationRate;
     }
@@ -72,22 +79,52 @@ public class World implements Environment {
         return width * height;
     }
 
+    /**
+     * Get the total number of organisms in the world
+     *
+     * @return the organism count
+     */
     public int getPopulationSize() {
         return populationSize;
     }
 
+    /**
+     * Get the amount of resource at a position
+     *
+     * @param position the position to check
+     * @return the amount of resource at the given position
+     */
     public int getResource(Position position) {
         return resources[position.toIndex(width, height)];
     }
 
+    /**
+     * Get the difference in elevation between a position and an adjacent position
+     *
+     * @param position the starting position
+     * @param dir the direction to the adjacent position
+     * @return the difference in elevation
+     */
     public int getSlope(Position position, Direction dir) {
         return getElevation(dir.move(position)) - getElevation(position);
     }
 
+    /**
+     * Set the elevation of a position
+     *
+     * @param position the position whose elevation will be set
+     * @param value the elevation to set the position to
+     */
     public void setElevation(Position position, int value) {
         elevation[position.toIndex(width, height)] = value;
     }
 
+    /**
+     * Get the elevation at a given position
+     *
+     * @param position the position to get the elevation for
+     * @return the elevation at the given position
+     */
     protected int getElevation(Position position) {
         return elevation[position.toIndex(width, height)];
     }

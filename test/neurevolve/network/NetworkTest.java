@@ -96,7 +96,7 @@ public class NetworkTest {
         network.setActivity(activity);
         network.setThreshold(-1);
         network.activate();
-        verify(activity).fire();
+        verify(activity).perform();
     }
 
     @Test
@@ -105,7 +105,7 @@ public class NetworkTest {
         network.addNeuron();
         network.setActivity(activity);
         network.activate();
-        verify(activity, never()).fire();
+        verify(activity, never()).perform();
     }
 
 }

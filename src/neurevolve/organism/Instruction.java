@@ -11,7 +11,7 @@ import neurevolve.network.Input;
  */
 public enum Instruction {
     /**
-     * Add a new neuron
+     * Add a new neuron with a given threshold.
      */
     ADD_NEURON(Instruction::addNeuron),
     /**
@@ -19,7 +19,13 @@ public enum Instruction {
      * specified in the following value.
      */
     ADD_LINK(Instruction::addLink),
+    /**
+     * Add an input to the last neuron
+     */
     ADD_INPUT(Instruction::addInput),
+    /**
+     * Set an activity to perform if the last neuron is activated.
+     */
     SET_ACTIVITY(Instruction::setActivity);
 
     private interface Operation {
