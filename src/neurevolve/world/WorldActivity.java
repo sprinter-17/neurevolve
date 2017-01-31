@@ -1,14 +1,18 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
+import static neurevolve.world.Frame.Direction.EAST;
+import static neurevolve.world.Frame.Direction.NORTH;
+import static neurevolve.world.Frame.Direction.SOUTH;
+import static neurevolve.world.Frame.Direction.WEST;
 
 public enum WorldActivity {
     EAT("Eat", (w, p, o) -> w.feedOrganism(p, 20)),
     DIVIDE("Divide", (w, p, o) -> w.splitOrganism(p)),
-    MOVE_EAST("Move East", (w, p, o) -> w.moveOrganism(p, Direction.EAST)),
-    MOVE_NORTH("Move North", (w, p, o) -> w.moveOrganism(p, Direction.NORTH)),
-    MOVE_WEST("Move West", (w, p, o) -> w.moveOrganism(p, Direction.WEST)),
-    MOVE_SOUTH("Move South", (w, p, o) -> w.moveOrganism(p, Direction.SOUTH)),;
+    MOVE_EAST("Move East", (w, p, o) -> w.moveOrganism(p, EAST)),
+    MOVE_NORTH("Move North", (w, p, o) -> w.moveOrganism(p, NORTH)),
+    MOVE_WEST("Move West", (w, p, o) -> w.moveOrganism(p, WEST)),
+    MOVE_SOUTH("Move South", (w, p, o) -> w.moveOrganism(p, SOUTH)),;
 
     private interface ActivityPerformer {
 

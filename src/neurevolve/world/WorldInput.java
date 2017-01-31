@@ -1,10 +1,10 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
-import static neurevolve.world.Direction.EAST;
-import static neurevolve.world.Direction.NORTH;
-import static neurevolve.world.Direction.SOUTH;
-import static neurevolve.world.Direction.WEST;
+import static neurevolve.world.Frame.Direction.EAST;
+import static neurevolve.world.Frame.Direction.NORTH;
+import static neurevolve.world.Frame.Direction.SOUTH;
+import static neurevolve.world.Frame.Direction.WEST;
 
 public enum WorldInput {
     OWN_ENERGY("Energy", (w, p, o) -> o.getEnergy()),

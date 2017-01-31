@@ -8,13 +8,15 @@ import org.junit.Test;
 
 public class WorldInputTest {
 
+    private WorldConfiguration config;
     private World world;
     private int position;
     private Organism organism;
 
     @Before
     public void setup() {
-        world = new World(n -> n, 10, 10);
+        config = new WorldConfiguration();
+        world = new World(n -> n, new Frame(10, 10), config);
         position = world.position(5, 6);
         organism = new Organism(world, 100);
     }
@@ -29,7 +31,7 @@ public class WorldInputTest {
     @Test
     public void testTemperature() {
         assertThat(WorldInput.TEMPERATURE.getValue(world, position, organism), is(0));
-        world.setTemperatureRange(50, 50);
+        config.setTemperatureRange(50, 50);
         assertThat(WorldInput.TEMPERATURE.getValue(world, position, organism), is(50));
     }
 }

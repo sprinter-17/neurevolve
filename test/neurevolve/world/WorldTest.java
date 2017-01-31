@@ -3,10 +3,9 @@ package neurevolve.world;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
-import static neurevolve.world.Direction.EAST;
-import static neurevolve.world.Direction.NORTH;
-import static neurevolve.world.Direction.SOUTH;
-import static neurevolve.world.Direction.WEST;
+import neurevolve.world.Frame.Direction;
+import static neurevolve.world.Frame.Direction.EAST;
+import static neurevolve.world.Frame.Direction.NORTH;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -16,17 +15,13 @@ import org.junit.Test;
 
 public class WorldTest {
 
+    private WorldConfiguration config;
     private World world;
 
     @Before
     public void setup() {
-        world = new World(n -> n, 10, 10);
-    }
-
-    @Test
-    public void testSize() {
-        assertThat(world.size(), is(100));
-        assertThat(new World(n -> n, 16, 2).size(), is(32));
+        config = new WorldConfiguration();
+        world = new World(n -> n, new Frame(10, 10), config);
     }
 
     @Test
@@ -68,14 +63,6 @@ public class WorldTest {
     }
 
     @Test
-    public void testPositionWraps() {
-        assertThat(world.move(world.position(0, 0), SOUTH), is(world.position(0, 9)));
-        assertThat(world.move(world.position(0, 0), WEST), is(world.position(9, 0)));
-        assertThat(world.move(world.position(9, 9), EAST), is(world.position(0, 9)));
-        assertThat(world.move(world.position(9, 9), NORTH), is(world.position(9, 0)));
-    }
-
-    @Test
     public void testTime() {
         assertThat(world.getTime(), is(0));
         world.tick();
@@ -84,7 +71,7 @@ public class WorldTest {
 
     @Test
     public void testTemperatureEffectByLatitude() {
-        world.setTemperatureRange(30, 80);
+        config.setTemperatureRange(30, 80);
         assertThat(world.getTemperature(world.position(0, 5)), is(80));
         assertThat(world.getTemperature(world.position(7, 5)), is(80));
         assertThat(world.getTemperature(world.position(7, 3)), is(60));
@@ -103,7 +90,7 @@ public class WorldTest {
     @Test
     public void testTemperatureEffectByTimeOfYear() {
         int position = world.position(7, 4);
-        world.setYear(4, 50);
+        config.setYear(4, 50);
         assertThat(world.getTemperature(position), is(50));
         world.tick();
         assertThat(world.getTemperature(position), is(25));
@@ -121,7 +108,7 @@ public class WorldTest {
 
     @Test
     public void testNegativeTemperaturesConsumeEnergyFromOrganisms() {
-        world.setTemperatureRange(-30, -30);
+        config.setTemperatureRange(-30, -30);
         Organism organism = new Organism(world, 50);
         world.addOrganism(world.position(4, 7), organism);
         world.tick();
@@ -134,7 +121,7 @@ public class WorldTest {
     public void testFeedOrganism() {
         int position = world.position(4, 7);
         Organism organism = new Organism(world, 50);
-        world.setTemperatureRange(50, 50);
+        config.setTemperatureRange(50, 50);
         world.addOrganism(position, organism);
         world.tick();
         world.feedOrganism(position, 10);
@@ -165,7 +152,7 @@ public class WorldTest {
 
     @Test
     public void testResourcesGrowBasedOnTemperature() {
-        world.setTemperatureRange(0, 50);
+        config.setTemperatureRange(0, 50);
         world.tick();
         assertThat(world.getResource(world.position(0, 0)), is(0));
         assertThat(world.getResource(world.position(7, 3)), is(30));

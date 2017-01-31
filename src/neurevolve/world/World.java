@@ -23,94 +23,60 @@ import neurevolve.organism.Recipe;
  */
 public class World implements Environment {
 
-    private final int width;
-    private final int height;
+    private final Frame frame;
+    private final WorldConfiguration config;
     private final int[] resources;
     private final int[] elevation;
     private final Organism[] population;
     private final Random random = new Random();
 
-    private int mutationRate = 0;
     private int time = 0;
     private int populationSize = 0;
-    private int yearLength = 1;
-    private int minTemp = 0;
-    private int maxTemp = 0;
-    private int tempVariation = 0;
 
     private final ActivationFunction function;
+
     private int currentPosition;
+    private Organism currentOrganism;
+
     private Organism largestOrganism;
     private int totalComplexity;
 
     /**
-     * Construct a world with the provide width and height
+     * Construct a world within a frame with a configuration
      *
      * @param function the activation function to use for all organisms in the world
-     * @param width the width of the world
-     * @param height the height of the world;
+     * @param frame the frame that defines the size of the world
+     * @param configuration the configuration of the world
      */
-    public World(ActivationFunction function, int width, int height) {
+    public World(ActivationFunction function, Frame frame, WorldConfiguration configuration) {
         this.function = function;
-        this.width = width;
-        this.height = height;
-        int size = width * height;
-        this.resources = new int[size];
-        this.elevation = new int[size];
-        this.population = new Organism[size];
+        this.config = configuration;
+        this.frame = frame;
+        this.resources = new int[frame.size()];
+        this.elevation = new int[frame.size()];
+        this.population = new Organism[frame.size()];
     }
 
     /**
-     * Set the mutation rate for the world. The mutation rate determines the likelihood of
-     * transcription errors when copying a recipe. A mutation rate of 0 means that no errors occur.
-     * A mutation rate of 1000 means that errors occur on every transcription.
+     * Get the position of coordinates within the frame.
      *
-     * @param mutationRate the rate of mutation (range 0-1000)
+     * @param x the horizontal distance from the left edge of the frame
+     * @param y the vertical distance from the bottom edge of the frame
+     * @return the position
      */
-    public void setMutationRate(int mutationRate) {
-        this.mutationRate = mutationRate;
-    }
-
-    /**
-     * Get the total number of positions in the world
-     *
-     * @return <tt>width * height</tt>
-     */
-    public int size() {
-        return width * height;
-    }
-
     public int position(int x, int y) {
-        return y * width + x;
+        return frame.position(x, y);
     }
 
-    public int move(int position, Direction direction) {
-        int x = x(position);
-        int y = y(position);
-        switch (direction) {
-            case NORTH:
-                return position(x, (y + 1) % height);
-            case EAST:
-                return position((x + 1) % width, y);
-            case SOUTH:
-                return position(x, (y + height - 1) % height);
-            case WEST:
-                return position((x + width - 1) % width, y);
-            default:
-                throw new AssertionError(direction.name());
-        }
-    }
-
-    private int latitude(int position) {
-        return y(position) - height / 2;
-    }
-
-    private int x(int position) {
-        return position % width;
-    }
-
-    private int y(int position) {
-        return position / width;
+    /**
+     * Calculate a new position in a given direction.
+     *
+     * @param position the starting position
+     * @param direction the direction to move
+     * @return the position in the given direction from the starting position.
+     */
+    public int move(int position, Frame.Direction direction) {
+        return frame.move(position, direction);
     }
 
     /**
@@ -139,8 +105,8 @@ public class World implements Environment {
      * @param dir the direction to the adjacent position
      * @return the difference in elevation
      */
-    public int getSlope(int position, Direction dir) {
-        return getElevation(move(position, dir)) - getElevation(position);
+    public int getSlope(int position, Frame.Direction dir) {
+        return getElevation(frame.move(position, dir)) - getElevation(position);
     }
 
     /**
@@ -163,14 +129,30 @@ public class World implements Environment {
         return elevation[position];
     }
 
+    /**
+     * Check if there is an organism in a given position
+     *
+     * @param position the position to check
+     * @return true if there is an organism in the position
+     */
     public boolean hasOrganism(int position) {
         return population[position] != null;
     }
 
+    /**
+     * Get the organism in a given position.
+     */
     private Organism getOrganism(int position) {
         return population[position];
     }
 
+    /**
+     * Add an organism to the world.
+     *
+     * @param position the position to place the organism
+     * @param organism the organism to place
+     * @throws IllegalArgumentException if the position already has an organism
+     */
     public void addOrganism(int position, Organism organism) {
         if (population[position] != null)
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
@@ -178,6 +160,9 @@ public class World implements Environment {
         populationSize++;
     }
 
+    /**
+     * Remove an organism (if any) from a position
+     */
     private void removeOrganism(int position) {
         if (population[position] != null) {
             population[position] = null;
@@ -185,18 +170,20 @@ public class World implements Environment {
         }
     }
 
+    /**
+     * Seed the world with a number of organisms constructed from a recipe. The organisms will be
+     * placed randomly within the frame.
+     *
+     * @param recipe the recipe to use to construct the organisms
+     * @param count the number of organism to add
+     */
     public void seed(Recipe recipe, int count) {
-        for (int i = 0; i < Math.min(count, size()); i++) {
-            int position = random.ints(0, size())
+        for (int i = 0; i < Math.min(count, frame.size()); i++) {
+            int position = random.ints(0, frame.size())
                     .filter(p -> !hasOrganism(p))
                     .findAny().orElseThrow(IllegalStateException::new);
             addOrganism(position, recipe.make(this, 1000));
         }
-    }
-
-    public void setTemperatureRange(int minTemp, int maxTemp) {
-        this.minTemp = minTemp;
-        this.maxTemp = maxTemp;
     }
 
     public void tick() {
@@ -206,7 +193,7 @@ public class World implements Environment {
     }
 
     private void growResources() {
-        for (int i = 0; i < width * height; i++) {
+        for (int i = 0; i < frame.size(); i++) {
             int temp = getTemperature(i);
             if (temp > 0)
                 resources[i] += temp;
@@ -216,15 +203,17 @@ public class World implements Environment {
     private void processPopulation() {
         largestOrganism = null;
         totalComplexity = 0;
-        Organism[] previous = Arrays.copyOf(population, size());
-        for (int i = 0; i < size(); i++) {
+        Organism[] previous = Arrays.copyOf(population, frame.size());
+        for (int i = 0; i < frame.size(); i++) {
             if (previous[i] != null)
                 processPosition(i, previous[i]);
         }
     }
 
     private void processPosition(int position, Organism organism) {
-        setCurrentPosition(position);
+        currentPosition = position;
+        currentOrganism = organism;
+
         reduceEnergyByTemperature(currentPosition, organism);
         organism.activate();
         totalComplexity += organism.complexity();
@@ -246,15 +235,27 @@ public class World implements Environment {
         this.currentPosition = position;
     }
 
-    public void moveOrganism(int position, Direction direction) {
-        if (hasOrganism(position) && !hasOrganism(move(position, direction))) {
-            int index = position;
-            Organism organism = population[index];
-            removeOrganism(index);
-            addOrganism(move(position, direction), organism);
+    /**
+     * Move an organism in a position (if any) in a direction.
+     *
+     * @param position the position of the organism
+     * @param direction the direction to move the organism
+     */
+    public void moveOrganism(int position, Frame.Direction direction) {
+        if (hasOrganism(position) && !hasOrganism(frame.move(position, direction))) {
+            Organism organism = population[position];
+            removeOrganism(position);
+            addOrganism(frame.move(position, direction), organism);
         }
     }
 
+    /**
+     * Feed the organism at the given position by a given amount. The amount is added to the
+     * organism's energy and taken from the world's resources at that position.
+     *
+     * @param position the position of the organism to feed
+     * @param amount the amount of resources to take from the world and add to the organism's energy
+     */
     public void feedOrganism(int position, int amount) {
         if (hasOrganism(position)) {
             if (amount > getResource(position))
@@ -264,6 +265,13 @@ public class World implements Environment {
         }
     }
 
+    /**
+     * Split the organism at the given position. The child organism is placed at a random position
+     * next to this organism. The split does not occur if the organism has 10 or less energy, or if
+     * there are no free positions adjacent to the organism.
+     *
+     * @param position the position of the organism to split.
+     */
     public void splitOrganism(int position) {
         if (hasOrganism(position)) {
             Organism organism = getOrganism(position);
@@ -274,10 +282,10 @@ public class World implements Environment {
     }
 
     private OptionalInt openPositionNextTo(int position) {
-        List<Direction> directions = Arrays.asList(Direction.values());
+        List<Frame.Direction> directions = Arrays.asList(Frame.Direction.values());
         Collections.shuffle(directions);
         return directions.stream()
-                .mapToInt(dir -> move(position, dir))
+                .mapToInt(dir -> frame.move(position, dir))
                 .filter(pos -> !hasOrganism(pos))
                 .findFirst();
     }
@@ -288,6 +296,12 @@ public class World implements Environment {
             organism.reduceEnergy(-temp);
     }
 
+    /**
+     * Kill and remove the organism at a given position. The current energy of the organism becomes
+     * resources at the organism's position.
+     *
+     * @param position the position of the organism
+     */
     public void killOrganism(int position) {
         if (!hasOrganism(position))
             throw new IllegalArgumentException("Attempt to kill organism in empty position");
@@ -301,60 +315,93 @@ public class World implements Environment {
         return time;
     }
 
-    public void setYear(int length, int tempVariation) {
-        this.yearLength = length;
-        this.tempVariation = tempVariation;
-    }
-
     public int getTemperature(int position) {
         return getLatitudeTemp(position) - getElevation(position) + getSeasonTemp();
     }
 
     private int getLatitudeTemp(int position) {
-        int distance = Math.abs(latitude(position));
-        return maxTemp - 2 * (maxTemp - minTemp) * distance / height;
+        return frame.scaleByLatitude(position, config.getMinTemp(), config.getMaxTemp());
     }
 
     private int getSeasonTemp() {
-        int timeOfYear = time % yearLength;
-        int timeFromMidYear = Math.abs(yearLength / 2 - timeOfYear);
-        return tempVariation * 2 * timeFromMidYear / yearLength;
+        int timeOfYear = time % config.getYearLength();
+        int timeFromMidYear = Math.abs(config.getYearLength() / 2 - timeOfYear);
+        return config.getTempVariation() * 2 * timeFromMidYear / config.getYearLength();
     }
 
+    /**
+     * Apply the world's activation function
+     *
+     * @param input the input value to the function
+     * @return the output value from the function
+     */
     @Override
     public int applyActivationFunction(int input) {
         return function.apply(input);
     }
 
+    /**
+     * Get the input for a given code
+     *
+     * @param input the code for the input value, as defined by {@link WorldInput#decode}
+     * @return the value for the code
+     */
     @Override
     public int getInput(int input) {
-        return WorldInput.getValue(input, this, currentPosition, getOrganism(currentPosition));
+        return WorldInput.getValue(input, this, currentPosition, currentOrganism);
     }
 
+    /**
+     * Perform the activity for a given code
+     *
+     * @param activity the code for the activity to perform, as defined by
+     * {@link WorldActivity#decode}.
+     */
     @Override
     public void performActivity(int activity) {
-        if (hasOrganism(currentPosition))
-            WorldActivity.perform(activity, this, currentPosition, getOrganism(currentPosition));
+        WorldActivity.perform(activity, this, currentPosition, currentOrganism);
     }
 
+    /**
+     * Copy a set of instructions within a recipe. The copy is designed to be imperfect to simulate
+     * transcription errors. Three types of errors can occur:
+     * <ul>
+     * <li>Copy errors, in which an instruction is copied with a random variation from its value
+     * <li>Deletion errors, in which a set of 1-3 codes are skipped
+     * <li>Duplication errors, in which a set of 1-3 codes is repeated
+     * </ul>
+     * The rate at which errors occur is set by {@link WorldConfiguration#setMutationRate(int)}
+     *
+     * @param instructions the instructions to copy
+     * @param size the number of instructions
+     * @return the copied instructions, with errors
+     */
     @Override
     public Recipe copyInstructions(int[] instructions, int size) {
-        Recipe copy = new Recipe();
-        int pos = 0;
-        while (pos < size) {
-            if (pos >= 0) {
-                int value = instructions[pos];
-                if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
-                    value += random.nextInt(11) - 5;
-                copy.add(value);
-            }
-            if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
-                pos += random.nextInt(3);
-            else if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
-                pos -= random.nextInt(3);
-            else
-                pos++;
+        Recipe recipe = new Recipe();
+        for (int pos = 0; pos < size; pos += advance()) {
+            if (pos >= 0)
+                recipe.add(copy(instructions[pos]));
         }
-        return copy;
+        return recipe;
     }
+
+    private int advance() {
+        if (mutate())
+            return random.nextInt(7) - 3;
+        else
+            return 1;
+    }
+
+    private int copy(int code) {
+        if (mutate())
+            code += random.nextInt(11) - 5;
+        return code;
+    }
+
+    private boolean mutate() {
+        return config.getMutationRate() > 0
+                && random.nextInt(1000 / config.getMutationRate()) == 0;
+    }
+
 }

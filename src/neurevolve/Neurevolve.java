@@ -5,8 +5,10 @@ import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import neurevolve.organism.RecipePrinter;
+import neurevolve.world.Frame;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
+import neurevolve.world.WorldConfiguration;
 import neurevolve.world.WorldInput;
 
 public class Neurevolve {
@@ -30,11 +32,13 @@ public class Neurevolve {
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
 
-        World world = new World(new SigmoidFunction(1000), 800, 800);
-        world.setTemperatureRange(30, 90);
-        world.setYear(100, -110);
+        WorldConfiguration config = new WorldConfiguration();
+        config.setTemperatureRange(30, 90);
+        config.setYear(100, -110);
+        config.setMutationRate(10);
+
+        World world = new World(new SigmoidFunction(1000), new Frame(800, 800), config);
         world.seed(recipe, 1000);
-        world.setMutationRate(10);
 
         for (int t = 0; t < 1000; t++) {
             world.tick();
