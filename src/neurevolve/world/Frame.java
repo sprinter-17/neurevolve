@@ -44,6 +44,7 @@ public class Frame {
      *
      * @param width the horizontal size of the frame
      * @param height the vertical size of the frame
+     * @throws IllegalArgumentException if <tt>width &le; 0 || height &le; 0</tt>
      */
     public Frame(int width, int height) {
         if (width <= 0 || height <= 0)
@@ -89,6 +90,14 @@ public class Frame {
     }
 
     /**
+     * Throws an IllegalArgumentException if the given position is illegal
+     */
+    private void checkPosition(int position) {
+        if (position < 0 || position >= size())
+            throw new IllegalArgumentException("Illegal position");
+    }
+
+    /**
      * Scale a value between two limits by the vertical distance of a position from the middle of
      * the frame.
      *
@@ -101,14 +110,6 @@ public class Frame {
     public int scaleByLatitude(int position, int min, int max) {
         checkPosition(position);
         return max - (2 * (max - min) * latitude(position) / height);
-    }
-
-    /**
-     * Throws an IllegalArgumentException if the given position is illegal
-     */
-    private void checkPosition(int position) {
-        if (position < 0 || position >= size())
-            throw new IllegalArgumentException("Illegal position");
     }
 
     /**

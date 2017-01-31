@@ -33,14 +33,14 @@ public class Neurevolve {
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
 
         WorldConfiguration config = new WorldConfiguration();
-        config.setTemperatureRange(30, 90);
+        config.setTemperatureRange(90, 90);
         config.setYear(100, -110);
         config.setMutationRate(10);
 
-        World world = new World(new SigmoidFunction(1000), new Frame(800, 800), config);
+        World world = new World(new SigmoidFunction(1000), new Frame(1000, 1000), config);
         world.seed(recipe, 1000);
 
-        for (int t = 0; t < 1000; t++) {
+        for (int t = 0; t < 500; t++) {
             world.tick();
             Organism mostComplex = world.getLargestOrganism();
             System.out.println(world.getTime() + ":" + world.getPopulationSize()

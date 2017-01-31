@@ -236,7 +236,9 @@ public class World implements Environment {
     }
 
     /**
-     * Move an organism in a position (if any) in a direction.
+     * Move an organism in a position (if any) in a direction. A move consumes energy from the
+     * organism in proportion to the difference in elevation of the two positions. If the organism
+     * does not have enough energy it doesn't move
      *
      * @param position the position of the organism
      * @param direction the direction to move the organism
@@ -244,8 +246,11 @@ public class World implements Environment {
     public void moveOrganism(int position, Frame.Direction direction) {
         if (hasOrganism(position) && !hasOrganism(frame.move(position, direction))) {
             Organism organism = population[position];
-            removeOrganism(position);
-            addOrganism(frame.move(position, direction), organism);
+            int slope = Math.max(0, getSlope(position, direction));
+            if (organism.consume(slope)) {
+                removeOrganism(position);
+                addOrganism(frame.move(position, direction), organism);
+            }
         }
     }
 
@@ -256,10 +261,9 @@ public class World implements Environment {
      * @param position the position of the organism to feed
      * @param amount the amount of resources to take from the world and add to the organism's energy
      */
-    public void feedOrganism(int position, int amount) {
+    public void feedOrganism(int position) {
         if (hasOrganism(position)) {
-            if (amount > getResource(position))
-                amount = getResource(position);
+            int amount = Math.min(resources[position], config.getConsumptionRate());
             getOrganism(position).increaseEnergy(amount);
             resources[position] -= amount;
         }
@@ -267,15 +271,16 @@ public class World implements Environment {
 
     /**
      * Split the organism at the given position. The child organism is placed at a random position
-     * next to this organism. The split does not occur if the organism has 10 or less energy, or if
-     * there are no free positions adjacent to the organism.
+     * next to this organism. The split does consumes as much energy as the size of the recipe being
+     * replicated. If it does not have enough energy then it does not split. It also does not split
+     * if there are no free positions adjacent to the organism.
      *
      * @param position the position of the organism to split.
      */
     public void splitOrganism(int position) {
         if (hasOrganism(position)) {
             Organism organism = getOrganism(position);
-            if (organism.getEnergy() > 10)
+            if (organism.consume(organism.size()))
                 openPositionNextTo(position)
                         .ifPresent(pos -> addOrganism(pos, organism.divide()));
         }

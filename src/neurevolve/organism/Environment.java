@@ -7,7 +7,7 @@ package neurevolve.organism;
 public interface Environment {
 
     /**
-     * Apply the environment's {@link ActivationFunction}
+     * Apply the environment's {@link neurevolve.network.ActivationFunction}
      *
      * @param input input value
      * @return activation value

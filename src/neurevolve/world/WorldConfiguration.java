@@ -16,6 +16,7 @@ public class WorldConfiguration {
     private int minTemp = 0;
     private int maxTemp = 0;
     private int tempVariation = 0;
+    private int consumptionRate = 40;
 
     /**
      * Set the mutation rate for the world. The mutation rate determines the likelihood of
@@ -23,7 +24,7 @@ public class WorldConfiguration {
      * A mutation rate of 1000 means that errors occur on every transcription.
      *
      * @param mutationRate the rate of mutation (range 0-1000)
-     * @throws IllegalArgumentException if <tt>rate < 0 || rate >1000</tt>
+     * @throws IllegalArgumentException if <tt>rate &lt; 0 || rate &gt; 1000</tt>
      */
     public void setMutationRate(int mutationRate) {
         if (mutationRate < 0 || mutationRate > 1000)
@@ -38,7 +39,7 @@ public class WorldConfiguration {
      *
      * @param minTemp the temperature along the top and bottom edges
      * @param maxTemp the temperature in the centre of the frame
-     * @throws IllegalArgumentException if <tt>minTemp > maxTemp</tt>
+     * @throws IllegalArgumentException if <tt>minTemp &gt; maxTemp</tt>
      */
     public void setTemperatureRange(int minTemp, int maxTemp) {
         if (minTemp > maxTemp)
@@ -63,6 +64,18 @@ public class WorldConfiguration {
         this.tempVariation = tempVariation;
     }
 
+    /**
+     * Set the rate at which organisms consume resources.
+     *
+     * @param consumptionRate the consumption rate
+     * @throws IllegalArgumentException if <tt>consumptionRate &lt; 1</tt>
+     */
+    public void setConsumptionRate(int consumptionRate) {
+        if (consumptionRate < 1)
+            throw new IllegalArgumentException("Consumption rate must be greater than 0");
+        this.consumptionRate = consumptionRate;
+    }
+
     public int getMutationRate() {
         return mutationRate;
     }
@@ -81,6 +94,10 @@ public class WorldConfiguration {
 
     public int getTempVariation() {
         return tempVariation;
+    }
+
+    public int getConsumptionRate() {
+        return consumptionRate;
     }
 
 }

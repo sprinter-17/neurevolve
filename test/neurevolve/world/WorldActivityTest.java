@@ -35,6 +35,7 @@ public class WorldActivityTest {
     @Test
     public void testEat() {
         config.setTemperatureRange(100, 100);
+        config.setConsumptionRate(20);
         world.tick();
         WorldActivity.EAT.perform(world, position, organism);
         assertThat(world.getResource(position), is(80));

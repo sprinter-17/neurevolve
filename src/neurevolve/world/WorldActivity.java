@@ -7,7 +7,7 @@ import static neurevolve.world.Frame.Direction.SOUTH;
 import static neurevolve.world.Frame.Direction.WEST;
 
 public enum WorldActivity {
-    EAT("Eat", (w, p, o) -> w.feedOrganism(p, 20)),
+    EAT("Eat", (w, p, o) -> w.feedOrganism(p)),
     DIVIDE("Divide", (w, p, o) -> w.splitOrganism(p)),
     MOVE_EAST("Move East", (w, p, o) -> w.moveOrganism(p, EAST)),
     MOVE_NORTH("Move North", (w, p, o) -> w.moveOrganism(p, NORTH)),

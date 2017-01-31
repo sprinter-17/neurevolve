@@ -95,6 +95,19 @@ public class Organism {
     }
 
     /**
+     * If organism has enough energy, reduce it by the given amount.
+     *
+     * @param amount amount of energy to reduce
+     * @return true, if the energy was reduced
+     */
+    public boolean consume(int amount) {
+        if (energy < amount)
+            return false;
+        reduceEnergy(amount);
+        return true;
+    }
+
+    /**
      * Increase the organism's energy
      *
      * @param addition the amount by which to increase the organism's energy

@@ -122,11 +122,12 @@ public class WorldTest {
         int position = world.position(4, 7);
         Organism organism = new Organism(world, 50);
         config.setTemperatureRange(50, 50);
-        world.addOrganism(position, organism);
         world.tick();
-        world.feedOrganism(position, 10);
-        assertThat(world.getResource(position), is(40));
-        assertThat(organism.getEnergy(), is(60));
+        world.addOrganism(position, organism);
+        config.setConsumptionRate(18);
+        world.feedOrganism(position);
+        assertThat(world.getResource(position), is(32));
+        assertThat(organism.getEnergy(), is(68));
     }
 
     @Test
