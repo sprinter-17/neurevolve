@@ -41,6 +41,7 @@ public class World implements Environment {
     private final ActivationFunction function;
     private Position currentPosition;
     private Organism largestOrganism;
+    private int totalComplexity;
 
     /**
      * Construct a world with the provide width and height
@@ -187,12 +188,15 @@ public class World implements Environment {
 
     private void growResources() {
         for (int i = 0; i < width * height; i++) {
-            resources[i] += getTemperature(Position.fromIndex(i, width, height));
+            int temp = getTemperature(Position.fromIndex(i, width, height));
+            if (temp > 0)
+                resources[i] += temp;
         }
     }
 
     private void processPopulation() {
         largestOrganism = null;
+        totalComplexity = 0;
         Organism[] previous = Arrays.copyOf(population, size());
         for (int i = 0; i < size(); i++) {
             if (previous[i] != null)
@@ -204,14 +208,19 @@ public class World implements Environment {
         setCurrentPosition(Position.fromIndex(position, width, height));
         reduceEnergyByTemperature(currentPosition, organism);
         organism.activate();
+        totalComplexity += organism.complexity();
         if (organism.isDead())
             removeOrganism(position);
-        else if (largestOrganism == null || organism.size() > largestOrganism.size())
+        else if (largestOrganism == null || organism.complexity() > largestOrganism.complexity())
             largestOrganism = organism;
     }
 
     public Organism getLargestOrganism() {
         return largestOrganism;
+    }
+
+    public float getAverageComplexity() {
+        return (float) totalComplexity / populationSize;
     }
 
     protected void setCurrentPosition(Position position) {
@@ -295,18 +304,19 @@ public class World implements Environment {
     }
 
     @Override
-    public ActivationFunction getActivationFunction() {
-        return function;
+    public int applyActivationFunction(int input) {
+        return function.apply(input);
     }
 
     @Override
     public int getInput(int input) {
-        return WorldInput.getValue(input, this, currentPosition);
+        return WorldInput.getValue(input, this, currentPosition, getOrganism(currentPosition));
     }
 
     @Override
     public void performActivity(int activity) {
-        WorldActivity.perform(activity, this, currentPosition);
+        if (hasOrganism(currentPosition))
+            WorldActivity.perform(activity, this, currentPosition, getOrganism(currentPosition));
     }
 
     @Override
@@ -317,13 +327,13 @@ public class World implements Environment {
             if (pos >= 0) {
                 int value = instructions[pos];
                 if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
-                    value += random.nextInt(20) - 10;
+                    value += random.nextInt(11) - 5;
                 copy.add(value);
             }
             if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
-                pos += random.nextInt(5);
+                pos += random.nextInt(3);
             else if (mutationRate > 0 && random.nextInt(1000 / mutationRate) == 0)
-                pos -= random.nextInt(5);
+                pos -= random.nextInt(3);
             else
                 pos++;
         }

@@ -1,17 +1,20 @@
 package neurevolve.world;
 
+import neurevolve.organism.Organism;
+
 public enum WorldInput {
-    ELEVATION("Height", (w, p) -> w.getElevation(p)),
-    TEMPERATURE("Temp", (w, p) -> w.getTemperature(p)),
-    RESOURCES("Look Down", (w, p) -> w.getResource(p)),
-    RESOURCES_EAST("Look East", (w, p) -> w.getResource(Direction.EAST.move(p))),
-    RESOURCES_WEST("Look West", (w, p) -> w.getResource(Direction.WEST.move(p))),
-    RESOURCES_NORTH("Look North", (w, p) -> w.getResource(Direction.NORTH.move(p))),
-    RESOURCES_SOUTH("Look South", (w, p) -> w.getResource(Direction.SOUTH.move(p))),;
+    OWN_ENERGY("Energy", (w, p, o) -> o.getEnergy()),
+    ELEVATION("Height", (w, p, o) -> w.getElevation(p)),
+    TEMPERATURE("Temp", (w, p, o) -> w.getTemperature(p)),
+    RESOURCES("Look Down", (w, p, o) -> w.getResource(p)),
+    RESOURCES_EAST("Look East", (w, p, o) -> w.getResource(Direction.EAST.move(p))),
+    RESOURCES_WEST("Look West", (w, p, o) -> w.getResource(Direction.WEST.move(p))),
+    RESOURCES_NORTH("Look North", (w, p, o) -> w.getResource(Direction.NORTH.move(p))),
+    RESOURCES_SOUTH("Look South", (w, p, o) -> w.getResource(Direction.SOUTH.move(p))),;
 
     private interface ValueGetter {
 
-        public int getValue(World world, Position position);
+        public int getValue(World world, Position position, Organism organism);
     }
 
     private final String name;
@@ -22,18 +25,20 @@ public enum WorldInput {
         this.getter = getter;
     }
 
-    public int getValue(World world, Position position) {
-        return getter.getValue(world, position);
+    public int getValue(World world, Position position, Organism organism) {
+        return getter.getValue(world, position, organism);
     }
 
-    public static int getValue(int input, World world, Position position) {
-        if (input < 0)
-            return 0;
-        else
-            return values()[input % values().length].getValue(world, position);
+    public static WorldInput decode(int code) {
+        final int count = values().length;
+        return values()[((code % count) + count) % count];
+    }
+
+    public static int getValue(int input, World world, Position position, Organism organism) {
+        return decode(input).getValue(world, position, organism);
     }
 
     public static String print(int code) {
-        return code < 0 ? "#" : values()[code % values().length].name;
+        return decode(code).name;
     }
 }

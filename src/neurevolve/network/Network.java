@@ -119,4 +119,13 @@ public class Network {
         else
             return neurons.get(neurons.size() - 1);
     }
+
+    /**
+     * Get a measure of the total complex activity of the network over its lifetime
+     *
+     * @return the total of the complex activity of all neurons in the network
+     */
+    public int getTotalActivitySwitches() {
+        return neurons.stream().mapToInt(Neuron::getActivationCount).sum();
+    }
 }

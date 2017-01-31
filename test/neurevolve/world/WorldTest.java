@@ -221,11 +221,6 @@ public class WorldTest {
     }
 
     @Test
-    public void testMeaninglessInput() {
-        assertThat(world.getInput(-1), is(0));
-    }
-
-    @Test
     public void testGetElevationAsInput() {
         Position position = new Position(4, 7);
         world.setCurrentPosition(position);
@@ -259,7 +254,7 @@ public class WorldTest {
     @Test
     public void testInitialGrowth() {
         Recipe recipe = new Recipe();
-        recipe.add(Instruction.ADD_NEURON, -10);
+        recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
         world.seed(recipe, 5);
         assertThat(world.getPopulationSize(), is(5));

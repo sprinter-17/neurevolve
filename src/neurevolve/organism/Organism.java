@@ -25,7 +25,7 @@ public class Organism {
         if (initialEnergy < 0)
             throw new IllegalArgumentException("Negative initial energy");
         this.environment = environment;
-        this.brain = new Network(environment.getActivationFunction());
+        this.brain = new Network(environment::applyActivationFunction);
         this.energy = initialEnergy;
         setRecipe(new Recipe());
     }
@@ -59,6 +59,15 @@ public class Organism {
      */
     public int size() {
         return brain.size();
+    }
+
+    /**
+     * Get a measure of the complexity of the organism.
+     *
+     * @return the total number of activity switches of the associated network.
+     */
+    public int complexity() {
+        return brain.getTotalActivitySwitches();
     }
 
     /**

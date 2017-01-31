@@ -1,6 +1,5 @@
 package neurevolve.organism;
 
-import java.util.Optional;
 import java.util.Queue;
 import neurevolve.network.Activity;
 import neurevolve.network.Input;
@@ -58,11 +57,9 @@ public enum Instruction {
      * @param code the code to convert to an <code>Instruction</code>
      * @return the instruction, or <tt>Optional.empty()</tt> if there is no instruction for the code
      */
-    public static Optional<Instruction> decode(int code) {
-        if (code < 0)
-            return Optional.empty();
-        else
-            return Optional.of(values()[code % values().length]);
+    public static Instruction decode(int code) {
+        final int count = values().length;
+        return values()[((code % count) + count) % count];
     }
 
     /**

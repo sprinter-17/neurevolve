@@ -2,7 +2,6 @@ package neurevolve.organism;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.stream.IntStream;
 
@@ -32,10 +31,9 @@ public class Recipe {
         Queue<Integer> queue = instructionInQueue();
         boolean first = true;
         while (!queue.isEmpty()) {
-            Optional<Instruction> instruction = Instruction.decode(queue.remove());
             if (!first)
                 builder.append(",");
-            builder.append(instruction.map(i -> i.toString(printer, queue)).orElse("#"));
+            builder.append(Instruction.decode(queue.remove()).toString(printer, queue));
             first = false;
         }
         builder.append("]");
@@ -116,8 +114,7 @@ public class Recipe {
         Queue<Integer> values = instructionInQueue();
         while (!values.isEmpty()) {
             int code = values.remove();
-            Instruction.decode(code)
-                    .ifPresent(c -> c.complete(organism, values));
+            Instruction.decode(code).complete(organism, values);
         }
         organism.setRecipe(this);
     }

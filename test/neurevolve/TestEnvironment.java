@@ -2,17 +2,16 @@ package neurevolve;
 
 import java.util.HashSet;
 import java.util.Set;
-import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Recipe;
 
 public class TestEnvironment implements Environment {
 
-    private Set<Integer> activitiesPerformed = new HashSet<>();
+    private final Set<Integer> activitiesPerformed = new HashSet<>();
 
     @Override
-    public ActivationFunction getActivationFunction() {
-        return n -> n;
+    public int applyActivationFunction(int input) {
+        return input;
     }
 
     @Override

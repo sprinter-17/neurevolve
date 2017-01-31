@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -104,8 +105,12 @@ public class NetworkTest {
         Activity activity = mock(Activity.class);
         network.addNeuron();
         network.setActivity(activity);
+        network.setThreshold(1);
         network.activate();
         verify(activity, never()).perform();
+        network.setThreshold(0);
+        network.activate();
+        verify(activity, times(1)).perform();
     }
 
 }

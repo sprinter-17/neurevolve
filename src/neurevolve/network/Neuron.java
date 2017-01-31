@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A <code>Neuron</code> is the unit of calculation and action in the network
+ * A <code>Neuron</code> is the unit of calculation and action in the network. It functions by
+ * summing a set of weighted input values and comparing the result to a threshold. If the inputs are
+ * equal to or greater than the threshold then the neuron is considered activated. It can have a
+ * single activity associated with it which is performed when the neuron is activated.
  */
 public class Neuron {
 
@@ -13,6 +16,7 @@ public class Neuron {
 
     private int value;
     private int threshold = 0;
+    private int switches = 0;
     private final List<Synapse> inputs = new ArrayList<>();
     private Optional<Activity> activity = Optional.empty();
 
@@ -51,8 +55,18 @@ public class Neuron {
     }
 
     /**
+     * Get a measure of the complex activity of the neuron.
+     *
+     * @return the number of times the neuron has switched to performing an activity.
+     */
+    public int getActivationCount() {
+        return switches;
+    }
+
+    /**
      * Set the threshold for the <code>Neuron</code>. At activation, the value is set to
-     * <tt>-threshold</tt> before any inputs are added.
+     * <tt>-threshold</tt> before any inputs are added. This method will override any previous
+     * thresholds.
      *
      * @param threshold the threshold value
      */
@@ -84,13 +98,17 @@ public class Neuron {
     /**
      * Activate the neuron, calculating its value and firing the activity if the threshold is met.
      * The value is determined by adding the value of all weighted inputs, subtracting the threshold
-     * and then applying the activation function. If the resulting value is positive, the activity
-     * is fired.
+     * and then applying the activation function. If the resulting value is not negative, the
+     * activity is fired.
      */
     public void activate() {
+        int previous = value;
         value = inputs.stream().mapToInt(Synapse::getValue).sum() - threshold;
         value = function.apply(value);
-        if (value > 0)
+        if (value >= 0) {
+            if (activity.isPresent() && previous < 0)
+                switches++;
             activity.ifPresent(Activity::perform);
+        }
     }
 }
