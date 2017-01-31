@@ -9,13 +9,13 @@ import org.junit.Test;
 public class WorldInputTest {
 
     private World world;
-    private Position position;
+    private int position;
     private Organism organism;
 
     @Before
     public void setup() {
         world = new World(n -> n, 10, 10);
-        position = new Position(5, 6);
+        position = world.position(5, 6);
         organism = new Organism(world, 100);
     }
 

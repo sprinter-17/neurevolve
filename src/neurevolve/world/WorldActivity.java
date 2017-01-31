@@ -12,7 +12,7 @@ public enum WorldActivity {
 
     private interface ActivityPerformer {
 
-        public void perform(World world, Position position, Organism organism);
+        public void perform(World world, int position, Organism organism);
     }
 
     private final String name;
@@ -23,7 +23,7 @@ public enum WorldActivity {
         this.performer = performer;
     }
 
-    public void perform(World world, Position position, Organism organism) {
+    public void perform(World world, int position, Organism organism) {
         performer.perform(world, position, organism);
     }
 
@@ -32,7 +32,7 @@ public enum WorldActivity {
         return values()[((code % length) + length) % length];
     }
 
-    public static void perform(int activity, World world, Position position, Organism organism) {
+    public static void perform(int activity, World world, int position, Organism organism) {
         decode(activity).perform(world, position, organism);
     }
 

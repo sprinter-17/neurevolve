@@ -3,7 +3,7 @@ package neurevolve.world;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Random;
 import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
@@ -39,7 +39,7 @@ public class World implements Environment {
     private int tempVariation = 0;
 
     private final ActivationFunction function;
-    private Position currentPosition;
+    private int currentPosition;
     private Organism largestOrganism;
     private int totalComplexity;
 
@@ -80,6 +80,39 @@ public class World implements Environment {
         return width * height;
     }
 
+    public int position(int x, int y) {
+        return y * width + x;
+    }
+
+    public int move(int position, Direction direction) {
+        int x = x(position);
+        int y = y(position);
+        switch (direction) {
+            case NORTH:
+                return position(x, (y + 1) % height);
+            case EAST:
+                return position((x + 1) % width, y);
+            case SOUTH:
+                return position(x, (y + height - 1) % height);
+            case WEST:
+                return position((x + width - 1) % width, y);
+            default:
+                throw new AssertionError(direction.name());
+        }
+    }
+
+    private int latitude(int position) {
+        return y(position) - height / 2;
+    }
+
+    private int x(int position) {
+        return position % width;
+    }
+
+    private int y(int position) {
+        return position / width;
+    }
+
     /**
      * Get the total number of organisms in the world
      *
@@ -95,8 +128,8 @@ public class World implements Environment {
      * @param position the position to check
      * @return the amount of resource at the given position
      */
-    public int getResource(Position position) {
-        return resources[position.toIndex(width, height)];
+    public int getResource(int position) {
+        return resources[position];
     }
 
     /**
@@ -106,8 +139,8 @@ public class World implements Environment {
      * @param dir the direction to the adjacent position
      * @return the difference in elevation
      */
-    public int getSlope(Position position, Direction dir) {
-        return getElevation(dir.move(position)) - getElevation(position);
+    public int getSlope(int position, Direction dir) {
+        return getElevation(move(position, dir)) - getElevation(position);
     }
 
     /**
@@ -116,8 +149,8 @@ public class World implements Environment {
      * @param position the position whose elevation will be set
      * @param value the elevation to set the position to
      */
-    public void setElevation(Position position, int value) {
-        elevation[position.toIndex(width, height)] = value;
+    public void setElevation(int position, int value) {
+        elevation[position] = value;
     }
 
     /**
@@ -126,37 +159,23 @@ public class World implements Environment {
      * @param position the position to get the elevation for
      * @return the elevation at the given position
      */
-    protected int getElevation(Position position) {
-        return elevation[position.toIndex(width, height)];
+    protected int getElevation(int position) {
+        return elevation[position];
     }
 
-    public boolean hasOrganism(Position position) {
-        return hasOrganism(position.toIndex(width, height));
-    }
-
-    private boolean hasOrganism(int position) {
+    public boolean hasOrganism(int position) {
         return population[position] != null;
-    }
-
-    private Organism getOrganism(Position position) {
-        return getOrganism(position.toIndex(width, height));
     }
 
     private Organism getOrganism(int position) {
         return population[position];
     }
 
-    public void addOrganism(Position position, Organism organism) {
-        if (hasOrganism(position))
+    public void addOrganism(int position, Organism organism) {
+        if (population[position] != null)
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
-        addOrganism(position.toIndex(width, height), organism);
-    }
-
-    private void addOrganism(int position, Organism organism) {
-        if (population[position] == null) {
-            population[position] = organism;
-            populationSize++;
-        }
+        population[position] = organism;
+        populationSize++;
     }
 
     private void removeOrganism(int position) {
@@ -188,7 +207,7 @@ public class World implements Environment {
 
     private void growResources() {
         for (int i = 0; i < width * height; i++) {
-            int temp = getTemperature(Position.fromIndex(i, width, height));
+            int temp = getTemperature(i);
             if (temp > 0)
                 resources[i] += temp;
         }
@@ -205,7 +224,7 @@ public class World implements Environment {
     }
 
     private void processPosition(int position, Organism organism) {
-        setCurrentPosition(Position.fromIndex(position, width, height));
+        setCurrentPosition(position);
         reduceEnergyByTemperature(currentPosition, organism);
         organism.activate();
         totalComplexity += organism.complexity();
@@ -223,29 +242,29 @@ public class World implements Environment {
         return (float) totalComplexity / populationSize;
     }
 
-    protected void setCurrentPosition(Position position) {
+    protected void setCurrentPosition(int position) {
         this.currentPosition = position;
     }
 
-    public void moveOrganism(Position position, Direction direction) {
-        if (hasOrganism(position) && !hasOrganism(direction.move(position))) {
-            int index = position.toIndex(width, height);
+    public void moveOrganism(int position, Direction direction) {
+        if (hasOrganism(position) && !hasOrganism(move(position, direction))) {
+            int index = position;
             Organism organism = population[index];
             removeOrganism(index);
-            addOrganism(direction.move(position), organism);
+            addOrganism(move(position, direction), organism);
         }
     }
 
-    public void feedOrganism(Position position, int amount) {
+    public void feedOrganism(int position, int amount) {
         if (hasOrganism(position)) {
             if (amount > getResource(position))
                 amount = getResource(position);
             getOrganism(position).increaseEnergy(amount);
-            resources[position.toIndex(width, height)] -= amount;
+            resources[position] -= amount;
         }
     }
 
-    public void splitOrganism(Position position) {
+    public void splitOrganism(int position) {
         if (hasOrganism(position)) {
             Organism organism = getOrganism(position);
             if (organism.getEnergy() > 10)
@@ -254,29 +273,28 @@ public class World implements Environment {
         }
     }
 
-    private Optional<Position> openPositionNextTo(Position position) {
+    private OptionalInt openPositionNextTo(int position) {
         List<Direction> directions = Arrays.asList(Direction.values());
         Collections.shuffle(directions);
         return directions.stream()
-                .map(dir -> dir.move(position))
+                .mapToInt(dir -> move(position, dir))
                 .filter(pos -> !hasOrganism(pos))
                 .findFirst();
     }
 
-    private void reduceEnergyByTemperature(Position position, Organism organism) {
+    private void reduceEnergyByTemperature(int position, Organism organism) {
         int temp = getTemperature(position);
         if (temp < 0)
             organism.reduceEnergy(-temp);
     }
 
-    public void killOrganism(Position position) {
+    public void killOrganism(int position) {
         if (!hasOrganism(position))
             throw new IllegalArgumentException("Attempt to kill organism in empty position");
-        int index = position.toIndex(width, height);
-        Organism organism = population[index];
-        resources[index] += organism.getEnergy();
+        Organism organism = population[position];
+        resources[position] += organism.getEnergy();
         organism.reduceEnergy(organism.getEnergy());
-        population[index] = null;
+        population[position] = null;
     }
 
     public int getTime() {
@@ -288,12 +306,12 @@ public class World implements Environment {
         this.tempVariation = tempVariation;
     }
 
-    public int getTemperature(Position position) {
+    public int getTemperature(int position) {
         return getLatitudeTemp(position) - getElevation(position) + getSeasonTemp();
     }
 
-    private int getLatitudeTemp(Position position) {
-        int distance = Math.abs(position.latitude(height));
+    private int getLatitudeTemp(int position) {
+        int distance = Math.abs(latitude(position));
         return maxTemp - 2 * (maxTemp - minTemp) * distance / height;
     }
 

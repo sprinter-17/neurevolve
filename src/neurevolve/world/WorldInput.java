@@ -1,20 +1,24 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
+import static neurevolve.world.Direction.EAST;
+import static neurevolve.world.Direction.NORTH;
+import static neurevolve.world.Direction.SOUTH;
+import static neurevolve.world.Direction.WEST;
 
 public enum WorldInput {
     OWN_ENERGY("Energy", (w, p, o) -> o.getEnergy()),
     ELEVATION("Height", (w, p, o) -> w.getElevation(p)),
     TEMPERATURE("Temp", (w, p, o) -> w.getTemperature(p)),
     RESOURCES("Look Down", (w, p, o) -> w.getResource(p)),
-    RESOURCES_EAST("Look East", (w, p, o) -> w.getResource(Direction.EAST.move(p))),
-    RESOURCES_WEST("Look West", (w, p, o) -> w.getResource(Direction.WEST.move(p))),
-    RESOURCES_NORTH("Look North", (w, p, o) -> w.getResource(Direction.NORTH.move(p))),
-    RESOURCES_SOUTH("Look South", (w, p, o) -> w.getResource(Direction.SOUTH.move(p))),;
+    RESOURCES_EAST("Look East", (w, p, o) -> w.getResource(w.move(p, EAST))),
+    RESOURCES_WEST("Look West", (w, p, o) -> w.getResource(w.move(p, WEST))),
+    RESOURCES_NORTH("Look North", (w, p, o) -> w.getResource(w.move(p, NORTH))),
+    RESOURCES_SOUTH("Look South", (w, p, o) -> w.getResource(w.move(p, SOUTH))),;
 
     private interface ValueGetter {
 
-        public int getValue(World world, Position position, Organism organism);
+        public int getValue(World world, int position, Organism organism);
     }
 
     private final String name;
@@ -25,7 +29,7 @@ public enum WorldInput {
         this.getter = getter;
     }
 
-    public int getValue(World world, Position position, Organism organism) {
+    public int getValue(World world, int position, Organism organism) {
         return getter.getValue(world, position, organism);
     }
 
@@ -34,7 +38,7 @@ public enum WorldInput {
         return values()[((code % count) + count) % count];
     }
 
-    public static int getValue(int input, World world, Position position, Organism organism) {
+    public static int getValue(int input, World world, int position, Organism organism) {
         return decode(input).getValue(world, position, organism);
     }
 
