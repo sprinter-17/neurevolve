@@ -13,6 +13,8 @@ public class Organism {
     private final Network brain;
     private Recipe recipe = null;
     private int energy;
+    private int position;
+    private int direction;
 
     /**
      * Construct an organism.
@@ -152,7 +154,7 @@ public class Organism {
      * @return the resulting input
      */
     public Input getInput(int value) {
-        return () -> environment.getInput(value);
+        return () -> environment.getInput(this, value);
     }
 
     /**
@@ -162,6 +164,22 @@ public class Organism {
      * @return the resulting activity
      */
     public Activity getActivity(int value) {
-        return () -> environment.performActivity(value);
+        return () -> environment.performActivity(this, value);
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
     }
 }

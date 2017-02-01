@@ -1,24 +1,19 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
-import static neurevolve.world.Frame.Direction.EAST;
-import static neurevolve.world.Frame.Direction.NORTH;
-import static neurevolve.world.Frame.Direction.SOUTH;
-import static neurevolve.world.Frame.Direction.WEST;
 
 public enum WorldInput {
-    OWN_ENERGY("Energy", (w, p, o) -> o.getEnergy()),
-    ELEVATION("Height", (w, p, o) -> w.getElevation(p)),
-    TEMPERATURE("Temp", (w, p, o) -> w.getTemperature(p)),
-    RESOURCES("Look Down", (w, p, o) -> w.getResource(p)),
-    RESOURCES_EAST("Look East", (w, p, o) -> w.getResource(w.move(p, EAST))),
-    RESOURCES_WEST("Look West", (w, p, o) -> w.getResource(w.move(p, WEST))),
-    RESOURCES_NORTH("Look North", (w, p, o) -> w.getResource(w.move(p, NORTH))),
-    RESOURCES_SOUTH("Look South", (w, p, o) -> w.getResource(w.move(p, SOUTH))),;
+    OWN_ENERGY("Energy", (w, o) -> o.getEnergy()),
+    ELEVATION("Height", (w, o) -> w.getElevation(o.getPosition())),
+    TEMPERATURE("Temp", (w, o) -> w.getTemperature(o.getPosition())),
+    RESOURCES("Look Down", (w, o) -> w.getResource(o.getPosition())),
+    RESOURCES_EAST("Look Forward", (w, o) -> w.getResource(o.getPosition(), o.getDirection())),
+    RESOURCES_WEST("Look Left", (w, o) -> w.getResource(o.getPosition(), (o.getDirection() + 3) % 4)),
+    RESOURCES_NORTH("Look Right", (w, o) -> w.getResource(o.getPosition(), (o.getDirection() + 1) % 4));
 
     private interface ValueGetter {
 
-        public int getValue(World world, int position, Organism organism);
+        public int getValue(World world, Organism organism);
     }
 
     private final String name;
@@ -29,8 +24,8 @@ public enum WorldInput {
         this.getter = getter;
     }
 
-    public int getValue(World world, int position, Organism organism) {
-        return getter.getValue(world, position, organism);
+    public int getValue(World world, Organism organism) {
+        return getter.getValue(world, organism);
     }
 
     public static WorldInput decode(int code) {
@@ -38,8 +33,8 @@ public enum WorldInput {
         return values()[((code % count) + count) % count];
     }
 
-    public static int getValue(int input, World world, int position, Organism organism) {
-        return decode(input).getValue(world, position, organism);
+    public static int getValue(int input, World world, Organism organism) {
+        return decode(input).getValue(world, organism);
     }
 
     public static String print(int code) {

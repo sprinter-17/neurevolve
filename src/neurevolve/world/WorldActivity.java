@@ -1,22 +1,17 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
-import static neurevolve.world.Frame.Direction.EAST;
-import static neurevolve.world.Frame.Direction.NORTH;
-import static neurevolve.world.Frame.Direction.SOUTH;
-import static neurevolve.world.Frame.Direction.WEST;
 
 public enum WorldActivity {
-    EAT("Eat", (w, p, o) -> w.feedOrganism(p)),
-    DIVIDE("Divide", (w, p, o) -> w.splitOrganism(p)),
-    MOVE_EAST("Move East", (w, p, o) -> w.moveOrganism(p, EAST)),
-    MOVE_NORTH("Move North", (w, p, o) -> w.moveOrganism(p, NORTH)),
-    MOVE_WEST("Move West", (w, p, o) -> w.moveOrganism(p, WEST)),
-    MOVE_SOUTH("Move South", (w, p, o) -> w.moveOrganism(p, SOUTH)),;
+    EAT("Eat", (w, o) -> w.feedOrganism(o)),
+    DIVIDE("Divide", (w, o) -> w.splitOrganism(o)),
+    MOVE("Move", (w, o) -> w.moveOrganism(o)),
+    LEFT("Turn Left", (w, o) -> o.setDirection((o.getDirection() + 3) % 4)),
+    RIGHT("Turn Right", (w, o) -> o.setDirection((o.getDirection() + 1) % 4));
 
     private interface ActivityPerformer {
 
-        public void perform(World world, int position, Organism organism);
+        public void perform(World world, Organism organism);
     }
 
     private final String name;
@@ -27,8 +22,8 @@ public enum WorldActivity {
         this.performer = performer;
     }
 
-    public void perform(World world, int position, Organism organism) {
-        performer.perform(world, position, organism);
+    public void perform(World world, Organism organism) {
+        performer.perform(world, organism);
     }
 
     public static WorldActivity decode(int code) {
@@ -36,8 +31,8 @@ public enum WorldActivity {
         return values()[((code % length) + length) % length];
     }
 
-    public static void perform(int activity, World world, int position, Organism organism) {
-        decode(activity).perform(world, position, organism);
+    public static void perform(int activity, World world, Organism organism) {
+        decode(activity).perform(world, organism);
     }
 
     public static String print(int code) {

@@ -17,6 +17,7 @@ public class WorldConfiguration {
     private int maxTemp = 0;
     private int tempVariation = 0;
     private int consumptionRate = 40;
+    private int maxResources = 1000;
 
     /**
      * Set the mutation rate for the world. The mutation rate determines the likelihood of
@@ -76,6 +77,12 @@ public class WorldConfiguration {
         this.consumptionRate = consumptionRate;
     }
 
+    public void setMaxResources(int resources) {
+        if (resources < 1)
+            throw new IllegalArgumentException("Max resources must be greater than 0");
+        this.maxResources = resources;
+    }
+
     public int getMutationRate() {
         return mutationRate;
     }
@@ -100,4 +107,7 @@ public class WorldConfiguration {
         return consumptionRate;
     }
 
+    public int getMaxResources() {
+        return maxResources;
+    }
 }

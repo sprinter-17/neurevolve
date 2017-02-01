@@ -3,6 +3,7 @@ package neurevolve;
 import java.util.HashSet;
 import java.util.Set;
 import neurevolve.organism.Environment;
+import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 
 public class TestEnvironment implements Environment {
@@ -15,12 +16,12 @@ public class TestEnvironment implements Environment {
     }
 
     @Override
-    public int getInput(int input) {
+    public int getInput(Organism organism, int input) {
         return 10 * input;
     }
 
     @Override
-    public void performActivity(int activity) {
+    public void performActivity(Organism organism, int activity) {
         activitiesPerformed.add(activity);
     }
 

@@ -1,10 +1,9 @@
 package neurevolve;
 
 import neurevolve.network.SigmoidFunction;
-import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
-import neurevolve.organism.Recipe;
 import neurevolve.organism.RecipePrinter;
+import neurevolve.ui.MainWindow;
 import neurevolve.world.Frame;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
@@ -26,27 +25,28 @@ public class Neurevolve {
     };
 
     public static void main(String[] args) {
-        Recipe recipe = new Recipe();
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT.ordinal());
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
 
         WorldConfiguration config = new WorldConfiguration();
-        config.setTemperatureRange(90, 90);
-        config.setYear(100, -110);
-        config.setMutationRate(10);
+        config.setTemperatureRange(50, 200);
+        config.setYear(200, -100);
+        config.setMutationRate(20);
+        config.setConsumptionRate(20);
 
-        World world = new World(new SigmoidFunction(1000), new Frame(1000, 1000), config);
-        world.seed(recipe, 1000);
+        Frame frame = new Frame(1000, 500);
 
-        for (int t = 0; t < 500; t++) {
+        World world = new World(new SigmoidFunction(1000), frame, config);
+        MainWindow window = new MainWindow(world, frame, config);
+        window.show();
+
+        for (int t = 0; t < 50000; t++) {
             world.tick();
             Organism mostComplex = world.getLargestOrganism();
-            System.out.println(world.getTime() + ":" + world.getPopulationSize()
+            System.out.print(world.getTime() + ":" + world.getPopulationSize()
                     + " (" + String.format("%.2f", world.getAverageComplexity()) + ")"
-                    + " FM: " + Runtime.getRuntime().freeMemory()
-                    + " ^ " + mostComplex.complexity() + ":" + mostComplex.toString(PRINTER));
+                    + " FM: " + Runtime.getRuntime().freeMemory());
+            if (mostComplex != null)
+                System.out.print(" ^ " + mostComplex.complexity() + ":" + mostComplex.toString(PRINTER));
+            System.out.println();
         }
     }
 }

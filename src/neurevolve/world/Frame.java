@@ -1,7 +1,5 @@
 package neurevolve.world;
 
-import java.util.function.IntBinaryOperator;
-
 /**
  * A <code>Frame</code> represents a limited area within which cartesian coordinates operate but in
  * which opposite edges are considered to be joined. It has a fixed width and height. A position
@@ -12,32 +10,13 @@ import java.util.function.IntBinaryOperator;
  */
 public class Frame {
 
+    public static final int EAST = 0;
+    public static final int NORTH = 1;
+    public static final int WEST = 2;
+    public static final int SOUTH = 3;
+
     private final int width;
     private final int height;
-
-    /**
-     * <code>Direction</code> enumerates the four directions in which a position can move.
-     */
-    public enum Direction {
-        NORTH((x, w) -> x, (y, h) -> (y + 1) % h),
-        EAST((x, w) -> (x + 1) % w, (y, h) -> y),
-        SOUTH((x, w) -> x, (y, h) -> (y - 1 + h) % h),
-        WEST((x, w) -> (x - 1 + w) % w, (y, h) -> y),;
-
-        private final IntBinaryOperator xMove;
-        private final IntBinaryOperator yMove;
-
-        private Direction(IntBinaryOperator xMove, IntBinaryOperator yMove) {
-            this.xMove = xMove;
-            this.yMove = yMove;
-        }
-
-        private int move(Frame frame, int position) {
-            int x = xMove.applyAsInt(frame.x(position), frame.width);
-            int y = yMove.applyAsInt(frame.y(position), frame.height);
-            return frame.position(x, y);
-        }
-    }
 
     /**
      * Construct a <code>Frame</code>.
@@ -51,6 +30,14 @@ public class Frame {
             throw new IllegalArgumentException("Zero size frame");
         this.width = width;
         this.height = height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     /**
@@ -84,9 +71,22 @@ public class Frame {
      * @return the position in the given direction from the starting position
      * @throws IllegalArgumentException if the position is illegal
      */
-    public int move(int position, Direction direction) {
+    public int move(int position, int direction) {
         checkPosition(position);
-        return direction.move(this, position);
+        int x = x(position);
+        int y = y(position);
+        switch (direction) {
+            case EAST:
+                return position((x + 1) % width, y);
+            case NORTH:
+                return position(x, (y + 1) % height);
+            case WEST:
+                return position((x - 1 + width) % width, y);
+            case SOUTH:
+                return position(x, (y - 1 + height) % height);
+            default:
+                throw new IllegalArgumentException("Illegal direction for move");
+        }
     }
 
     /**

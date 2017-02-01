@@ -35,9 +35,6 @@ public class World implements Environment {
 
     private final ActivationFunction function;
 
-    private int currentPosition;
-    private Organism currentOrganism;
-
     private Organism largestOrganism;
     private int totalComplexity;
 
@@ -57,26 +54,20 @@ public class World implements Environment {
         this.population = new Organism[frame.size()];
     }
 
-    /**
-     * Get the position of coordinates within the frame.
-     *
-     * @param x the horizontal distance from the left edge of the frame
-     * @param y the vertical distance from the bottom edge of the frame
-     * @return the position
-     */
-    public int position(int x, int y) {
-        return frame.position(x, y);
+    public Frame getFrame() {
+        return frame;
     }
 
-    /**
-     * Calculate a new position in a given direction.
-     *
-     * @param position the starting position
-     * @param direction the direction to move
-     * @return the position in the given direction from the starting position.
-     */
-    public int move(int position, Frame.Direction direction) {
-        return frame.move(position, direction);
+    public WorldConfiguration getConfig() {
+        return config;
+    }
+
+    public int[] getResourceCopy() {
+        return Arrays.copyOf(resources, frame.size());
+    }
+
+    public Organism[] getPopulationCopy() {
+        return Arrays.copyOf(population, frame.size());
     }
 
     /**
@@ -86,6 +77,10 @@ public class World implements Environment {
      */
     public int getPopulationSize() {
         return populationSize;
+    }
+
+    public void setResource(int position, int amount) {
+        resources[position] = amount;
     }
 
     /**
@@ -98,6 +93,10 @@ public class World implements Environment {
         return resources[position];
     }
 
+    public int getResource(int position, int direction) {
+        return getResource(frame.move(position, direction));
+    }
+
     /**
      * Get the difference in elevation between a position and an adjacent position
      *
@@ -105,8 +104,8 @@ public class World implements Environment {
      * @param dir the direction to the adjacent position
      * @return the difference in elevation
      */
-    public int getSlope(int position, Frame.Direction dir) {
-        return getElevation(frame.move(position, dir)) - getElevation(position);
+    public int getSlope(int position, int direction) {
+        return getElevation(frame.move(position, direction)) - getElevation(position);
     }
 
     /**
@@ -140,13 +139,6 @@ public class World implements Environment {
     }
 
     /**
-     * Get the organism in a given position.
-     */
-    private Organism getOrganism(int position) {
-        return population[position];
-    }
-
-    /**
      * Add an organism to the world.
      *
      * @param position the position to place the organism
@@ -158,6 +150,7 @@ public class World implements Environment {
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
         population[position] = organism;
         populationSize++;
+        organism.setPosition(position);
     }
 
     /**
@@ -178,25 +171,38 @@ public class World implements Environment {
      * @param count the number of organism to add
      */
     public void seed(Recipe recipe, int count) {
-        for (int i = 0; i < Math.min(count, frame.size()); i++) {
-            int position = random.ints(0, frame.size())
-                    .filter(p -> !hasOrganism(p))
-                    .findAny().orElseThrow(IllegalStateException::new);
-            addOrganism(position, recipe.make(this, 1000));
+        while (populationSize < count) {
+            int position = random.nextInt(frame.size());
+            if (!hasOrganism(position)) {
+                Organism organism = recipe.make(this, 1000);
+                addOrganism(position, organism);
+                organism.setDirection(random.nextInt(4));
+            }
         }
     }
 
+    /**
+     * Advance the world 1 time unit. Add resources at all positions based on the temperature.
+     * Process all organisms.
+     */
     public void tick() {
+        time++;
         growResources();
         processPopulation();
-        time++;
     }
 
     private void growResources() {
+        int maxResources = config.getMaxResources();
         for (int i = 0; i < frame.size(); i++) {
             int temp = getTemperature(i);
-            if (temp > 0)
-                resources[i] += temp;
+            while (temp >= 100) {
+                resources[i]++;
+                temp -= 100;
+            }
+            if (time % (100 - temp) == 0)
+                resources[i]++;
+            if (resources[i] > maxResources)
+                resources[i] = maxResources;
         }
     }
 
@@ -211,10 +217,7 @@ public class World implements Environment {
     }
 
     private void processPosition(int position, Organism organism) {
-        currentPosition = position;
-        currentOrganism = organism;
-
-        reduceEnergyByTemperature(currentPosition, organism);
+        reduceEnergyByTemperature(position, organism);
         organism.activate();
         totalComplexity += organism.complexity();
         if (organism.isDead())
@@ -231,10 +234,6 @@ public class World implements Environment {
         return (float) totalComplexity / populationSize;
     }
 
-    protected void setCurrentPosition(int position) {
-        this.currentPosition = position;
-    }
-
     /**
      * Move an organism in a position (if any) in a direction. A move consumes energy from the
      * organism in proportion to the difference in elevation of the two positions. If the organism
@@ -243,9 +242,10 @@ public class World implements Environment {
      * @param position the position of the organism
      * @param direction the direction to move the organism
      */
-    public void moveOrganism(int position, Frame.Direction direction) {
-        if (hasOrganism(position) && !hasOrganism(frame.move(position, direction))) {
-            Organism organism = population[position];
+    public void moveOrganism(Organism organism) {
+        int position = organism.getPosition();
+        int direction = organism.getDirection();
+        if (!hasOrganism(frame.move(position, direction))) {
             int slope = Math.max(0, getSlope(position, direction));
             if (organism.consume(slope)) {
                 removeOrganism(position);
@@ -261,12 +261,11 @@ public class World implements Environment {
      * @param position the position of the organism to feed
      * @param amount the amount of resources to take from the world and add to the organism's energy
      */
-    public void feedOrganism(int position) {
-        if (hasOrganism(position)) {
-            int amount = Math.min(resources[position], config.getConsumptionRate());
-            getOrganism(position).increaseEnergy(amount);
-            resources[position] -= amount;
-        }
+    public void feedOrganism(Organism organism) {
+        int position = organism.getPosition();
+        int amount = Math.min(resources[position], config.getConsumptionRate());
+        organism.increaseEnergy(amount);
+        resources[position] -= amount;
     }
 
     /**
@@ -277,17 +276,20 @@ public class World implements Environment {
      *
      * @param position the position of the organism to split.
      */
-    public void splitOrganism(int position) {
-        if (hasOrganism(position)) {
-            Organism organism = getOrganism(position);
-            if (organism.consume(organism.size()))
-                openPositionNextTo(position)
-                        .ifPresent(pos -> addOrganism(pos, organism.divide()));
-        }
+    public void splitOrganism(Organism organism) {
+        int position = organism.getPosition();
+        if (organism.consume(organism.size()))
+            openPositionNextTo(position).ifPresent(pos -> addChild(pos, organism));
+    }
+
+    private void addChild(int position, Organism parent) {
+        Organism child = parent.divide();
+        child.setDirection(random.nextInt(4));
+        addOrganism(position, child);
     }
 
     private OptionalInt openPositionNextTo(int position) {
-        List<Frame.Direction> directions = Arrays.asList(Frame.Direction.values());
+        List<Integer> directions = Arrays.asList(0, 1, 2, 3);
         Collections.shuffle(directions);
         return directions.stream()
                 .mapToInt(dir -> frame.move(position, dir))
@@ -316,10 +318,31 @@ public class World implements Environment {
         population[position] = null;
     }
 
+    /**
+     * Get the current world time.
+     *
+     * @return the number of ticks for the world.
+     */
     public int getTime() {
         return time;
     }
 
+    /**
+     * Get the name of the current season as defined by the year length
+     *
+     * @return the name of the season
+     */
+    public String getSeasonName() {
+        final String[] seasons = {"Spring", "Summer", "Autumn", "Winter"};
+        return seasons[4 * (time % config.getYearLength()) / config.getYearLength()];
+    }
+
+    /**
+     * Get the temperature of a position. Calculated based on latitude, elevation and season.
+     *
+     * @param position the position to retrieve the temperature for
+     * @return the temperature
+     */
     public int getTemperature(int position) {
         return getLatitudeTemp(position) - getElevation(position) + getSeasonTemp();
     }
@@ -346,25 +369,27 @@ public class World implements Environment {
     }
 
     /**
-     * Get the input for a given code
+     * Get an input for an organism
      *
+     * @param organism the organism to get input for
      * @param input the code for the input value, as defined by {@link WorldInput#decode}
      * @return the value for the code
      */
     @Override
-    public int getInput(int input) {
-        return WorldInput.getValue(input, this, currentPosition, currentOrganism);
+    public int getInput(Organism organism, int input) {
+        return WorldInput.getValue(input, this, organism);
     }
 
     /**
-     * Perform the activity for a given code
+     * Perform an activity by an organism
      *
      * @param activity the code for the activity to perform, as defined by
      * {@link WorldActivity#decode}.
+     * @param organism the organism to perform the activity
      */
     @Override
-    public void performActivity(int activity) {
-        WorldActivity.perform(activity, this, currentPosition, currentOrganism);
+    public void performActivity(Organism organism, int activity) {
+        WorldActivity.perform(activity, this, organism);
     }
 
     /**

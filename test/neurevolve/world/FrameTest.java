@@ -1,9 +1,9 @@
 package neurevolve.world;
 
-import static neurevolve.world.Frame.Direction.EAST;
-import static neurevolve.world.Frame.Direction.NORTH;
-import static neurevolve.world.Frame.Direction.SOUTH;
-import static neurevolve.world.Frame.Direction.WEST;
+import static neurevolve.world.Frame.EAST;
+import static neurevolve.world.Frame.NORTH;
+import static neurevolve.world.Frame.SOUTH;
+import static neurevolve.world.Frame.WEST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;

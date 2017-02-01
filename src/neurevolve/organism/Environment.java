@@ -20,14 +20,14 @@ public interface Environment {
      * @param input code for the input value to retrieve
      * @return value of input in the environment
      */
-    public int getInput(int input);
+    public int getInput(Organism organism, int input);
 
     /**
      * Perform an activity in the environment
      *
      * @param activity code for the activity to perform
      */
-    public void performActivity(int activity);
+    public void performActivity(Organism organism, int activity);
 
     /**
      * Copy a set of instructions in a {@link Recipe} during organism's division. This is part of

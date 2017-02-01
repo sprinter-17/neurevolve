@@ -1,7 +1,7 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
-import static neurevolve.world.Frame.Direction.EAST;
+import static neurevolve.world.Frame.EAST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -12,6 +12,7 @@ import org.junit.Test;
 public class WorldActivityTest {
 
     private WorldConfiguration config;
+    private Frame frame;
     private World world;
     private int position;
     private Organism organism;
@@ -19,32 +20,33 @@ public class WorldActivityTest {
     @Before
     public void setup() {
         config = new WorldConfiguration();
-        world = new World(n -> n, new Frame(10, 10), config);
-        position = world.position(5, 7);
+        frame = new Frame(10, 10);
+        world = new World(n -> n, frame, config);
+        position = frame.position(5, 7);
         organism = new Organism(world, 100);
         world.addOrganism(position, organism);
     }
 
     @Test
-    public void testMoveEast() {
-        assertFalse(world.hasOrganism(world.move(position, EAST)));
-        WorldActivity.MOVE_EAST.perform(world, position, organism);
-        assertTrue(world.hasOrganism(world.move(position, EAST)));
+    public void testMove() {
+        organism.setDirection(EAST);
+        assertFalse(world.hasOrganism(frame.move(position, EAST)));
+        WorldActivity.MOVE.perform(world, organism);
+        assertTrue(world.hasOrganism(frame.move(position, EAST)));
     }
 
     @Test
     public void testEat() {
-        config.setTemperatureRange(100, 100);
         config.setConsumptionRate(20);
-        world.tick();
-        WorldActivity.EAT.perform(world, position, organism);
-        assertThat(world.getResource(position), is(80));
+        world.setResource(position, 100);
+        WorldActivity.EAT.perform(world, organism);
         assertThat(organism.getEnergy(), is(120));
+        assertThat(world.getResource(position), is(80));
     }
 
     @Test
     public void testDivide() {
-        WorldActivity.DIVIDE.perform(world, position, organism);
+        WorldActivity.DIVIDE.perform(world, organism);
         assertThat(organism.getEnergy(), is(50));
         assertThat(world.getPopulationSize(), is(2));
     }
