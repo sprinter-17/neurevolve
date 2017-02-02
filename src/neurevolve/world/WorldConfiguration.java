@@ -110,4 +110,8 @@ public class WorldConfiguration {
     public int getMaxResources() {
         return maxResources;
     }
+
+    public int getMaxElevation() {
+        return 255;
+    }
 }

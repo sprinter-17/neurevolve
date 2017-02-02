@@ -24,12 +24,11 @@ public class WorldActivityTest {
         world = new World(n -> n, frame, config);
         position = frame.position(5, 7);
         organism = new Organism(world, 100);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
     }
 
     @Test
     public void testMove() {
-        organism.setDirection(EAST);
         assertFalse(world.hasOrganism(frame.move(position, EAST)));
         WorldActivity.MOVE.perform(world, organism);
         assertTrue(world.hasOrganism(frame.move(position, EAST)));
@@ -39,7 +38,7 @@ public class WorldActivityTest {
     public void testEat() {
         config.setConsumptionRate(20);
         world.setResource(position, 100);
-        WorldActivity.EAT.perform(world, organism);
+        WorldActivity.EAT_HERE.perform(world, organism);
         assertThat(organism.getEnergy(), is(120));
         assertThat(world.getResource(position), is(80));
     }

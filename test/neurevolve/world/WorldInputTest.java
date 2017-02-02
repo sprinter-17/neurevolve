@@ -1,6 +1,7 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
+import static neurevolve.world.Frame.EAST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -21,14 +22,14 @@ public class WorldInputTest {
         world = new World(n -> n, frame, config);
         position = frame.position(5, 6);
         organism = new Organism(world, 100);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
     }
 
     @Test
     public void testElevation() {
-        assertThat(WorldInput.ELEVATION.getValue(world, organism), is(0));
-        world.setElevation(position, 17);
-        assertThat(WorldInput.ELEVATION.getValue(world, organism), is(17));
+        assertThat(WorldInput.LOOK_SLOPE_FORWARD.getValue(world, organism), is(0));
+        world.setElevation(frame.move(position, 0), 17);
+        assertThat(WorldInput.LOOK_SLOPE_FORWARD.getValue(world, organism), is(17));
     }
 
     @Test

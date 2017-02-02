@@ -12,9 +12,9 @@ public class Organism {
     private final Environment environment;
     private final Network brain;
     private Recipe recipe = null;
+    private int age;
     private int energy;
-    private int position;
-    private int direction;
+    private final int[] worldValues = new int[2];
 
     /**
      * Construct an organism.
@@ -41,6 +41,13 @@ public class Organism {
         this.recipe = recipe;
     }
 
+    /**
+     * Generate a human-readable representation of the organism
+     *
+     * @param printer the object used to generate human-readable representations of inputs and
+     * activities
+     * @return a string representing the organism
+     */
     public String toString(RecipePrinter printer) {
         return recipe.toString(printer);
     }
@@ -52,6 +59,15 @@ public class Organism {
      */
     public int getEnergy() {
         return energy;
+    }
+
+    /**
+     * Get the age of the organim
+     *
+     * @return the number of activations that have occurred on this organism
+     */
+    public int getAge() {
+        return age;
     }
 
     /**
@@ -100,7 +116,8 @@ public class Organism {
      * If organism has enough energy, reduce it by the given amount.
      *
      * @param amount amount of energy to reduce
-     * @return true, if the energy was reduced
+     * @return <tt>true</tt>, if the energy was reduced, <tt>false</tt> if there was insufficient
+     * energy
      */
     public boolean consume(int amount) {
         if (energy < amount)
@@ -138,11 +155,11 @@ public class Organism {
     }
 
     /**
-     * Activate the organism by using energy relative to its size then activating the associated
-     * network.
+     * Activate the organism by using energy relative to its size and age then activating the
+     * associated network.
      */
     public void activate() {
-        reduceEnergy(brain.size());
+        reduceEnergy(brain.size() + age / 100);
         if (!isDead())
             brain.activate();
     }
@@ -167,19 +184,11 @@ public class Organism {
         return () -> environment.performActivity(this, value);
     }
 
-    public int getPosition() {
-        return position;
+    public void setWorldValue(int code, int value) {
+        worldValues[code] = value;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
-    }
-
-    public int getDirection() {
-        return direction;
-    }
-
-    public void setDirection(int direction) {
-        this.direction = direction;
+    public int getWorldValue(int code) {
+        return worldValues[code];
     }
 }

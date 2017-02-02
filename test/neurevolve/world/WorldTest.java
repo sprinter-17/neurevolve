@@ -3,8 +3,10 @@ package neurevolve.world;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
+import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Frame.EAST;
 import static neurevolve.world.Frame.NORTH;
+import static neurevolve.world.Frame.WEST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -28,11 +30,13 @@ public class WorldTest {
     @Test
     public void testSlope() {
         int position = frame.position(3, 5);
-        assertThat(world.getSlope(position, EAST), is(0));
+        Organism organism = new Organism(world, 100);
+        world.addOrganism(organism, position, EAST);
+        assertThat(world.getSlope(organism, FORWARD), is(0));
         world.setElevation(position, 31);
-        assertThat(world.getSlope(position, EAST), is(-31));
+        assertThat(world.getSlope(organism, FORWARD), is(-31));
         world.setElevation(frame.move(position, EAST), 47);
-        assertThat(world.getSlope(position, EAST), is(47 - 31));
+        assertThat(world.getSlope(organism, FORWARD), is(47 - 31));
     }
 
     @Test
@@ -44,22 +48,22 @@ public class WorldTest {
     public void testHasOrganism() {
         int position = frame.position(2, 7);
         assertFalse(world.hasOrganism(position));
-        world.addOrganism(position, new Organism(world, 100));
+        world.addOrganism(new Organism(world, 100), position, EAST);
         assertTrue(world.hasOrganism(position));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddTwoOrganismsToSamePosition() {
         int position = frame.position(1, 4);
-        world.addOrganism(position, new Organism(world, 100));
-        world.addOrganism(position, new Organism(world, 100));
+        world.addOrganism(new Organism(world, 100), position, EAST);
+        world.addOrganism(new Organism(world, 100), position, EAST);
     }
 
     @Test
     public void testAddOrganism() {
-        world.addOrganism(frame.position(4, 6), new Organism(world, 5));
+        world.addOrganism(new Organism(world, 5), frame.position(4, 6), EAST);
         assertThat(world.getPopulationSize(), is(1));
-        world.addOrganism(frame.position(3, 6), new Organism(world, 5));
+        world.addOrganism(new Organism(world, 5), frame.position(3, 6), WEST);
         assertThat(world.getPopulationSize(), is(2));
     }
 
@@ -111,7 +115,7 @@ public class WorldTest {
     public void testNegativeTemperaturesConsumeEnergyFromOrganisms() {
         config.setTemperatureRange(-30, -30);
         Organism organism = new Organism(world, 50);
-        world.addOrganism(frame.position(4, 7), organism);
+        world.addOrganism(organism, frame.position(4, 7), EAST);
         world.tick();
         assertThat(organism.getEnergy(), is(20));
         world.tick();
@@ -122,7 +126,7 @@ public class WorldTest {
     public void testFeedOrganism() {
         int position = frame.position(4, 7);
         Organism organism = new Organism(world, 50);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
         world.setResource(position, 50);
         config.setConsumptionRate(18);
         world.feedOrganism(organism);
@@ -134,18 +138,20 @@ public class WorldTest {
     public void testKillOrganism() {
         int position = frame.position(4, 7);
         Organism organism = new Organism(world, 50);
-        world.addOrganism(position, organism);
-        world.killOrganism(position);
-        assertThat(world.getResource(position), is(50));
-        assertTrue(organism.isDead());
-        assertFalse(world.hasOrganism(position));
+        Organism victim = new Organism(world, 30);
+        world.addOrganism(organism, position, EAST);
+        world.addOrganism(victim, world.getPosition(organism, FORWARD), EAST);
+        world.killOrganism(organism, FORWARD);
+        assertThat(world.getResource(world.getPosition(victim)), is(30));
+        assertTrue(victim.isDead());
+        assertFalse(world.hasOrganism(world.getPosition(victim)));
     }
 
     @Test
     public void testRemoveDeadOrganisms() {
         int position = frame.position(4, 7);
         Organism organism = new Organism(world, 0);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
         world.tick();
         assertFalse(world.hasOrganism(position));
     }
@@ -163,8 +169,7 @@ public class WorldTest {
     public void testMoveOrganism() {
         int position = frame.position(6, 9);
         Organism organism = new Organism(world, 12);
-        world.addOrganism(position, organism);
-        organism.setDirection(NORTH);
+        world.addOrganism(organism, position, NORTH);
         assertTrue(world.hasOrganism(position));
         assertFalse(world.hasOrganism(frame.move(position, NORTH)));
         world.moveOrganism(organism);
@@ -176,7 +181,7 @@ public class WorldTest {
     public void testSplitOrganims() {
         int position = frame.position(6, 9);
         Organism organism = new Organism(world, 12);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
         assertThat(world.getPopulationSize(), is(1));
         world.splitOrganism(organism);
         assertThat(world.getPopulationSize(), is(2));
@@ -186,7 +191,7 @@ public class WorldTest {
     public void testDoNotSplitOrganismIfNoRoom() {
         int position = frame.position(6, 9);
         Organism organism = new Organism(world, 120);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
         world.tick();
         assertThat(world.getPopulationSize(), is(1));
         world.splitOrganism(organism);
@@ -209,17 +214,17 @@ public class WorldTest {
     public void testGetElevationAsInput() {
         int position = frame.position(4, 7);
         Organism organism = new Organism(world, 100);
-        world.addOrganism(position, organism);
-        assertThat(world.getInput(organism, WorldInput.ELEVATION.ordinal()), is(0));
-        world.setElevation(position, 11);
-        assertThat(world.getInput(organism, WorldInput.ELEVATION.ordinal()), is(11));
+        world.addOrganism(organism, position, EAST);
+        assertThat(world.getInput(organism, WorldInput.LOOK_SLOPE_FORWARD.ordinal()), is(0));
+        world.setElevation(world.getPosition(organism, FORWARD), 11);
+        assertThat(world.getInput(organism, WorldInput.LOOK_SLOPE_FORWARD.ordinal()), is(11));
     }
 
     @Test
     public void testMoveOrganismAsActivity() {
         int position = frame.position(4, 7);
         Organism organism = new Organism(world, 50);
-        world.addOrganism(position, organism);
+        world.addOrganism(organism, position, EAST);
         world.tick();
         assertTrue(world.hasOrganism(position));
         world.performActivity(organism, WorldActivity.MOVE.ordinal());
@@ -232,7 +237,7 @@ public class WorldTest {
         recipe.add(Instruction.ADD_NEURON, -10);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.ordinal());
         Organism organism = recipe.make(world, 50);
-        world.addOrganism(frame.position(5, 5), organism);
+        world.addOrganism(organism, frame.position(5, 5), EAST);
         world.tick();
         assertFalse(world.hasOrganism(frame.position(5, 5)));
     }

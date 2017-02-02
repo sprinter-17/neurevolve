@@ -9,6 +9,7 @@ import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
+import static neurevolve.world.Angle.FORWARD;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -22,6 +23,9 @@ import neurevolve.organism.Recipe;
  * </ul>
  */
 public class World implements Environment {
+
+    public static final int POSITION_CODE = 0;
+    public static final int DIRECTION_CODE = 1;
 
     private final Frame frame;
     private final WorldConfiguration config;
@@ -54,20 +58,31 @@ public class World implements Environment {
         this.population = new Organism[frame.size()];
     }
 
-    public Frame getFrame() {
-        return frame;
-    }
-
-    public WorldConfiguration getConfig() {
-        return config;
-    }
-
+    /**
+     * Make a copy of the resources
+     *
+     * @return a complete copy of the resource array
+     */
     public int[] getResourceCopy() {
         return Arrays.copyOf(resources, frame.size());
     }
 
+    /**
+     * Make a copy of the population
+     *
+     * @return a complete copy of the population array
+     */
     public Organism[] getPopulationCopy() {
         return Arrays.copyOf(population, frame.size());
+    }
+
+    /**
+     * Make a copy of the elevations
+     *
+     * @return a complete copy of the elevation array
+     */
+    public int[] getElevationCopy() {
+        return Arrays.copyOf(elevation, frame.size());
     }
 
     /**
@@ -79,7 +94,13 @@ public class World implements Environment {
         return populationSize;
     }
 
-    public void setResource(int position, int amount) {
+    /**
+     * Set the amount of resource at a position. This method is primarily for testing purposes
+     *
+     * @param position the position
+     * @param amount the amount of resource to set
+     */
+    protected void setResource(int position, int amount) {
         resources[position] = amount;
     }
 
@@ -93,28 +114,39 @@ public class World implements Environment {
         return resources[position];
     }
 
-    public int getResource(int position, int direction) {
-        return getResource(frame.move(position, direction));
-    }
-
     /**
-     * Get the difference in elevation between a position and an adjacent position
+     * Add a hill at a given position, radius and slope. Changes the elevations in an area of the
+     * frame. The position is set by the centre and radius and the elevation is set by the slope,
+     * with the highest elevation at the centre. The entire area is additionally raised by the cliff
+     * amount.
      *
-     * @param position the starting position
-     * @param dir the direction to the adjacent position
-     * @return the difference in elevation
+     * @param centre the position of highest elevation
+     * @param radius the distance of the bottom of the hill from the centre
+     * @param slope the gradient of the hill
+     * @param cliff the height of the edge of the hill
      */
-    public int getSlope(int position, int direction) {
-        return getElevation(frame.move(position, direction)) - getElevation(position);
+    public void addHill(int centre, int radius, int slope, int cliff) {
+        frame.forAllPositionsInCircle(centre, radius, (p, d) -> setElevation(p, cliff + (radius - d) * slope));
     }
 
     /**
-     * Set the elevation of a position
+     * Get the difference in elevation between an organism's position and an adjacent position
+     *
+     * @param organism the organism that the slope is relative to
+     * @param angle the angle to the position for the slope
+     * @return the difference in elevation between the adjacent position and the organism's position
+     */
+    public int getSlope(Organism organism, Angle angle) {
+        return getElevation(getPosition(organism, angle)) - getElevation(getPosition(organism));
+    }
+
+    /**
+     * Set the elevation of a position. This method is primarily for testing purposes.
      *
      * @param position the position whose elevation will be set
      * @param value the elevation to set the position to
      */
-    public void setElevation(int position, int value) {
+    protected void setElevation(int position, int value) {
         elevation[position] = value;
     }
 
@@ -129,6 +161,23 @@ public class World implements Environment {
     }
 
     /**
+     * Calculate a position relative to an organism. Given one or more angles, calculates a position
+     * by moving from an organism's position according to the angles.
+     *
+     * @param organism the organism whose position is used
+     * @param angles the angles to follow from the organism's position
+     * @return the resulting position
+     */
+    public int getPosition(Organism organism, Angle... angles) {
+        int position = organism.getWorldValue(POSITION_CODE);
+        for (Angle angle : angles) {
+            int direction = angle.add(organism.getWorldValue(DIRECTION_CODE));
+            position = frame.move(position, direction);
+        }
+        return position;
+    }
+
+    /**
      * Check if there is an organism in a given position
      *
      * @param position the position to check
@@ -139,28 +188,40 @@ public class World implements Environment {
     }
 
     /**
+     * Get the energy of the organism at a position.
+     *
+     * @param position the position of the organism
+     * @return the organism's energy, or 0 if there is no organism in the given position
+     */
+    public int getOrganismEnergy(int position) {
+        return hasOrganism(position) ? population[position].getEnergy() : 0;
+    }
+
+    /**
      * Add an organism to the world.
      *
-     * @param position the position to place the organism
      * @param organism the organism to place
+     * @param position the position to place the organism
+     * @param direction the direction the organism will face
      * @throws IllegalArgumentException if the position already has an organism
      */
-    public void addOrganism(int position, Organism organism) {
+    public void addOrganism(Organism organism, int position, int direction) {
         if (population[position] != null)
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
         population[position] = organism;
         populationSize++;
-        organism.setPosition(position);
+        setPosition(organism, position);
+        setDirection(organism, direction);
     }
 
     /**
-     * Remove an organism (if any) from a position
+     * Remove an organism from the world
      */
-    private void removeOrganism(int position) {
-        if (population[position] != null) {
-            population[position] = null;
-            populationSize--;
-        }
+    private void removeOrganism(Organism organism) {
+        int position = getPosition(organism);
+        assert population[position] != null;
+        population[position] = null;
+        populationSize--;
     }
 
     /**
@@ -175,8 +236,7 @@ public class World implements Environment {
             int position = random.nextInt(frame.size());
             if (!hasOrganism(position)) {
                 Organism organism = recipe.make(this, 1000);
-                addOrganism(position, organism);
-                organism.setDirection(random.nextInt(4));
+                addOrganism(organism, position, random.nextInt(4));
             }
         }
     }
@@ -191,6 +251,10 @@ public class World implements Environment {
         processPopulation();
     }
 
+    /**
+     * Grow all resources in the world according to their temperature. The resources are increased
+     * by temp / 100 and a further one each temp % 100 ticks.
+     */
     private void growResources() {
         int maxResources = config.getMaxResources();
         for (int i = 0; i < frame.size(); i++) {
@@ -206,22 +270,29 @@ public class World implements Environment {
         }
     }
 
+    /**
+     * Process the population. This uses a copy of the population array so that changes that occur
+     * during processing do not interfere with the current state.
+     */
     private void processPopulation() {
         largestOrganism = null;
         totalComplexity = 0;
-        Organism[] previous = Arrays.copyOf(population, frame.size());
+        Organism[] populationCode = getPopulationCopy();
         for (int i = 0; i < frame.size(); i++) {
-            if (previous[i] != null)
-                processPosition(i, previous[i]);
+            if (populationCode[i] != null)
+                processPosition(i, populationCode[i]);
         }
     }
 
+    /**
+     * Process the organism at a given position. Reduce its energy according to temperature
+     */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
         organism.activate();
         totalComplexity += organism.complexity();
         if (organism.isDead())
-            removeOrganism(position);
+            removeOrganism(organism);
         else if (largestOrganism == null || organism.complexity() > largestOrganism.complexity())
             largestOrganism = organism;
     }
@@ -234,35 +305,53 @@ public class World implements Environment {
         return (float) totalComplexity / populationSize;
     }
 
+    protected int getPosition(Organism organism) {
+        return organism.getWorldValue(POSITION_CODE);
+    }
+
+    protected void setPosition(Organism organism, int position) {
+        organism.setWorldValue(POSITION_CODE, position);
+    }
+
+    protected int getDirection(Organism organism) {
+        return organism.getWorldValue(DIRECTION_CODE);
+    }
+
+    private void setDirection(Organism organism, int direction) {
+        organism.setWorldValue(DIRECTION_CODE, direction);
+    }
+
+    protected void turn(Organism organism, Angle angle) {
+        setDirection(organism, angle.add(getDirection(organism)));
+    }
+
     /**
-     * Move an organism in a position (if any) in a direction. A move consumes energy from the
-     * organism in proportion to the difference in elevation of the two positions. If the organism
-     * does not have enough energy it doesn't move
+     * Move an organism in the direction it is facing. A move consumes energy from the organism in
+     * proportion to the difference in elevation of the two positions. If the organism does not have
+     * enough energy it doesn't move
      *
-     * @param position the position of the organism
-     * @param direction the direction to move the organism
+     * @param organism the organism to move
      */
     public void moveOrganism(Organism organism) {
-        int position = organism.getPosition();
-        int direction = organism.getDirection();
-        if (!hasOrganism(frame.move(position, direction))) {
-            int slope = Math.max(0, getSlope(position, direction));
+        if (!hasOrganism(getPosition(organism, FORWARD))) {
+            int slope = Math.max(0, getSlope(organism, FORWARD));
             if (organism.consume(slope)) {
-                removeOrganism(position);
-                addOrganism(frame.move(position, direction), organism);
+                removeOrganism(organism);
+                addOrganism(organism, getPosition(organism, FORWARD), getDirection(organism));
             }
         }
     }
 
     /**
-     * Feed the organism at the given position by a given amount. The amount is added to the
-     * organism's energy and taken from the world's resources at that position.
+     * Feed an organism by consuming resources at a position relative to the organism. The amount is
+     * added to the organism's energy and taken from the world's resources at that position.
      *
-     * @param position the position of the organism to feed
-     * @param amount the amount of resources to take from the world and add to the organism's energy
+     * @param organism the organism
+     * @param angles zero or more angles defining the path to the position from which to consume
+     * resources
      */
-    public void feedOrganism(Organism organism) {
-        int position = organism.getPosition();
+    public void feedOrganism(Organism organism, Angle... angles) {
+        int position = getPosition(organism, angles);
         int amount = Math.min(resources[position], config.getConsumptionRate());
         organism.increaseEnergy(amount);
         resources[position] -= amount;
@@ -270,22 +359,22 @@ public class World implements Environment {
 
     /**
      * Split the organism at the given position. The child organism is placed at a random position
-     * next to this organism. The split does consumes as much energy as the size of the recipe being
-     * replicated. If it does not have enough energy then it does not split. It also does not split
-     * if there are no free positions adjacent to the organism.
+     * next to this organism facing in the same direction. The split does consumes as much energy as
+     * the size of the recipe being replicated. If it does not have enough energy then it does not
+     * split. It also does not split if there are no free positions adjacent to the organism.
      *
      * @param position the position of the organism to split.
      */
     public void splitOrganism(Organism organism) {
-        int position = organism.getPosition();
-        if (organism.consume(organism.size()))
+        int position = getPosition(organism);
+        if (organism.consume(organism.size() * 2))
             openPositionNextTo(position).ifPresent(pos -> addChild(pos, organism));
     }
 
     private void addChild(int position, Organism parent) {
         Organism child = parent.divide();
-        child.setDirection(random.nextInt(4));
-        addOrganism(position, child);
+        setDirection(child, getDirection(parent));
+        addOrganism(child, position, getDirection(parent));
     }
 
     private OptionalInt openPositionNextTo(int position) {
@@ -309,13 +398,14 @@ public class World implements Environment {
      *
      * @param position the position of the organism
      */
-    public void killOrganism(int position) {
-        if (!hasOrganism(position))
-            throw new IllegalArgumentException("Attempt to kill organism in empty position");
-        Organism organism = population[position];
-        resources[position] += organism.getEnergy();
-        organism.reduceEnergy(organism.getEnergy());
-        population[position] = null;
+    public void killOrganism(Organism killer, Angle angle) {
+        int position = getPosition(killer, angle);
+        if (hasOrganism(position) && killer.consume(40)) {
+            Organism target = population[position];
+            resources[position] += target.getEnergy();
+            target.reduceEnergy(target.getEnergy());
+            removeOrganism(target);
+        }
     }
 
     /**

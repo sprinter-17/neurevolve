@@ -17,14 +17,16 @@ public interface Environment {
     /**
      * Get an input value from the environment
      *
+     * @param organism the organism containing the neuron requesting the value
      * @param input code for the input value to retrieve
-     * @return value of input in the environment
+     * @return value of input for the given organism in this environment
      */
     public int getInput(Organism organism, int input);
 
     /**
      * Perform an activity in the environment
      *
+     * @param organism the organism performing the activity
      * @param activity code for the activity to perform
      */
     public void performActivity(Organism organism, int activity);

@@ -1,13 +1,18 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
+import static neurevolve.world.Angle.FORWARD;
+import static neurevolve.world.Angle.LEFT;
+import static neurevolve.world.Angle.RIGHT;
 
 public enum WorldActivity {
-    EAT("Eat", (w, o) -> w.feedOrganism(o)),
-    DIVIDE("Divide", (w, o) -> w.splitOrganism(o)),
+    EAT_HERE("Eat H", (w, o) -> w.feedOrganism(o)),
+    EAT_FORWARD("Eat F", (w, o) -> w.feedOrganism(o, FORWARD)),
+    DIVIDE("Split", (w, o) -> w.splitOrganism(o)),
     MOVE("Move", (w, o) -> w.moveOrganism(o)),
-    LEFT("Turn Left", (w, o) -> o.setDirection((o.getDirection() + 3) % 4)),
-    RIGHT("Turn Right", (w, o) -> o.setDirection((o.getDirection() + 1) % 4));
+    KILL("Kill", (w, o) -> w.killOrganism(o, FORWARD)),
+    TURN_LEFT("Turn L", (w, o) -> w.turn(o, LEFT)),
+    TURN_RIGHT("Turn R", (w, o) -> w.turn(o, RIGHT));
 
     private interface ActivityPerformer {
 

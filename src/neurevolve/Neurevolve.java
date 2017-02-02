@@ -35,6 +35,12 @@ public class Neurevolve {
         Frame frame = new Frame(1000, 500);
 
         World world = new World(new SigmoidFunction(1000), frame, config);
+        world.addHill(frame.position(100, 400), 40, 5, 50);
+        world.addHill(frame.position(200, 150), 60, 2, 40);
+        world.addHill(frame.position(400, 250), 150, 1, 0);
+        world.addHill(frame.position(700, 200), 60, 4, 10);
+        world.addHill(frame.position(850, 120), 90, 2, 40);
+        world.addHill(frame.position(900, 400), 70, 3, 40);
         MainWindow window = new MainWindow(world, frame, config);
         window.show();
 

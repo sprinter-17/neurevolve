@@ -7,5 +7,11 @@ package neurevolve.network;
 @FunctionalInterface
 public interface ActivationFunction {
 
+    /**
+     * Apply the function.
+     *
+     * @param input the input value to the function
+     * @return the output value
+     */
     public int apply(int input);
 }

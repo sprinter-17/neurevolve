@@ -12,20 +12,22 @@ public enum Instruction {
     /**
      * Add a new neuron with a given threshold.
      */
-    ADD_NEURON("Add", Instruction::addNeuron, 1),
+    ADD_NEURON("+", Instruction::addNeuron, 1),
     /**
      * Add a link to the last neuron from the neuron indexed in the next value and with the weight
-     * specified in the following value.
+     * specified in the following value. If no neuron has been added or if the next value does not
+     * index an existing neuron then this instruction is ignored.
      */
-    ADD_LINK("Link", Instruction::addLink, 2),
+    ADD_LINK("^", Instruction::addLink, 2),
     /**
-     * Add an input to the last neuron
+     * Add an input to the last neuron. The code for the input is given in the next value.
      */
-    ADD_INPUT("Input", Instruction::addInput, 2),
+    ADD_INPUT("<-", Instruction::addInput, 2),
     /**
-     * Set an activity to perform if the last neuron is activated.
+     * Set an activity to perform if the last neuron is activated. The code for the activity is
+     * given in the next value.
      */
-    SET_ACTIVITY("Action", Instruction::setActivity, 1);
+    SET_ACTIVITY("->", Instruction::setActivity, 1);
 
     private interface Operation {
 
@@ -52,10 +54,11 @@ public enum Instruction {
     }
 
     /**
-     * Get the <code>Instruction</code> represented by a given code, if any
+     * Get the <code>Instruction</code> represented by a given code. All codes are able to be
+     * converted to an instruction.
      *
      * @param code the code to convert to an <code>Instruction</code>
-     * @return the instruction, or <tt>Optional.empty()</tt> if there is no instruction for the code
+     * @return the instruction
      */
     public static Instruction decode(int code) {
         final int count = values().length;
@@ -74,12 +77,18 @@ public enum Instruction {
         operation.operate(organism, values);
     }
 
+    /**
+     * Add a neuron to the organism's network
+     */
     private static void addNeuron(Organism organism, Queue<Integer> values) {
         organism.getBrain().addNeuron();
         int threshold = value(values);
         organism.getBrain().setThreshold(threshold);
     }
 
+    /**
+     * Add a link to the last neuron in the organism's network
+     */
     private static void addLink(Organism organism, Queue<Integer> values) {
         if (!organism.getBrain().isEmpty()) {
             int from = value(values);
@@ -89,6 +98,9 @@ public enum Instruction {
         }
     }
 
+    /**
+     * Add an input to the last neuron in the organism's network.
+     */
     private static void addInput(Organism organism, Queue<Integer> values) {
         if (!organism.getBrain().isEmpty()) {
             Input input = organism.getInput(value(values));
@@ -97,6 +109,9 @@ public enum Instruction {
         }
     }
 
+    /**
+     * Set an activity for the last neuron in the organism's network
+     */
     private static void setActivity(Organism organism, Queue<Integer> values) {
         if (!organism.getBrain().isEmpty()) {
             Activity activity = organism.getActivity(value(values));
@@ -104,6 +119,13 @@ public enum Instruction {
         }
     }
 
+    /**
+     * Generate a human-readable representation of the instruction
+     *
+     * @param printer the object to use to print input and activities for this instruction
+     * @param values the queue of values
+     * @return a human-readable string representing the instruction
+     */
     public String toString(RecipePrinter printer, Queue<Integer> values) {
         StringBuilder builder = new StringBuilder();
         switch (this) {
@@ -128,6 +150,9 @@ public enum Instruction {
         return builder.toString();
     }
 
+    /**
+     * Get the next value from the queue, if any
+     */
     private static int value(Queue<Integer> values) {
         if (values.isEmpty())
             return 0;

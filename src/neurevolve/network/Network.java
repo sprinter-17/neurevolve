@@ -5,6 +5,7 @@ import java.util.List;
 
 /**
  * A self-contained network of neurons. Neurons may have previous neurons in the network as input.
+ * Links to neurons later in the network are not allowed.
  */
 public class Network {
 
@@ -83,7 +84,8 @@ public class Network {
     }
 
     /**
-     * Set an activity for the last neuron to fire on activation.
+     * Set an activity for the last neuron to fire on activation. A neuron may only have one
+     * activity so this method overwrites any earlier activity for the neuron.
      *
      * @param activity the activity to fire
      * @throws IllegalStateException if the network is empty
@@ -113,6 +115,9 @@ public class Network {
         return neurons.get(neuron).getValue();
     }
 
+    /**
+     * Get the last neuron added to the network
+     */
     private Neuron lastNeuron() {
         if (neurons.isEmpty())
             throw new IllegalStateException("Attempt to get last neuron from empty network");
@@ -121,9 +126,10 @@ public class Network {
     }
 
     /**
-     * Get a measure of the total complex activity of the network over its lifetime
+     * Get a measure of the total complex activity of the network over its lifetime.
      *
-     * @return the total of the complex activity of all neurons in the network
+     * @return the total number of times a neuron with an activity has switched form not firing to
+     * firing.
      */
     public int getTotalActivitySwitches() {
         return neurons.stream().mapToInt(Neuron::getActivationCount).sum();

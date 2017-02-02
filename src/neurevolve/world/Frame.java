@@ -1,5 +1,7 @@
 package neurevolve.world;
 
+import java.util.function.BiConsumer;
+
 /**
  * A <code>Frame</code> represents a limited area within which cartesian coordinates operate but in
  * which opposite edges are considered to be joined. It has a fixed width and height. A position
@@ -117,6 +119,18 @@ public class Frame {
      */
     private int latitude(int position) {
         return Math.abs(y(position) - height / 2);
+    }
+
+    public void forAllPositionsInCircle(int centre, int radius, BiConsumer<Integer, Integer> action) {
+        int xc = x(centre);
+        int yc = y(centre);
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                int r = (int) Math.sqrt(x * x + y * y);
+                if (r <= radius)
+                    action.accept(position(xc + x, yc + y), r);
+            }
+        }
     }
 
     /**

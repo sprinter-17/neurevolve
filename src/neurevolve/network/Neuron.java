@@ -14,12 +14,15 @@ public class Neuron {
 
     private final ActivationFunction function;
 
-    private int value;
+    private int value = 0;
     private int threshold = 0;
     private int switches = 0;
     private final List<Synapse> inputs = new ArrayList<>();
     private Optional<Activity> activity = Optional.empty();
 
+    /**
+     * A <code>Synapse</code> represents a weighted input to the neuron
+     */
     private class Synapse {
 
         private final Input input;
@@ -57,7 +60,8 @@ public class Neuron {
     /**
      * Get a measure of the complex activity of the neuron.
      *
-     * @return the number of times the neuron has switched to performing an activity.
+     * @return the number of times the neuron has switched from inactivity to performing an
+     * activity.
      */
     public int getActivationCount() {
         return switches;
@@ -76,8 +80,8 @@ public class Neuron {
 
     /**
      * Add an input to the neuron with a specified weight. The weight of each input determines how
-     * it contributes to the value of the neuron. A weight of 100 leads to the full value of the
-     * input. A weight of 0 leads to no value.
+     * it contributes to the value of the neuron. A weight of 10 leads to the full value of the
+     * input. A weight of 0 leads to no value. A weight of -10 leads to negative full value.
      *
      * @param input the input to add
      * @param weight the weight of the added input
