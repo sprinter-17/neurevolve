@@ -12,7 +12,7 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Recipe;
-import neurevolve.world.Frame;
+import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
@@ -37,7 +37,7 @@ public class MainWindow {
      * @param worldFrame the frame for the world
      * @param config the configuration for this world
      */
-    public MainWindow(final World world, final Frame worldFrame, final WorldConfiguration config) {
+    public MainWindow(final World world, final Space worldFrame, final WorldConfiguration config) {
         frame = new JFrame("Neurevolve");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         tools = new JPanel();

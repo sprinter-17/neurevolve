@@ -1,7 +1,7 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
-import static neurevolve.world.Frame.EAST;
+import static neurevolve.world.Space.EAST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -12,7 +12,7 @@ import org.junit.Test;
 public class WorldActivityTest {
 
     private WorldConfiguration config;
-    private Frame frame;
+    private Space frame;
     private World world;
     private int position;
     private Organism organism;
@@ -20,7 +20,7 @@ public class WorldActivityTest {
     @Before
     public void setup() {
         config = new WorldConfiguration();
-        frame = new Frame(10, 10);
+        frame = new Space(10, 10);
         world = new World(n -> n, frame, config);
         position = frame.position(5, 7);
         organism = new Organism(world, 100);

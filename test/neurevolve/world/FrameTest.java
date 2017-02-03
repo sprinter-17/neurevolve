@@ -1,9 +1,9 @@
 package neurevolve.world;
 
-import static neurevolve.world.Frame.EAST;
-import static neurevolve.world.Frame.NORTH;
-import static neurevolve.world.Frame.SOUTH;
-import static neurevolve.world.Frame.WEST;
+import static neurevolve.world.Space.EAST;
+import static neurevolve.world.Space.NORTH;
+import static neurevolve.world.Space.SOUTH;
+import static neurevolve.world.Space.WEST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -11,11 +11,11 @@ import org.junit.Test;
 
 public class FrameTest {
 
-    private Frame frame;
+    private Space frame;
 
     @Before
     public void setup() {
-        frame = new Frame(20, 10);
+        frame = new Space(20, 10);
     }
 
     @Test

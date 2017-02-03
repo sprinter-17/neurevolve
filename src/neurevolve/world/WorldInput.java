@@ -66,21 +66,4 @@ public enum WorldInput {
         };
     }
 
-    public static int convertToColour(WorldConfiguration config, int resources, Organism organism, int elevation) {
-        return resourceColour(config, resources)
-                | populationColour(config, organism)
-                | elevationColour(config, elevation);
-    }
-
-    private static int resourceColour(WorldConfiguration config, int resource) {
-        return (resource * 255 / config.getMaxResources()) << 8;
-    }
-
-    private static int populationColour(WorldConfiguration config, Organism organism) {
-        return organism == null ? 0 : 200 << 16;
-    }
-
-    private static int elevationColour(WorldConfiguration config, int elevation) {
-        return elevation * 255 / config.getMaxElevation();
-    }
 }

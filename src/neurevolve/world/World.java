@@ -10,6 +10,10 @@ import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
+import static neurevolve.world.Space.EAST;
+import static neurevolve.world.Space.NORTH;
+import static neurevolve.world.Space.SOUTH;
+import static neurevolve.world.Space.WEST;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -27,14 +31,14 @@ public class World implements Environment {
     public static final int POSITION_CODE = 0;
     public static final int DIRECTION_CODE = 1;
 
-    private final Frame frame;
+    private final Space space;
     private final WorldConfiguration config;
     private final int[] resources;
     private final int[] elevation;
     private final Organism[] population;
     private final Random random = new Random();
 
-    private int time = 0;
+    private final Time time;
     private int populationSize = 0;
 
     private final ActivationFunction function;
@@ -49,10 +53,11 @@ public class World implements Environment {
      * @param frame the frame that defines the size of the world
      * @param configuration the configuration of the world
      */
-    public World(ActivationFunction function, Frame frame, WorldConfiguration configuration) {
+    public World(ActivationFunction function, Space frame, WorldConfiguration configuration) {
         this.function = function;
         this.config = configuration;
-        this.frame = frame;
+        this.space = frame;
+        this.time = new Time(configuration);
         this.resources = new int[frame.size()];
         this.elevation = new int[frame.size()];
         this.population = new Organism[frame.size()];
@@ -64,7 +69,7 @@ public class World implements Environment {
      * @return a complete copy of the resource array
      */
     public int[] getResourceCopy() {
-        return Arrays.copyOf(resources, frame.size());
+        return Arrays.copyOf(resources, space.size());
     }
 
     /**
@@ -73,7 +78,7 @@ public class World implements Environment {
      * @return a complete copy of the population array
      */
     public Organism[] getPopulationCopy() {
-        return Arrays.copyOf(population, frame.size());
+        return Arrays.copyOf(population, space.size());
     }
 
     /**
@@ -82,7 +87,7 @@ public class World implements Environment {
      * @return a complete copy of the elevation array
      */
     public int[] getElevationCopy() {
-        return Arrays.copyOf(elevation, frame.size());
+        return Arrays.copyOf(elevation, space.size());
     }
 
     /**
@@ -126,7 +131,7 @@ public class World implements Environment {
      * @param cliff the height of the edge of the hill
      */
     public void addHill(int centre, int radius, int slope, int cliff) {
-        frame.forAllPositionsInCircle(centre, radius, (p, d) -> setElevation(p, cliff + (radius - d) * slope));
+        space.forAllPositionsInCircle(centre, radius, (p, d) -> setElevation(p, cliff + (radius - d) * slope));
     }
 
     /**
@@ -172,7 +177,7 @@ public class World implements Environment {
         int position = organism.getWorldValue(POSITION_CODE);
         for (Angle angle : angles) {
             int direction = angle.add(organism.getWorldValue(DIRECTION_CODE));
-            position = frame.move(position, direction);
+            position = space.move(position, direction);
         }
         return position;
     }
@@ -233,7 +238,7 @@ public class World implements Environment {
      */
     public void seed(Recipe recipe, int count) {
         while (populationSize < count) {
-            int position = random.nextInt(frame.size());
+            int position = random.nextInt(space.size());
             if (!hasOrganism(position)) {
                 Organism organism = recipe.make(this, 1000);
                 addOrganism(organism, position, random.nextInt(4));
@@ -246,7 +251,7 @@ public class World implements Environment {
      * Process all organisms.
      */
     public void tick() {
-        time++;
+        time.tick();
         growResources();
         processPopulation();
     }
@@ -257,13 +262,13 @@ public class World implements Environment {
      */
     private void growResources() {
         int maxResources = config.getMaxResources();
-        for (int i = 0; i < frame.size(); i++) {
+        for (int i = 0; i < space.size(); i++) {
             int temp = getTemperature(i);
             while (temp >= 100) {
                 resources[i]++;
                 temp -= 100;
             }
-            if (time % (100 - temp) == 0)
+            if (time.getTime() % (100 - temp) == 0)
                 resources[i]++;
             if (resources[i] > maxResources)
                 resources[i] = maxResources;
@@ -278,7 +283,7 @@ public class World implements Environment {
         largestOrganism = null;
         totalComplexity = 0;
         Organism[] populationCode = getPopulationCopy();
-        for (int i = 0; i < frame.size(); i++) {
+        for (int i = 0; i < space.size(); i++) {
             if (populationCode[i] != null)
                 processPosition(i, populationCode[i]);
         }
@@ -358,34 +363,36 @@ public class World implements Environment {
     }
 
     /**
-     * Split the organism at the given position. The child organism is placed at a random position
-     * next to this organism facing in the same direction. The split does consumes as much energy as
-     * the size of the recipe being replicated. If it does not have enough energy then it does not
-     * split. It also does not split if there are no free positions adjacent to the organism.
+     * Split and organism. The child organism is placed at a random position next to this organism
+     * facing in the same direction. The split consumes as much energy as the size of the recipe
+     * being replicated. If it does not have enough energy then it does not split. It also does not
+     * split if there are no free positions adjacent to the organism.
      *
-     * @param position the position of the organism to split.
+     * @param organism the organism to split
      */
     public void splitOrganism(Organism organism) {
         int position = getPosition(organism);
         if (organism.consume(organism.size() * 2))
-            openPositionNextTo(position).ifPresent(pos -> addChild(pos, organism));
+            openPositionNextTo(position)
+                    .ifPresent(pos -> addOrganism(organism.divide(), pos, getDirection(organism)));
     }
 
-    private void addChild(int position, Organism parent) {
-        Organism child = parent.divide();
-        setDirection(child, getDirection(parent));
-        addOrganism(child, position, getDirection(parent));
-    }
-
+    /**
+     * Get an adjacent position that does not have an organism, or OptionalInt.empty() if all
+     * adjacent positions have an organism.
+     */
     private OptionalInt openPositionNextTo(int position) {
-        List<Integer> directions = Arrays.asList(0, 1, 2, 3);
+        List<Integer> directions = Arrays.asList(EAST, WEST, NORTH, SOUTH);
         Collections.shuffle(directions);
         return directions.stream()
-                .mapToInt(dir -> frame.move(position, dir))
+                .mapToInt(dir -> space.move(position, dir))
                 .filter(pos -> !hasOrganism(pos))
                 .findFirst();
     }
 
+    /**
+     * Reduce the energy of an organism by the temperature at its position only if it is negative
+     */
     private void reduceEnergyByTemperature(int position, Organism organism) {
         int temp = getTemperature(position);
         if (temp < 0)
@@ -393,10 +400,11 @@ public class World implements Environment {
     }
 
     /**
-     * Kill and remove the organism at a given position. The current energy of the organism becomes
-     * resources at the organism's position.
+     * Kill and remove the organism at a given angle from an attacking organism. The current energy
+     * of the organism becomes resources at the organism's position.
      *
-     * @param position the position of the organism
+     * @param killer the organism that is the source of the attack
+     * @param angle the angle to the target organism
      */
     public void killOrganism(Organism killer, Angle angle) {
         int position = getPosition(killer, angle);
@@ -414,7 +422,7 @@ public class World implements Environment {
      * @return the number of ticks for the world.
      */
     public int getTime() {
-        return time;
+        return time.getTime();
     }
 
     /**
@@ -423,8 +431,7 @@ public class World implements Environment {
      * @return the name of the season
      */
     public String getSeasonName() {
-        final String[] seasons = {"Spring", "Summer", "Autumn", "Winter"};
-        return seasons[4 * (time % config.getYearLength()) / config.getYearLength()];
+        return time.getSeasonName();
     }
 
     /**
@@ -434,17 +441,11 @@ public class World implements Environment {
      * @return the temperature
      */
     public int getTemperature(int position) {
-        return getLatitudeTemp(position) - getElevation(position) + getSeasonTemp();
+        return getLatitudeTemp(position) - getElevation(position) + time.getSeasonalTemp();
     }
 
     private int getLatitudeTemp(int position) {
-        return frame.scaleByLatitude(position, config.getMinTemp(), config.getMaxTemp());
-    }
-
-    private int getSeasonTemp() {
-        int timeOfYear = time % config.getYearLength();
-        int timeFromMidYear = Math.abs(config.getYearLength() / 2 - timeOfYear);
-        return config.getTempVariation() * 2 * timeFromMidYear / config.getYearLength();
+        return space.scaleByLatitude(position, config.getMinTemp(), config.getMaxTemp());
     }
 
     /**

@@ -3,14 +3,14 @@ package neurevolve.world;
 import java.util.function.BiConsumer;
 
 /**
- * A <code>Frame</code> represents a limited area within which cartesian coordinates operate but in
+ * A <code>Space</code> represents a limited area within which Cartesian coordinates operate but in
  * which opposite edges are considered to be joined. It has a fixed width and height. A position
  * within the frame is represented as an integer. There are methods to move a position in each of
  * the four directions with the value wrapping at the edges of the frame.
  *
  * @author simon
  */
-public class Frame {
+public class Space {
 
     public static final int EAST = 0;
     public static final int NORTH = 1;
@@ -27,7 +27,7 @@ public class Frame {
      * @param height the vertical size of the frame
      * @throws IllegalArgumentException if <tt>width &le; 0 || height &le; 0</tt>
      */
-    public Frame(int width, int height) {
+    public Space(int width, int height) {
         if (width <= 0 || height <= 0)
             throw new IllegalArgumentException("Zero size frame");
         this.width = width;

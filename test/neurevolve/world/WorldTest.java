@@ -4,9 +4,9 @@ import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
-import static neurevolve.world.Frame.EAST;
-import static neurevolve.world.Frame.NORTH;
-import static neurevolve.world.Frame.WEST;
+import static neurevolve.world.Space.EAST;
+import static neurevolve.world.Space.NORTH;
+import static neurevolve.world.Space.WEST;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -17,13 +17,13 @@ import org.junit.Test;
 public class WorldTest {
 
     private WorldConfiguration config;
-    private Frame frame;
+    private Space frame;
     private World world;
 
     @Before
     public void setup() {
         config = new WorldConfiguration();
-        frame = new Frame(10, 10);
+        frame = new Space(10, 10);
         world = new World(n -> n, frame, config);
     }
 

@@ -8,10 +8,9 @@ import java.awt.image.DataBufferInt;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import neurevolve.organism.Organism;
-import neurevolve.world.Frame;
+import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
-import neurevolve.world.WorldInput;
 
 public class MapPanel extends JPanel {
 
@@ -21,7 +20,7 @@ public class MapPanel extends JPanel {
     private final BufferedImage image;
     private final int[] pixels;
 
-    public MapPanel(World world, Frame frame, WorldConfiguration config) {
+    public MapPanel(World world, Space frame, WorldConfiguration config) {
         this.world = world;
         this.config = config;
         setPreferredSize(new Dimension(frame.getWidth(), frame.getHeight()));
@@ -36,7 +35,7 @@ public class MapPanel extends JPanel {
         Organism[] population = world.getPopulationCopy();
         int[] elevation = world.getElevationCopy();
         for (int i = 0; i < resources.length; i++) {
-            pixels[i] = WorldInput.convertToColour(config, resources[i], population[i], elevation[i]);
+            pixels[i] = convertToColour(config, resources[i], population[i], elevation[i]);
             pixels[i] |= 255 << 24;
         }
         repaint();
@@ -46,4 +45,23 @@ public class MapPanel extends JPanel {
     public void paint(Graphics g) {
         g.drawImage(image, 0, 0, this);
     }
+
+    private int convertToColour(WorldConfiguration config, int resources, Organism organism, int elevation) {
+        return resourceColour(config, resources)
+                | populationColour(config, organism)
+                | elevationColour(config, elevation);
+    }
+
+    private int resourceColour(WorldConfiguration config, int resource) {
+        return (resource * 255 / config.getMaxResources()) << 8;
+    }
+
+    private int populationColour(WorldConfiguration config, Organism organism) {
+        return organism == null ? 0 : 200 << 16;
+    }
+
+    private int elevationColour(WorldConfiguration config, int elevation) {
+        return elevation * 255 / config.getMaxElevation();
+    }
+
 }

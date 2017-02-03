@@ -4,7 +4,7 @@ import neurevolve.network.SigmoidFunction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.RecipePrinter;
 import neurevolve.ui.MainWindow;
-import neurevolve.world.Frame;
+import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
@@ -32,7 +32,7 @@ public class Neurevolve {
         config.setMutationRate(20);
         config.setConsumptionRate(20);
 
-        Frame frame = new Frame(1000, 500);
+        Space frame = new Space(1000, 500);
 
         World world = new World(new SigmoidFunction(1000), frame, config);
         world.addHill(frame.position(100, 400), 40, 5, 50);
