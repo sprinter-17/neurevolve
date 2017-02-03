@@ -12,36 +12,32 @@ public enum Instruction {
     /**
      * Add a new neuron with a given threshold.
      */
-    ADD_NEURON("+", Instruction::addNeuron, 1),
+    ADD_NEURON(Instruction::addNeuron),
     /**
      * Add a link to the last neuron from the neuron indexed in the next value and with the weight
      * specified in the following value. If no neuron has been added or if the next value does not
      * index an existing neuron then this instruction is ignored.
      */
-    ADD_LINK("^", Instruction::addLink, 2),
+    ADD_LINK(Instruction::addLink),
     /**
      * Add an input to the last neuron. The code for the input is given in the next value.
      */
-    ADD_INPUT("<-", Instruction::addInput, 2),
+    ADD_INPUT(Instruction::addInput),
     /**
      * Set an activity to perform if the last neuron is activated. The code for the activity is
      * given in the next value.
      */
-    SET_ACTIVITY("->", Instruction::setActivity, 1);
+    SET_ACTIVITY(Instruction::setActivity);
 
     private interface Operation {
 
         void operate(Organism organism, Queue<Integer> values);
     }
 
-    private final String name;
     private final Operation operation;
-    private final int valueCount;
 
-    private Instruction(String name, Operation operation, int valueCount) {
-        this.name = name;
+    private Instruction(Operation operation) {
         this.operation = operation;
-        this.valueCount = valueCount;
     }
 
     /**
@@ -92,9 +88,10 @@ public enum Instruction {
     private static void addLink(Organism organism, Queue<Integer> values) {
         if (!organism.getBrain().isEmpty()) {
             int from = value(values);
-            int weight = value(values);
-            if (from >= 0 && from < organism.getBrain().size() - 1)
+            if (from >= 0 && from < organism.getBrain().size() - 1) {
+                int weight = value(values);
                 organism.getBrain().addLink(from, weight);
+            }
         }
     }
 
@@ -117,37 +114,6 @@ public enum Instruction {
             Activity activity = organism.getActivity(value(values));
             organism.getBrain().setActivity(activity);
         }
-    }
-
-    /**
-     * Generate a human-readable representation of the instruction
-     *
-     * @param printer the object to use to print input and activities for this instruction
-     * @param values the queue of values
-     * @return a human-readable string representing the instruction
-     */
-    public String toString(RecipePrinter printer, Queue<Integer> values) {
-        StringBuilder builder = new StringBuilder();
-        switch (this) {
-            case ADD_INPUT:
-                builder.append(printer.getInput(value(values)));
-                builder.append("(").append(value(values)).append(")");
-                break;
-            case SET_ACTIVITY:
-                builder.append(printer.getActivity(value(values)));
-                break;
-            default:
-                builder.append(name);
-                builder.append("(");
-                for (int i = 0; i < valueCount; i++) {
-                    if (i > 0)
-                        builder.append(",");
-                    builder.append(value(values));
-                }
-                builder.append(")");
-                break;
-        }
-        return builder.toString();
     }
 
     /**

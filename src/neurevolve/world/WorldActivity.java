@@ -6,13 +6,13 @@ import static neurevolve.world.Angle.LEFT;
 import static neurevolve.world.Angle.RIGHT;
 
 public enum WorldActivity {
-    EAT_HERE("Eat H", (w, o) -> w.feedOrganism(o)),
-    EAT_FORWARD("Eat F", (w, o) -> w.feedOrganism(o, FORWARD)),
+    EAT_HERE("Eat Here", (w, o) -> w.feedOrganism(o)),
+    EAT_FORWARD("Eat Forward", (w, o) -> w.feedOrganism(o, FORWARD)),
     DIVIDE("Split", (w, o) -> w.splitOrganism(o)),
     MOVE("Move", (w, o) -> w.moveOrganism(o)),
-    KILL("Kill", (w, o) -> w.killOrganism(o, FORWARD)),
-    TURN_LEFT("Turn L", (w, o) -> w.turnOrganism(o, LEFT)),
-    TURN_RIGHT("Turn R", (w, o) -> w.turnOrganism(o, RIGHT));
+    ATTACK("Attack", (w, o) -> w.attackOrganism(o, FORWARD)),
+    TURN_LEFT("Turn Left", (w, o) -> w.turnOrganism(o, LEFT)),
+    TURN_RIGHT("Turn Right", (w, o) -> w.turnOrganism(o, RIGHT));
 
     private interface ActivityPerformer {
 
@@ -40,7 +40,7 @@ public enum WorldActivity {
         decode(activity).perform(world, organism);
     }
 
-    public static String print(int code) {
+    public static String describe(int code) {
         return decode(code).name;
     }
 }

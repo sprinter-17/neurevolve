@@ -219,7 +219,7 @@ public class World implements Environment {
      * @param recipe the recipe to use to construct the organisms
      * @param energy the starting energy for the new organisms
      * @param count the number of organism to add
-     * @throws IllegalArgumentException if <tt>count > space.size()</tt>
+     * @throws IllegalArgumentException if <tt>count &gt; space.size()</tt>
      */
     public void seed(Recipe recipe, int energy, int count) {
         if (count > space.size())
@@ -247,18 +247,19 @@ public class World implements Environment {
      * by temp / 100 and a further one each temp % 100 ticks.
      */
     private void growResources() {
-        int maxResources = config.getMaxResources();
         for (int i = 0; i < space.size(); i++) {
             int temp = getTemperature(i);
             while (temp >= 100) {
-                resources[i]++;
+                addResources(i, 1);
                 temp -= 100;
             }
             if (time.getTime() % (100 - temp) == 0)
-                resources[i]++;
-            if (resources[i] > maxResources)
-                resources[i] = maxResources;
+                addResources(i, 1);
         }
+    }
+
+    private void addResources(int position, int amount) {
+        resources[position] = Math.min(config.getMaxResources(), resources[position] + amount);
     }
 
     public Organism getMostComplexOrganism() {
@@ -287,11 +288,23 @@ public class World implements Environment {
         resources[position] -= amount;
     }
 
+    /**
+     * Move an organism forward, if it has sufficient energy to climb the slope and there is not
+     * organism in front.
+     *
+     * @param organism the organism to move
+     */
     public void moveOrganism(Organism organism) {
         int slope = Math.max(0, getSlope(organism, FORWARD));
         population.moveOrganism(organism, slope);
     }
 
+    /**
+     * Turn an organism's direction through an angle
+     *
+     * @param organism the organism to turn
+     * @param angle the angle to turn the organism by
+     */
     public void turnOrganism(Organism organism, Angle angle) {
         population.turn(organism, angle);
     }
@@ -361,20 +374,30 @@ public class World implements Environment {
     }
 
     /**
-     * Kill and remove the organism at a given angle from an attacking organism. The current energy
-     * of the organism becomes resources at the organism's position.
+     * Attack an organism at a given angle. This activity costs 20 energy. The organism with less
+     * current energy dies. The energy of that organism becomes resources at their current position.
      *
-     * @param killer the organism that is the source of the attack
+     * @param attacker the organism that is the source of the attack
      * @param angle the angle to the target organism
      */
-    public void killOrganism(Organism killer, Angle angle) {
-        int position = getPosition(killer, angle);
-        if (hasOrganism(position) && killer.consume(40)) {
+    public void attackOrganism(Organism attacker, Angle angle) {
+        int position = getPosition(attacker, angle);
+        if (hasOrganism(position) && attacker.consume(20)) {
             Organism target = population.getOrganism(position);
-            resources[position] += target.getEnergy();
-            target.reduceEnergy(target.getEnergy());
-            removeOrganism(target);
+            if (attacker.getEnergy() >= target.getEnergy()) {
+                kill(target);
+            }
+            if (target.getEnergy() >= attacker.getEnergy()) {
+                kill(attacker);
+            }
         }
+    }
+
+    private void kill(Organism victim) {
+        int position = getPosition(victim);
+        addResources(position, victim.getEnergy());
+        victim.reduceEnergy(victim.getEnergy());
+
     }
 
     /**
@@ -484,6 +507,16 @@ public class World implements Environment {
     private boolean mutate() {
         return config.getMutationRate() > 0
                 && random.nextInt(1000 / config.getMutationRate()) == 0;
+    }
+
+    @Override
+    public String describeInput(int input) {
+        return WorldInput.describe(input);
+    }
+
+    @Override
+    public String describeActivity(int activity) {
+        return WorldActivity.describe(activity);
     }
 
 }

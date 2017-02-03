@@ -135,16 +135,16 @@ public class WorldTest {
     }
 
     @Test
-    public void testKillOrganism() {
+    public void testAttackOrganism() {
         int position = frame.position(4, 7);
-        Organism organism = new Organism(world, 50);
+        Organism organism = new Organism(world, 100);
         Organism victim = new Organism(world, 30);
         world.addOrganism(organism, position, EAST);
         world.addOrganism(victim, world.getPosition(organism, FORWARD), EAST);
-        world.killOrganism(organism, FORWARD);
+        world.attackOrganism(organism, FORWARD);
+        assertThat(organism.getEnergy(), is(80));
         assertThat(world.getResource(world.getPosition(victim)), is(30));
         assertTrue(victim.isDead());
-        assertFalse(world.hasOrganism(world.getPosition(victim)));
     }
 
     @Test

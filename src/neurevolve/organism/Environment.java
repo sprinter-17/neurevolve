@@ -23,6 +23,8 @@ public interface Environment {
      */
     public int getInput(Organism organism, int input);
 
+    public String describeInput(int input);
+
     /**
      * Perform an activity in the environment
      *
@@ -30,6 +32,8 @@ public interface Environment {
      * @param activity code for the activity to perform
      */
     public void performActivity(Organism organism, int activity);
+
+    public String describeActivity(int activity);
 
     /**
      * Copy a set of instructions in a {@link Recipe} during organism's division. This is part of

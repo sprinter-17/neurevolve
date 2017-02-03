@@ -44,12 +44,11 @@ public class Organism {
     /**
      * Generate a human-readable representation of the organism
      *
-     * @param printer the object used to generate human-readable representations of inputs and
-     * activities
      * @return a string representing the organism
      */
-    public String toString(RecipePrinter printer) {
-        return recipe.toString(printer);
+    public String toString() {
+        RecipeDescriber describer = new RecipeDescriber(recipe, environment);
+        return describer.describe();
     }
 
     /**

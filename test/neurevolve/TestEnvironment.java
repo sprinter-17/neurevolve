@@ -38,4 +38,14 @@ public class TestEnvironment implements Environment {
         return recipe;
     }
 
+    @Override
+    public String describeInput(int input) {
+        return "Input" + input;
+    }
+
+    @Override
+    public String describeActivity(int activity) {
+        return "Activity" + activity;
+    }
+
 }

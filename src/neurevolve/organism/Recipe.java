@@ -20,27 +20,6 @@ public class Recipe {
     private int size = 0;
 
     /**
-     * Construct a new <code>Recipe</code>
-     */
-    public Recipe() {
-    }
-
-    public String toString(RecipePrinter printer) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        Queue<Integer> queue = instructionInQueue();
-        boolean first = true;
-        while (!queue.isEmpty()) {
-            if (!first)
-                builder.append(",");
-            builder.append(Instruction.decode(queue.remove()).toString(printer, queue));
-            first = false;
-        }
-        builder.append("]");
-        return builder.toString();
-    }
-
-    /**
      * Get the total number of instructions and values in the recipe
      *
      * @return the number of instructions and values
@@ -50,36 +29,16 @@ public class Recipe {
     }
 
     /**
-     * Add a new instruction at the end of the recipe
+     * Add a new instruction at the end of the recipe along with zero or more associated values
      *
      * @param instruction the instruction to add
+     * @param values zero or more values to add following the instruction
      */
-    public void add(Instruction instruction) {
+    public void add(Instruction instruction, int... values) {
         add(instruction.getCode());
-    }
-
-    /**
-     * Add a new instruction and one associated value at the end of the recipe
-     *
-     * @param instruction the instruction to add
-     * @param value the associated value
-     */
-    public void add(Instruction instruction, int value) {
-        add(instruction.getCode());
-        add(value);
-    }
-
-    /**
-     * Add a new instruction and two associated values at the end of the recipe
-     *
-     * @param instruction the instruction to add
-     * @param value1 the first associated value
-     * @param value2 the second associated value
-     */
-    public void add(Instruction instruction, int value1, int value2) {
-        add(instruction.getCode());
-        add(value1);
-        add(value2);
+        for (int value : values) {
+            add(value);
+        }
     }
 
     /**
@@ -119,9 +78,15 @@ public class Recipe {
         organism.setRecipe(this);
     }
 
-    private Queue<Integer> instructionInQueue() {
+    /**
+     * Convert the values to queue
+     *
+     * @return the instructions in a queue
+     */
+    protected Queue<Integer> instructionInQueue() {
         Queue<Integer> values = new ArrayDeque<>();
         IntStream.range(0, size).forEach(i -> values.add(instructions[i]));
         return values;
     }
+
 }

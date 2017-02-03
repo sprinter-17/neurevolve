@@ -1,26 +1,28 @@
 package neurevolve.world;
 
 import neurevolve.organism.Organism;
+import static neurevolve.world.Angle.BACKWARD;
 import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Angle.LEFT;
 import static neurevolve.world.Angle.RIGHT;
 
 public enum WorldInput {
-    AGE("Age", (w, o) -> o.getAge()),
-    OWN_ENERGY("Eng", (w, o) -> o.getEnergy()),
-    TEMPERATURE("Tmp", (w, o) -> w.getTemperature(w.getPosition(o))),
-    LOOK_SLOPE_FORWARD("Lk SF", (w, o) -> w.getSlope(o, FORWARD)),
-    LOOK_SLOPE_LEFT("Lk SL", (w, o) -> w.getSlope(o, LEFT)),
-    LOOK_SLOPE_RIGHT("Lk SR", (w, o) -> w.getSlope(o, RIGHT)),
-    LOOK_ORGANISM_FORWARD("Lk OF", getOrganism(FORWARD)),
-    LOOK_ORGANISM_LEFT("Lk OL", getOrganism(LEFT)),
-    LOOK_ORGANISM_RIGHT("Lk OR", getOrganism(RIGHT)),
-    LOOK_ORGANISM_FAR_FORWARD("Lk OFF", getOrganism(FORWARD, FORWARD)),
-    LOOK_RESOURCE_HERE("Lk RH", getResource()),
-    LOOK_RESOURCE_FORWARD("Lk RF", getResource(FORWARD)),
-    LOOK_RESOURCE_LEFT("Lk RL", getResource(LEFT)),
-    LOOK_RESOURCE_RIGHT("Lk RR", getResource(RIGHT)),
-    LOOK_RESOURCE_FAR_FORWARD("Lk RFF", getResource(FORWARD, FORWARD)),;
+    AGE("Own Age", (w, o) -> o.getAge()),
+    OWN_ENERGY("Own Energy", (w, o) -> o.getEnergy()),
+    TEMPERATURE("Temperature", (w, o) -> w.getTemperature(w.getPosition(o))),
+    LOOK_SLOPE_FORWARD("Slope Forward", (w, o) -> w.getSlope(o, FORWARD)),
+    LOOK_SLOPE_LEFT("Slope Left", (w, o) -> w.getSlope(o, LEFT)),
+    LOOK_SLOPE_RIGHT("Slope Right", (w, o) -> w.getSlope(o, RIGHT)),
+    LOOK_ORGANISM_BACKWARD("Energy Backward", getOrganism(BACKWARD)),
+    LOOK_ORGANISM_FORWARD("Energy Forward", getOrganism(FORWARD)),
+    LOOK_ORGANISM_LEFT("Energy Left", getOrganism(LEFT)),
+    LOOK_ORGANISM_RIGHT("Energy Right", getOrganism(RIGHT)),
+    LOOK_ORGANISM_FAR_FORWARD("Energy Far Forward", getOrganism(FORWARD, FORWARD)),
+    LOOK_RESOURCE_HERE("Resource Here", getResource()),
+    LOOK_RESOURCE_FORWARD("Resource Forward", getResource(FORWARD)),
+    LOOK_RESOURCE_LEFT("Resource Left", getResource(LEFT)),
+    LOOK_RESOURCE_RIGHT("Resource Right", getResource(RIGHT)),
+    LOOK_RESOURCE_FAR_FORWARD("Resource Far Forward", getResource(FORWARD, FORWARD)),;
 
     private interface ValueGetter {
 
@@ -48,7 +50,7 @@ public enum WorldInput {
         return decode(input).getValue(world, organism);
     }
 
-    public static String print(int code) {
+    public static String describe(int code) {
         return decode(code).name;
     }
 
