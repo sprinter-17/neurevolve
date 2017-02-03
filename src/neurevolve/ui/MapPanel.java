@@ -8,6 +8,7 @@ import java.awt.image.DataBufferInt;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import neurevolve.organism.Organism;
+import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
@@ -32,10 +33,10 @@ public class MapPanel extends JPanel {
 
     private void redraw(ActionEvent ev) {
         int[] resources = world.getResourceCopy();
-        Organism[] population = world.getPopulationCopy();
+        Population population = world.getPopulationCopy();
         int[] elevation = world.getElevationCopy();
         for (int i = 0; i < resources.length; i++) {
-            pixels[i] = convertToColour(config, resources[i], population[i], elevation[i]);
+            pixels[i] = convertToColour(config, resources[i], population.getOrganism(i), elevation[i]);
             pixels[i] |= 255 << 24;
         }
         repaint();

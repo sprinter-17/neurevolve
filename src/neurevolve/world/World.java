@@ -28,22 +28,18 @@ import static neurevolve.world.Space.WEST;
  */
 public class World implements Environment {
 
-    public static final int POSITION_CODE = 0;
-    public static final int DIRECTION_CODE = 1;
-
     private final Space space;
     private final WorldConfiguration config;
     private final int[] resources;
     private final int[] elevation;
-    private final Organism[] population;
     private final Random random = new Random();
 
     private final Time time;
-    private int populationSize = 0;
+    private final Population population;
 
     private final ActivationFunction function;
 
-    private Organism largestOrganism;
+    private Organism mostComplexOrganism;
     private int totalComplexity;
 
     /**
@@ -58,9 +54,9 @@ public class World implements Environment {
         this.config = configuration;
         this.space = frame;
         this.time = new Time(configuration);
+        this.population = new Population(space);
         this.resources = new int[frame.size()];
         this.elevation = new int[frame.size()];
-        this.population = new Organism[frame.size()];
     }
 
     /**
@@ -77,8 +73,8 @@ public class World implements Environment {
      *
      * @return a complete copy of the population array
      */
-    public Organism[] getPopulationCopy() {
-        return Arrays.copyOf(population, space.size());
+    public Population getPopulationCopy() {
+        return population.copy();
     }
 
     /**
@@ -96,7 +92,7 @@ public class World implements Environment {
      * @return the organism count
      */
     public int getPopulationSize() {
-        return populationSize;
+        return population.size();
     }
 
     /**
@@ -174,12 +170,7 @@ public class World implements Environment {
      * @return the resulting position
      */
     public int getPosition(Organism organism, Angle... angles) {
-        int position = organism.getWorldValue(POSITION_CODE);
-        for (Angle angle : angles) {
-            int direction = angle.add(organism.getWorldValue(DIRECTION_CODE));
-            position = space.move(position, direction);
-        }
-        return position;
+        return population.getPosition(organism, angles);
     }
 
     /**
@@ -189,7 +180,7 @@ public class World implements Environment {
      * @return true if there is an organism in the position
      */
     public boolean hasOrganism(int position) {
-        return population[position] != null;
+        return population.hasOrganism(position);
     }
 
     /**
@@ -199,7 +190,7 @@ public class World implements Environment {
      * @return the organism's energy, or 0 if there is no organism in the given position
      */
     public int getOrganismEnergy(int position) {
-        return hasOrganism(position) ? population[position].getEnergy() : 0;
+        return hasOrganism(position) ? population.getOrganism(position).getEnergy() : 0;
     }
 
     /**
@@ -211,37 +202,32 @@ public class World implements Environment {
      * @throws IllegalArgumentException if the position already has an organism
      */
     public void addOrganism(Organism organism, int position, int direction) {
-        if (population[position] != null)
-            throw new IllegalArgumentException("Attempt to add two organisms to same position");
-        population[position] = organism;
-        populationSize++;
-        setPosition(organism, position);
-        setDirection(organism, direction);
+        population.addOrganism(organism, position, direction);
     }
 
     /**
      * Remove an organism from the world
      */
     private void removeOrganism(Organism organism) {
-        int position = getPosition(organism);
-        assert population[position] != null;
-        population[position] = null;
-        populationSize--;
+        population.removeOrganism(organism);
     }
 
     /**
-     * Seed the world with a number of organisms constructed from a recipe. The organisms will be
-     * placed randomly within the frame.
+     * Seed the world with organisms constructed from a recipe until the population size reaches a
+     * given level. The organisms will be placed randomly within the frame.
      *
      * @param recipe the recipe to use to construct the organisms
+     * @param energy the starting energy for the new organisms
      * @param count the number of organism to add
+     * @throws IllegalArgumentException if <tt>count > space.size()</tt>
      */
-    public void seed(Recipe recipe, int count) {
-        while (populationSize < count) {
+    public void seed(Recipe recipe, int energy, int count) {
+        if (count > space.size())
+            throw new IllegalArgumentException("Attempt to seed the world with too many organisms");
+        while (population.size() < count) {
             int position = random.nextInt(space.size());
-            if (!hasOrganism(position)) {
-                Organism organism = recipe.make(this, 1000);
-                addOrganism(organism, position, random.nextInt(4));
+            if (!population.hasOrganism(position)) {
+                population.addOrganism(recipe.make(this, energy), position, random.nextInt(4));
             }
         }
     }
@@ -275,76 +261,15 @@ public class World implements Environment {
         }
     }
 
-    /**
-     * Process the population. This uses a copy of the population array so that changes that occur
-     * during processing do not interfere with the current state.
-     */
-    private void processPopulation() {
-        largestOrganism = null;
-        totalComplexity = 0;
-        Organism[] populationCode = getPopulationCopy();
-        for (int i = 0; i < space.size(); i++) {
-            if (populationCode[i] != null)
-                processPosition(i, populationCode[i]);
-        }
-    }
-
-    /**
-     * Process the organism at a given position. Reduce its energy according to temperature
-     */
-    private void processPosition(int position, Organism organism) {
-        reduceEnergyByTemperature(position, organism);
-        organism.activate();
-        totalComplexity += organism.complexity();
-        if (organism.isDead())
-            removeOrganism(organism);
-        else if (largestOrganism == null || organism.complexity() > largestOrganism.complexity())
-            largestOrganism = organism;
-    }
-
-    public Organism getLargestOrganism() {
-        return largestOrganism;
+    public Organism getMostComplexOrganism() {
+        return mostComplexOrganism;
     }
 
     public float getAverageComplexity() {
-        return (float) totalComplexity / populationSize;
-    }
-
-    protected int getPosition(Organism organism) {
-        return organism.getWorldValue(POSITION_CODE);
-    }
-
-    protected void setPosition(Organism organism, int position) {
-        organism.setWorldValue(POSITION_CODE, position);
-    }
-
-    protected int getDirection(Organism organism) {
-        return organism.getWorldValue(DIRECTION_CODE);
-    }
-
-    private void setDirection(Organism organism, int direction) {
-        organism.setWorldValue(DIRECTION_CODE, direction);
-    }
-
-    protected void turn(Organism organism, Angle angle) {
-        setDirection(organism, angle.add(getDirection(organism)));
-    }
-
-    /**
-     * Move an organism in the direction it is facing. A move consumes energy from the organism in
-     * proportion to the difference in elevation of the two positions. If the organism does not have
-     * enough energy it doesn't move
-     *
-     * @param organism the organism to move
-     */
-    public void moveOrganism(Organism organism) {
-        if (!hasOrganism(getPosition(organism, FORWARD))) {
-            int slope = Math.max(0, getSlope(organism, FORWARD));
-            if (organism.consume(slope)) {
-                removeOrganism(organism);
-                addOrganism(organism, getPosition(organism, FORWARD), getDirection(organism));
-            }
-        }
+        if (population.size() == 0)
+            return 0f;
+        else
+            return (float) totalComplexity / population.size();
     }
 
     /**
@@ -362,6 +287,15 @@ public class World implements Environment {
         resources[position] -= amount;
     }
 
+    public void moveOrganism(Organism organism) {
+        int slope = Math.max(0, getSlope(organism, FORWARD));
+        population.moveOrganism(organism, slope);
+    }
+
+    public void turnOrganism(Organism organism, Angle angle) {
+        population.turn(organism, angle);
+    }
+
     /**
      * Split and organism. The child organism is placed at a random position next to this organism
      * facing in the same direction. The split consumes as much energy as the size of the recipe
@@ -374,7 +308,7 @@ public class World implements Environment {
         int position = getPosition(organism);
         if (organism.consume(organism.size() * 2))
             openPositionNextTo(position)
-                    .ifPresent(pos -> addOrganism(organism.divide(), pos, getDirection(organism)));
+                    .ifPresent(pos -> addOrganism(organism.divide(), pos, population.getDirection(organism)));
     }
 
     /**
@@ -388,6 +322,33 @@ public class World implements Environment {
                 .mapToInt(dir -> space.move(position, dir))
                 .filter(pos -> !hasOrganism(pos))
                 .findFirst();
+    }
+
+    /**
+     * Process the population. This uses a copy of the population array so that changes that occur
+     * during processing do not interfere with the current state.
+     */
+    public void processPopulation() {
+        mostComplexOrganism = null;
+        totalComplexity = 0;
+        Population copy = population.copy();
+        for (int i = 0; i < space.size(); i++) {
+            if (copy.hasOrganism(i))
+                processPosition(i, copy.getOrganism(i));
+        }
+    }
+
+    /**
+     * Process the organism at a given position. Reduce its energy according to temperature
+     */
+    private void processPosition(int position, Organism organism) {
+        reduceEnergyByTemperature(position, organism);
+        organism.activate();
+        totalComplexity += organism.complexity();
+        if (organism.isDead())
+            removeOrganism(organism);
+        else if (mostComplexOrganism == null || organism.complexity() > mostComplexOrganism.complexity())
+            mostComplexOrganism = organism;
     }
 
     /**
@@ -409,7 +370,7 @@ public class World implements Environment {
     public void killOrganism(Organism killer, Angle angle) {
         int position = getPosition(killer, angle);
         if (hasOrganism(position) && killer.consume(40)) {
-            Organism target = population[position];
+            Organism target = population.getOrganism(position);
             resources[position] += target.getEnergy();
             target.reduceEnergy(target.getEnergy());
             removeOrganism(target);

@@ -11,8 +11,8 @@ public enum WorldActivity {
     DIVIDE("Split", (w, o) -> w.splitOrganism(o)),
     MOVE("Move", (w, o) -> w.moveOrganism(o)),
     KILL("Kill", (w, o) -> w.killOrganism(o, FORWARD)),
-    TURN_LEFT("Turn L", (w, o) -> w.turn(o, LEFT)),
-    TURN_RIGHT("Turn R", (w, o) -> w.turn(o, RIGHT));
+    TURN_LEFT("Turn L", (w, o) -> w.turnOrganism(o, LEFT)),
+    TURN_RIGHT("Turn R", (w, o) -> w.turnOrganism(o, RIGHT));
 
     private interface ActivityPerformer {
 

@@ -206,7 +206,7 @@ public class WorldTest {
     @Test
     public void testSeedWorld() {
         Recipe recipe = new Recipe();
-        world.seed(recipe, 5);
+        world.seed(recipe, 100, 5);
         assertThat(world.getPopulationSize(), is(5));
     }
 
@@ -247,7 +247,7 @@ public class WorldTest {
         Recipe recipe = new Recipe();
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
-        world.seed(recipe, 5);
+        world.seed(recipe, 100, 5);
         assertThat(world.getPopulationSize(), is(5));
         world.tick();
         assertThat(world.getPopulationSize(), is(10));

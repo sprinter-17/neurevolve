@@ -50,7 +50,7 @@ public class MainWindow {
                 recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.ordinal());
                 recipe.add(Instruction.ADD_NEURON, 0);
                 recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
-                world.seed(recipe, 100);
+                world.seed(recipe, 1000, 100);
             }
         }));
         tools.add(new JButton(new AbstractAction("Exit") {

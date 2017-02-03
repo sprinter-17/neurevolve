@@ -46,7 +46,7 @@ public class Neurevolve {
 
         for (int t = 0; t < 50000; t++) {
             world.tick();
-            Organism mostComplex = world.getLargestOrganism();
+            Organism mostComplex = world.getMostComplexOrganism();
             System.out.print(world.getTime() + ":" + world.getPopulationSize()
                     + " (" + String.format("%.2f", world.getAverageComplexity()) + ")"
                     + " FM: " + Runtime.getRuntime().freeMemory());
