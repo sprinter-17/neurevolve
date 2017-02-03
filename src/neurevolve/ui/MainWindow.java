@@ -1,6 +1,7 @@
 package neurevolve.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -23,9 +24,6 @@ import neurevolve.world.WorldConfiguration;
 public class MainWindow {
 
     private final JFrame frame;
-    private final JPanel tools;
-    private final MapPanel mapPanel;
-    private final JPanel statusBar;
     private final JLabel seasonLabel = new JLabel();
     private final JLabel populationLabel = new JLabel();
     private final JLabel averageComplexityLabel = new JLabel();
@@ -34,13 +32,20 @@ public class MainWindow {
      * Construct a frame for displaying a world
      *
      * @param world the world to display
-     * @param worldFrame the frame for the world
+     * @param space the frame for the world
      * @param config the configuration for this world
      */
-    public MainWindow(final World world, final Space worldFrame, final WorldConfiguration config) {
+    public MainWindow(final World world, final Space space, final WorldConfiguration config) {
         frame = new JFrame("Neurevolve");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        tools = new JPanel();
+        addTools(world);
+        addMapPanel(world, space, config);
+        addStatusBar(world);
+        frame.pack();
+    }
+
+    private void addTools(final World world) {
+        JPanel tools = new JPanel();
         tools.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         tools.add(new JButton(new AbstractAction("Seed") {
             @Override
@@ -60,9 +65,16 @@ public class MainWindow {
             }
         }));
         frame.getContentPane().add(tools, BorderLayout.NORTH);
-        mapPanel = new MapPanel(world, worldFrame, config);
+    }
+
+    private void addMapPanel(final World world, final Space space, final WorldConfiguration config) {
+        MapPanel mapPanel = new MapPanel(world, space, config);
+        mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight()));
         frame.getContentPane().add(mapPanel, BorderLayout.CENTER);
-        statusBar = new JPanel();
+    }
+
+    private void addStatusBar(final World world) {
+        JPanel statusBar = new JPanel();
         statusBar.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         statusBar.add(seasonLabel);
         statusBar.add(populationLabel);
@@ -70,7 +82,6 @@ public class MainWindow {
         Timer timer = new Timer(10, ev -> updateLabels(world));
         timer.start();
         frame.getContentPane().add(statusBar, BorderLayout.SOUTH);
-        frame.pack();
     }
 
     private void updateLabels(World world) {

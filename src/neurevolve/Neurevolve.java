@@ -12,14 +12,14 @@ public class Neurevolve {
     public static void main(String[] args) {
 
         WorldConfiguration config = new WorldConfiguration();
-        config.setTemperatureRange(100, 200);
+        config.setTemperatureRange(50, 150);
         config.setYear(200, -100);
         config.setMutationRate(20);
         config.setConsumptionRate(20);
 
         Space frame = new Space(1000, 500);
 
-        World world = new World(new SigmoidFunction(1000), frame, config);
+        World world = new World(new SigmoidFunction(100), frame, config);
         world.addHill(frame.position(100, 400), 40, 3, 50);
         world.addHill(frame.position(200, 150), 60, 2, 40);
         world.addHill(frame.position(400, 250), 150, 1, 0);
@@ -35,9 +35,10 @@ public class Neurevolve {
             if (world.getTime() % 100 == 0) {
                 Organism mostComplex = world.getMostComplexOrganism();
                 System.out.print(" Pop " + world.getPopulationSize());
-                System.out.print(" Complexity " + String.format("%.2f", world.getAverageComplexity()));
+                System.out.print(" Complexity " + String.format("%.4f", world.getAverageComplexity()));
                 if (mostComplex != null)
-                    System.out.print(" Leader " + mostComplex.complexity() + " :" + mostComplex);
+                    System.out.print(" Leader " + String.format("%.4f", mostComplex.complexity())
+                            + " :" + mostComplex);
                 System.out.println();
             }
         }

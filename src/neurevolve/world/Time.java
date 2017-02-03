@@ -2,7 +2,7 @@ package neurevolve.world;
 
 public class Time {
 
-    private static final String[] SEASON_NAMES = {"Winter", "Spring", "Summer", "Autumn"};
+    private static final String[] SEASON_NAMES = {"Spring", "Summer", "Autumn", "Autumn"};
 
     private final WorldConfiguration config;
     private int tickCount = 0;

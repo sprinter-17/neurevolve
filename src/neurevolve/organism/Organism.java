@@ -81,10 +81,13 @@ public class Organism {
     /**
      * Get a measure of the complexity of the organism.
      *
-     * @return the total number of activity switches of the associated network.
+     * @return the total number of activity switches of the associated network per ticks.
      */
-    public int complexity() {
-        return brain.getTotalActivitySwitches();
+    public float complexity() {
+        if (age == 0)
+            return 0;
+        else
+            return (float) brain.getTotalActivitySwitches() / age;
     }
 
     /**
@@ -158,7 +161,8 @@ public class Organism {
      * associated network.
      */
     public void activate() {
-        reduceEnergy(brain.size() + age / 100);
+        age++;
+        reduceEnergy(brain.size() / 2 + age / 100);
         if (!isDead())
             brain.activate();
     }

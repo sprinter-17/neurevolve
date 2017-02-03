@@ -40,7 +40,7 @@ public class World implements Environment {
     private final ActivationFunction function;
 
     private Organism mostComplexOrganism;
-    private int totalComplexity;
+    private float totalComplexity;
 
     /**
      * Construct a world within a frame with a configuration
@@ -270,7 +270,7 @@ public class World implements Environment {
         if (population.size() == 0)
             return 0f;
         else
-            return (float) totalComplexity / population.size();
+            return totalComplexity / population.size();
     }
 
     /**
@@ -386,9 +386,6 @@ public class World implements Environment {
             Organism target = population.getOrganism(position);
             if (attacker.getEnergy() >= target.getEnergy()) {
                 kill(target);
-            }
-            if (target.getEnergy() >= attacker.getEnergy()) {
-                kill(attacker);
             }
         }
     }
