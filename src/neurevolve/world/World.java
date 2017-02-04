@@ -410,15 +410,11 @@ public class World implements Environment {
         if (hasOrganism(position)) {
             Organism target = population.getOrganism(position);
             if (attacker.getEnergy() >= target.getEnergy()) {
-                kill(target);
+                addResources(getPosition(target), target.getEnergy() / 2);
+                attacker.increaseEnergy(target.getEnergy() / 2);
+                target.reduceEnergy(target.getEnergy());
             }
         }
-    }
-
-    private void kill(Organism victim) {
-        int position = getPosition(victim);
-        addResources(position, victim.getEnergy());
-        victim.reduceEnergy(victim.getEnergy());
     }
 
     /**
