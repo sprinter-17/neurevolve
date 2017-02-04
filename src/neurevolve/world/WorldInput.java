@@ -43,7 +43,7 @@ public enum WorldInput {
 
     public static WorldInput decode(int code) {
         final int count = values().length;
-        return values()[((code % count) + count) % count];
+        return values()[Math.floorMod(code, count)];
     }
 
     public static int getValue(int input, World world, Organism organism) {

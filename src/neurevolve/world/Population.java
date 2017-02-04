@@ -9,8 +9,8 @@ import static neurevolve.world.Angle.FORWARD;
  */
 public class Population {
 
-    private static final int POSITION_CODE = 0;
-    private static final int DIRECTION_CODE = 1;
+    public static final int POSITION_CODE = 0;
+    public static final int DIRECTION_CODE = 1;
 
     private final Space space;
     private final Organism[] organisms;

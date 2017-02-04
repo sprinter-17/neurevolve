@@ -33,6 +33,15 @@ public class Organism {
         setRecipe(new Recipe());
     }
 
+    public Organism copy() {
+        Organism copy = new Organism(environment, energy);
+        copy.recipe = recipe;
+        copy.age = age;
+        copy.energy = energy;
+        System.arraycopy(worldValues, 0, copy.worldValues, 0, worldValues.length);
+        return copy;
+    }
+
     /**
      * Set the recipe used to create the organism.
      *

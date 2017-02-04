@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntSupplier;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,11 +24,12 @@ import neurevolve.world.WorldConfiguration;
 public class ZoomWindow {
 
     private static final int PIXEL_SIZE = 20;
-    private static final int MARGIN = 2;
-    private static final int SCALE = 20;
+    private static final int MARGIN1 = 2;
+    private static final int MARGIN2 = 4;
+    private static final int SCALE = 30;
     private static final int HALF_SCALE = SCALE / 2;
     private static final int SIDE = PIXEL_SIZE * SCALE;
-    private static final int MAX_SNAPSHOTS = 50;
+    private static final int MAX_SNAPSHOTS = 500;
 
     private final World world;
     private final Space space;
@@ -51,7 +53,9 @@ public class ZoomWindow {
     private void forEachPosition(PositionProcessor processor) {
         for (int x = 0; x < SCALE; x++) {
             for (int y = 0; y < SCALE; y++) {
-                int position = space.position(centreX + x - HALF_SCALE, centreY + y - HALF_SCALE);
+                int position = space.position(
+                        Math.floorMod(centreX + x - HALF_SCALE, space.getWidth()),
+                        Math.floorMod(centreY + y - HALF_SCALE, space.getHeight()));
                 processor.process(x, y, position);
             }
         }
@@ -64,9 +68,15 @@ public class ZoomWindow {
 
         public SnapShot() {
             int[] resourceCopy = world.getResourceCopy();
-            forEachPosition((x, y, p) -> resources[x][y] = resourceCopy[p]);
             Population population = world.getPopulationCopy();
-            forEachPosition((x, y, p) -> organims[x][y] = population.getOrganism(p));
+            forEachPosition((x, y, p) -> process(x, y, resourceCopy[p], population.getOrganism(p)));
+        }
+
+        private void process(int x, int y, int resource, Organism organism) {
+            resources[x][y] = resource;
+            if (organism != null) {
+                organims[x][y] = organism.copy();
+            }
         }
     }
 
@@ -83,10 +93,14 @@ public class ZoomWindow {
                     g.setColor(new Color(MapPanel.elevationColour(config, elevations[x][y])));
                     g.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
                     g.setColor(new Color(MapPanel.resourceColour(config, snapShot.resources[x][y])));
-                    g.fillRect(x * PIXEL_SIZE + MARGIN, y * PIXEL_SIZE + MARGIN, PIXEL_SIZE - 2 * MARGIN, PIXEL_SIZE - 2 * MARGIN);
-                    if (snapShot.organims[x][y] != null) {
-                        g.setColor(Color.red);
-                        g.fillOval(x * PIXEL_SIZE + 2 * MARGIN, y * PIXEL_SIZE + 2 * MARGIN, PIXEL_SIZE - 4 * MARGIN, PIXEL_SIZE - 4 * MARGIN);
+                    g.fillRect(x * PIXEL_SIZE + MARGIN1, y * PIXEL_SIZE + MARGIN1, PIXEL_SIZE - 2 * MARGIN1, PIXEL_SIZE - 2 * MARGIN1);
+                    Organism organism = snapShot.organims[x][y];
+                    if (organism != null) {
+                        g.setColor(Color.RED);
+                        g.fillOval(x * PIXEL_SIZE + MARGIN2, y * PIXEL_SIZE + MARGIN2, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2);
+                        int direction = organism.getWorldValue(Population.DIRECTION_CODE);
+                        g.setColor(Color.BLACK);
+                        g.fillArc(x * PIXEL_SIZE + MARGIN2, y * PIXEL_SIZE + MARGIN2, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2, -90 * direction - 45, 90);
                     }
                 });
             }
@@ -112,53 +126,47 @@ public class ZoomWindow {
             }
         }));
         tools.addSeparator();
-        tools.add(new JButton(new AbstractAction("|<") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentSnapShot = 0;
-                updatePositionLabel();
-                frame.repaint();
-            }
-        }));
-        tools.add(new JButton(new AbstractAction("<") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentSnapShot = Math.max(0, currentSnapShot - 1);
-                updatePositionLabel();
-                frame.repaint();
-            }
-        }));
+        tools.add(movementButton("|<", () -> 0));
+        tools.add(movementButton("<<", () -> currentSnapShot - 10));
+        tools.add(movementButton("<", () -> currentSnapShot - 1));
         tools.addSeparator();
+        snapShotCountLabel.setPreferredSize(new Dimension(200, 5));
         tools.add(snapShotCountLabel);
         tools.addSeparator();
-        tools.add(new JButton(new AbstractAction(">") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentSnapShot = Math.min(snapShots.size() - 1, currentSnapShot + 1);
-                updatePositionLabel();
-                frame.repaint();
-            }
-        }));
-        tools.add(new JButton(new AbstractAction(">|") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentSnapShot = snapShots.size() - 1;
-                updatePositionLabel();
-                frame.repaint();
-            }
-        }));
+        tools.add(movementButton(">", () -> currentSnapShot + 1));
+        tools.add(movementButton(">>", () -> currentSnapShot + 10));
+        tools.add(movementButton(">|", () -> snapShots.size() - 1));
         zoomPanel = new ZoomPanel();
         zoomPanel.setPreferredSize(new Dimension(SIDE, SIDE));
         frame.add(zoomPanel, BorderLayout.CENTER);
         frame.setLocationRelativeTo(null);
         frame.pack();
-        world.addTickListener(tickListener);
+    }
+
+    private JButton movementButton(String text, IntSupplier position) {
+        return new JButton(new AbstractAction(text) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveTo(position.getAsInt());
+            }
+        });
+    }
+
+    private void moveTo(int snapShot) {
+        currentSnapShot = snapShot;
+        if (currentSnapShot < 0)
+            currentSnapShot = 0;
+        if (currentSnapShot >= snapShots.size())
+            currentSnapShot = snapShots.size() - 1;
+        updatePositionLabel();
+        frame.repaint();
     }
 
     private void tick() {
         if (snapShots.size() < MAX_SNAPSHOTS) {
             snapShots.add(new SnapShot());
             updatePositionLabel();
+            frame.repaint();
         }
     }
 
@@ -167,6 +175,7 @@ public class ZoomWindow {
     }
 
     public void show() {
+        world.addTickListener(tickListener);
         frame.setVisible(true);
     }
 

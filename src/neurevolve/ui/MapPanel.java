@@ -1,13 +1,11 @@
 package neurevolve.ui;
 
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import javax.swing.JPanel;
-import javax.swing.Timer;
 import neurevolve.organism.Organism;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
@@ -31,7 +29,6 @@ public class MapPanel extends JPanel {
 
     private final World world;
     private final WorldConfiguration config;
-    private final Timer timer;
     private final BufferedImage image;
     private final int[] pixels;
 
@@ -47,8 +44,7 @@ public class MapPanel extends JPanel {
         this.config = config;
         image = new BufferedImage(space.getWidth(), space.getHeight(), BufferedImage.TYPE_INT_ARGB);
         pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-        timer = new Timer(100, this::redraw);
-        timer.start();
+        world.addTickListener(this::redraw);
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -62,7 +58,7 @@ public class MapPanel extends JPanel {
      * Redraw the world. Copies the resources, population and elevation in order to ensure that the
      * display represents a snapshot of the world.
      */
-    private void redraw(ActionEvent ev) {
+    private void redraw() {
         int[] resources = world.getResourceCopy();
         Population population = world.getPopulationCopy();
         int[] elevation = world.getElevationCopy();
