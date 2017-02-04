@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class NeuronTest {
 
@@ -34,7 +35,7 @@ public class NeuronTest {
     public void testSingleInput() {
         neuron.addInput(() -> 17, 10);
         neuron.activate();
-        assertThat(neuron.getValue(), is(17));
+        assertThat(neuron.getValue(), is(170));
     }
 
     @Test
@@ -42,7 +43,7 @@ public class NeuronTest {
         neuron.addInput(() -> 11, 10);
         neuron.addInput(() -> -5, 10);
         neuron.activate();
-        assertThat(neuron.getValue(), is(6));
+        assertThat(neuron.getValue(), is(60));
     }
 
     @Test
@@ -51,7 +52,7 @@ public class NeuronTest {
         neuron.addInput(() -> -5, 10);
         neuron.setThreshold(3);
         neuron.activate();
-        assertThat(neuron.getValue(), is(3));
+        assertThat(neuron.getValue(), is(57));
     }
 
     @Test
@@ -59,7 +60,7 @@ public class NeuronTest {
         neuron = new Neuron(n -> -n);
         neuron.addInput(() -> 10, 10);
         neuron.activate();
-        assertThat(neuron.getValue(), is(-10));
+        assertThat(neuron.getValue(), is(-100));
     }
 
     @Test
@@ -80,6 +81,20 @@ public class NeuronTest {
         neuron.setThreshold(-1);
         neuron.activate();
         verify(activity, times(1)).perform();
+    }
+
+    @Test
+    public void testMemory() {
+        Input input = mock(Input.class);
+        when(input.getValue()).thenReturn(7);
+        neuron.addInput(input, 1);
+        neuron.addDelay(2);
+        neuron.activate();
+        assertThat(neuron.getValue(), is(0));
+        neuron.activate();
+        assertThat(neuron.getValue(), is(0));
+        neuron.activate();
+        assertThat(neuron.getValue(), is(7));
     }
 
 }

@@ -1,6 +1,5 @@
 package neurevolve.organism;
 
-import java.util.stream.Collectors;
 import neurevolve.TestEnvironment;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -53,6 +52,13 @@ public class RecipeDescriberTest {
     }
 
     @Test
+    public void testDelay() {
+        recipe.add(Instruction.ADD_NEURON, 0);
+        recipe.add(Instruction.ADD_DELAY, 5);
+        assertThat(describe(), is("Len4 | N1+0d5"));
+    }
+
+    @Test
     public void testSetActivity() {
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, 7);
@@ -86,7 +92,7 @@ public class RecipeDescriberTest {
 
     private String describe() {
         RecipeDescriber describer = new RecipeDescriber(recipe, new TestEnvironment());
-        return describer.describe().collect(Collectors.joining(" | "));
+        return describer.describe();
     }
 
 }

@@ -1,7 +1,5 @@
 package neurevolve.organism;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import neurevolve.network.Activity;
 import neurevolve.network.Input;
 import neurevolve.network.Network;
@@ -65,12 +63,17 @@ public class Organism {
      * @return a string representing the organism
      */
     public String toString() {
-        return describeRecipe().collect(Collectors.joining(" | "));
+        RecipeDescriber describer = describeRecipe();
+        StringBuilder description = new StringBuilder();
+        description.append("Len").append(recipe.size());
+        if (describer.getJunk() > 0)
+            description.append("Junk").append(describer.getJunk());
+        description.append(describer.describe());
+        return description.toString();
     }
 
-    public Stream<String> describeRecipe() {
-        RecipeDescriber describer = new RecipeDescriber(recipe, environment);
-        return describer.describe();
+    public RecipeDescriber describeRecipe() {
+        return new RecipeDescriber(recipe, environment);
     }
 
     /**

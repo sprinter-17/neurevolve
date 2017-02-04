@@ -24,6 +24,10 @@ public enum Instruction {
      */
     ADD_INPUT(Instruction::addInput),
     /**
+     * Add a delay to the last neuron. The amount to delay is given in the next value.
+     */
+    ADD_DELAY(Instruction::addDelay),
+    /**
      * Set an activity to perform if the last neuron is activated. The code for the activity is
      * given in the next value.
      */
@@ -103,6 +107,14 @@ public enum Instruction {
             Input input = organism.getInput(value(values));
             int weight = value(values);
             organism.getBrain().addInput(input, weight);
+        }
+    }
+
+    private static void addDelay(Organism organism, Queue<Integer> values) {
+        if (!organism.getBrain().isEmpty()) {
+            int delay = value(values);
+            if (delay > 0)
+                organism.getBrain().addDelay(delay);
         }
     }
 

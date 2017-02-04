@@ -72,6 +72,15 @@ public class Network {
     }
 
     /**
+     * Add a delay to the last neuron.
+     *
+     * @param delay the number of activations to delay value output
+     */
+    public void addDelay(int delay) {
+        lastNeuron().addDelay(delay);
+    }
+
+    /**
      * Add a link from a previous neuron to the last neuron. A link may only be created from a
      * previous neuron to a later neuron to avoid loops in the network.
      *

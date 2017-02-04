@@ -1,6 +1,7 @@
 package neurevolve.network;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,11 +15,12 @@ public class Neuron {
 
     private final ActivationFunction function;
 
-    private int value = 0;
     private int threshold = 0;
     private int switches = 0;
     private final List<Synapse> inputs = new ArrayList<>();
     private Optional<Activity> activity = Optional.empty();
+    private int[] values = new int[1];
+    private int valueIndex = 0;
 
     /**
      * A <code>Synapse</code> represents a weighted input to the neuron
@@ -54,7 +56,7 @@ public class Neuron {
      * been no activations of the neuron.
      */
     public int getValue() {
-        return value;
+        return values[valueIndex];
     }
 
     /**
@@ -91,6 +93,17 @@ public class Neuron {
     }
 
     /**
+     * Adds a delay between activation and the value returned by {@link #getValue}. For each delay
+     * amount, one activation occurs before the current value is returned. If <code>addDelay</code>
+     * is called multiple times the delays are added together.
+     *
+     * @param delay
+     */
+    public void addDelay(int delay) {
+        values = Arrays.copyOf(values, values.length + delay);
+    }
+
+    /**
      * Set the activity to occur at activation, if the inputs meet the threshold.
      *
      * @param activity the activity to perform if the neuron fires during activation
@@ -106,13 +119,29 @@ public class Neuron {
      * activity is fired.
      */
     public void activate() {
-        int previous = value;
-        value = inputs.stream().mapToInt(Synapse::getValue).sum() - threshold;
+        int previous = getValue();
+        int value = calculateValue();
+        storeValue(value);
+        performActivity(previous);
+    }
+
+    private int calculateValue() {
+        int value = inputs.stream().mapToInt(Synapse::getValue).sum() - threshold;
         value = function.apply(value);
-        if (value >= 0) {
-            if (activity.isPresent() && previous < 0)
+        return value;
+    }
+
+    private void storeValue(int value) {
+        values[valueIndex] = value;
+        valueIndex = (valueIndex + 1) % values.length;
+    }
+
+    private void performActivity(int previous) {
+        if (getValue() >= 0 && activity.isPresent()) {
+            if (previous < 0)
                 switches++;
-            activity.ifPresent(Activity::perform);
+            activity.get().perform();
         }
     }
+
 }
