@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
@@ -264,7 +265,7 @@ public class World implements Environment {
         time.tick();
         growResources();
         processPopulation();
-        tickListeners.forEach(Runnable::run);
+        tickListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
     }
 
     /**

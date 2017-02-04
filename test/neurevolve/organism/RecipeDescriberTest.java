@@ -1,5 +1,6 @@
 package neurevolve.organism;
 
+import java.util.stream.Collectors;
 import neurevolve.TestEnvironment;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -85,7 +86,7 @@ public class RecipeDescriberTest {
 
     private String describe() {
         RecipeDescriber describer = new RecipeDescriber(recipe, new TestEnvironment());
-        return describer.describe();
+        return describer.describe().collect(Collectors.joining(" | "));
     }
 
 }

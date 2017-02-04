@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntSupplier;
@@ -29,7 +31,12 @@ public class ZoomWindow {
     private static final int SCALE = 30;
     private static final int HALF_SCALE = SCALE / 2;
     private static final int SIDE = PIXEL_SIZE * SCALE;
-    private static final int MAX_SNAPSHOTS = 500;
+    private static final int NETWORK_PANEL_WIDTH = 300;
+    private static final int NETWORK_PANEL_VALUE = 270;
+    private static final int TEXT_HEIGHT = 17;
+    private static final int MAX_SNAPSHOTS = 100;
+    private static final Color POSITIVE = new Color(40, 120, 20);
+    private static final Color NEGATIVE = new Color(190, 30, 70);
 
     private final World world;
     private final Space space;
@@ -43,6 +50,7 @@ public class ZoomWindow {
     private final Runnable tickListener = this::tick;
     private final JLabel snapShotCountLabel = new JLabel("0");
     private int currentSnapShot = 0;
+    private Organism currentOrganism = null;
 
     @FunctionalInterface
     private interface PositionProcessor {
@@ -61,10 +69,32 @@ public class ZoomWindow {
         }
     }
 
+    private class NetworkSnapShot {
+
+        private final Organism organism;
+        private final int direction;
+        private final int[] values;
+
+        public NetworkSnapShot(Organism organism) {
+            this.organism = organism;
+            direction = organism.getWorldValue(Population.DIRECTION_CODE);
+            values = organism.copyValues();
+        }
+    }
+
+    private NetworkSnapShot getNetwork(Organism organism) {
+        if (organism == null || snapShots.isEmpty())
+            return null;
+        return snapShots.get(currentSnapShot).networks.stream()
+                .filter(n -> n.organism == organism)
+                .findAny().orElse(null);
+    }
+
     private class SnapShot {
 
         private final int resources[][] = new int[SCALE][SCALE];
-        private final Organism organims[][] = new Organism[SCALE][SCALE];
+        private final Organism organisms[][] = new Organism[SCALE][SCALE];
+        private final List<NetworkSnapShot> networks = new ArrayList<>();
 
         public SnapShot() {
             int[] resourceCopy = world.getResourceCopy();
@@ -75,7 +105,8 @@ public class ZoomWindow {
         private void process(int x, int y, int resource, Organism organism) {
             resources[x][y] = resource;
             if (organism != null) {
-                organims[x][y] = organism.copy();
+                organisms[x][y] = organism;
+                networks.add(new NetworkSnapShot(organism));
             }
         }
     }
@@ -94,17 +125,48 @@ public class ZoomWindow {
                     g.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
                     g.setColor(new Color(MapPanel.resourceColour(config, snapShot.resources[x][y])));
                     g.fillRect(x * PIXEL_SIZE + MARGIN1, y * PIXEL_SIZE + MARGIN1, PIXEL_SIZE - 2 * MARGIN1, PIXEL_SIZE - 2 * MARGIN1);
-                    Organism organism = snapShot.organims[x][y];
+                    Organism organism = snapShot.organisms[x][y];
                     if (organism != null) {
                         g.setColor(Color.RED);
                         g.fillOval(x * PIXEL_SIZE + MARGIN2, y * PIXEL_SIZE + MARGIN2, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2);
-                        int direction = organism.getWorldValue(Population.DIRECTION_CODE);
+                        int direction = getNetwork(organism).direction;
                         g.setColor(Color.BLACK);
                         g.fillArc(x * PIXEL_SIZE + MARGIN2, y * PIXEL_SIZE + MARGIN2, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2, -90 * direction - 45, 90);
+                        if (organism == currentOrganism) {
+                            g.setColor(Color.YELLOW);
+                            g.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                        }
                     }
                 });
             }
         }
+    }
+
+    private class NetworkPanel extends JPanel {
+
+        private int line;
+
+        @Override
+        public void paint(Graphics g) {
+            NetworkSnapShot network = getNetwork(currentOrganism);
+            if (network == null) {
+                g.setColor(Color.GRAY);
+                g.fillRect(0, 0, NETWORK_PANEL_WIDTH, SIDE);
+            } else {
+                line = 1;
+                network.organism.describeRecipe().forEach(item -> {
+                    g.setColor(Color.BLACK);
+                    g.drawString(item, 10, line * TEXT_HEIGHT);
+                    if (line > 1) {
+                        int value = network.values[line - 2];
+                        g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
+                        g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                    }
+                    line++;
+                });
+            }
+        }
+
     }
 
     public ZoomWindow(World world, Space space, WorldConfiguration config, int centreX, int centreY) {
@@ -139,6 +201,23 @@ public class ZoomWindow {
         zoomPanel = new ZoomPanel();
         zoomPanel.setPreferredSize(new Dimension(SIDE, SIDE));
         frame.add(zoomPanel, BorderLayout.CENTER);
+
+        NetworkPanel networkDisplay = new NetworkPanel();
+        networkDisplay.setPreferredSize(new Dimension(NETWORK_PANEL_WIDTH, SIDE));
+        zoomPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!snapShots.isEmpty()) {
+                    SnapShot snapShot = snapShots.get(currentSnapShot);
+                    int x = e.getX() / PIXEL_SIZE;
+                    int y = e.getY() / PIXEL_SIZE;
+                    currentOrganism = snapShot.organisms[x][y];
+                    networkDisplay.repaint();
+                }
+            }
+        });
+
+        frame.add(networkDisplay, BorderLayout.EAST);
         frame.setLocationRelativeTo(null);
         frame.pack();
     }

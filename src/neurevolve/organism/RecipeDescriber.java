@@ -1,11 +1,14 @@
 package neurevolve.organism;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Queue;
+import java.util.stream.Stream;
 
 /**
  * The function of a <code>RecipeDescriber</code> is to turn a {@link Recipe} into human-readable
@@ -18,7 +21,7 @@ public class RecipeDescriber {
 
     private final Environment environment;
     private final Queue<Integer> instructions;
-    private final StringBuilder description = new StringBuilder();
+    private final Deque<String> descriptions = new ArrayDeque<>();
     private int neuronCount = 0;
     private Optional<NeuronDescriber> neuron = Optional.empty();
 
@@ -39,15 +42,17 @@ public class RecipeDescriber {
         }
 
         public void describe() {
-            description.append(" | N").append(id);
-            describeWeight(threshold);
-            inputs.forEach(InputDescriber::describe);
+            StringBuilder description = new StringBuilder();
+            description.append("N").append(id);
+            describeWeight(description, threshold);
+            inputs.forEach(i -> i.describe(description));
             synapses.stream()
                     .sorted(Comparator.comparingInt(s -> s.from))
-                    .forEach(SynapseDescriber::describe);
+                    .forEach(s -> s.describe(description));
             activity.ifPresent(act -> description
                     .append(" ")
                     .append(environment.describeActivity(act)));
+            descriptions.add(description.toString());
         }
     }
 
@@ -64,9 +69,9 @@ public class RecipeDescriber {
             this.weight = weight;
         }
 
-        public void describe() {
+        public void describe(StringBuilder description) {
             description.append(" ^N").append(from);
-            describeWeight(weight);
+            describeWeight(description, weight);
         }
     }
 
@@ -83,9 +88,9 @@ public class RecipeDescriber {
             this.weight = weight;
         }
 
-        public void describe() {
+        public void describe(StringBuilder description) {
             description.append(" ").append(environment.describeInput(input));
-            describeWeight(weight);
+            describeWeight(description, weight);
         }
     }
 
@@ -103,7 +108,7 @@ public class RecipeDescriber {
     }
 
     private void describeRecipeLength() {
-        description.append("Len").append(instructions.size());
+        descriptions.add("Len" + instructions.size());
     }
 
     private void describeInstructions() {
@@ -152,7 +157,7 @@ public class RecipeDescriber {
     /**
      * describe a weight
      */
-    private void describeWeight(int weight) {
+    private void describeWeight(StringBuilder description, int weight) {
         description.append(String.format("%+d", weight));
     }
 
@@ -171,8 +176,8 @@ public class RecipeDescriber {
      *
      * @return the description
      */
-    public String describe() {
-        return description.toString();
+    public Stream<String> describe() {
+        return descriptions.stream();
     }
 
 }

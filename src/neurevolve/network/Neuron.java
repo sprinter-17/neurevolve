@@ -34,7 +34,7 @@ public class Neuron {
         }
 
         public int getValue() {
-            return input.getValue() * weight / 10;
+            return input.getValue() * weight;
         }
     }
 

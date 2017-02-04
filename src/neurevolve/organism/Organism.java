@@ -1,5 +1,7 @@
 package neurevolve.organism;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import neurevolve.network.Activity;
 import neurevolve.network.Input;
 import neurevolve.network.Network;
@@ -25,21 +27,27 @@ public class Organism {
      * @throws IllegalArgumentException if <tt>initialHealth @lt; 0</tt>
      */
     public Organism(Environment environment, int initialEnergy) {
+        this(environment, new Network(environment::applyActivationFunction), initialEnergy, new Recipe());
+    }
+
+    private Organism(Environment environment, Network brain, int initialEnergy, Recipe recipe) {
         if (initialEnergy < 0)
             throw new IllegalArgumentException("Negative initial energy");
         this.environment = environment;
-        this.brain = new Network(environment::applyActivationFunction);
+        this.brain = brain;
         this.energy = initialEnergy;
-        setRecipe(new Recipe());
+        this.recipe = recipe;
     }
 
     public Organism copy() {
-        Organism copy = new Organism(environment, energy);
-        copy.recipe = recipe;
+        Organism copy = new Organism(environment, brain, energy, recipe);
         copy.age = age;
-        copy.energy = energy;
         System.arraycopy(worldValues, 0, copy.worldValues, 0, worldValues.length);
         return copy;
+    }
+
+    public int[] copyValues() {
+        return brain.copyValues();
     }
 
     /**
@@ -57,6 +65,10 @@ public class Organism {
      * @return a string representing the organism
      */
     public String toString() {
+        return describeRecipe().collect(Collectors.joining(" | "));
+    }
+
+    public Stream<String> describeRecipe() {
         RecipeDescriber describer = new RecipeDescriber(recipe, environment);
         return describer.describe();
     }

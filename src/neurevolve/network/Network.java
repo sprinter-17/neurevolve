@@ -21,6 +21,10 @@ public class Network {
         this.function = function;
     }
 
+    public int[] copyValues() {
+        return neurons.stream().mapToInt(Neuron::getValue).toArray();
+    }
+
     /**
      * Get the size of network.
      *

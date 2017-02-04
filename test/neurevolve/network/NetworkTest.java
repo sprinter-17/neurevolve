@@ -1,6 +1,7 @@
 package neurevolve.network;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,10 +62,10 @@ public class NetworkTest {
         network.addInput(input, 10);
         when(input.getValue()).thenReturn(17);
         network.activate();
-        assertThat(network.getValue(0), is(17));
+        assertThat(network.getValue(0), is(170));
         when(input.getValue()).thenReturn(14);
         network.activate();
-        assertThat(network.getValue(0), is(14));
+        assertThat(network.getValue(0), is(140));
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
@@ -87,7 +88,7 @@ public class NetworkTest {
         network.addNeuron();
         network.addLink(0, 10);
         network.activate();
-        assertThat(network.getValue(1), is(28));
+        assertThat(network.getValue(1), is(280));
     }
 
     @Test
@@ -111,6 +112,17 @@ public class NetworkTest {
         network.setThreshold(0);
         network.activate();
         verify(activity, times(1)).perform();
+    }
+
+    @Test
+    public void testCopyValues() {
+        network.addNeuron();
+        network.setThreshold(-17);
+        network.addNeuron();
+        network.addLink(0, 2);
+        network.activate();
+        int[] expected = {17, 34};
+        assertArrayEquals(expected, network.copyValues());
     }
 
 }
