@@ -380,7 +380,7 @@ public class World implements Environment {
      */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
-        organism.reduceEnergy(organism.size() * config.getSizeRate() / 10);
+        organism.reduceEnergy(organism.size() * config.getSizeRate() / 100);
         organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 1000);
         organism.activate();
         totalComplexity += organism.complexity();

@@ -20,14 +20,14 @@ public class Neurevolve {
         config.setActivityCost(WorldActivity.DIVIDE, 5);
         config.setActivityCost(WorldActivity.MOVE, 2);
 
-        Space frame = new Space(600, 600);
+        Space frame = new Space(300, 300);
 
         World world = new World(new SigmoidFunction(100), frame, config);
-        world.addHills(50, 60);
+        world.addHills(20, 60);
         MainWindow window = new MainWindow(world, frame, config);
         window.show();
 
-        while (world.getTime() < 50000) {
+        while (world.getTime() < 500000) {
             tick(world);
         }
     }
