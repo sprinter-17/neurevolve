@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 
 public class OrganismTest {
 
-    private Environment environment = new TestEnvironment();
+    private final Environment environment = new TestEnvironment();
     private Organism organism;
 
     @Before
@@ -73,4 +73,10 @@ public class OrganismTest {
         assertThat(organism.getEnergy(), is(97));
     }
 
+    @Test
+    public void testAge() {
+        assertThat(organism.getAge(), is(0));
+        organism.activate();
+        assertThat(organism.getAge(), is(1));
+    }
 }

@@ -2,7 +2,7 @@ package neurevolve.world;
 
 public class Time {
 
-    private static final String[] SEASON_NAMES = {"Spring", "Summer", "Autumn", "Autumn"};
+    private static final String[] SEASON_NAMES = {"Spring", "Summer", "Autumn", "Winter"};
 
     private final WorldConfiguration config;
     private int tickCount = 0;
@@ -21,12 +21,17 @@ public class Time {
     }
 
     /**
-     * Get the name of the current season as defined by the year length
+     * Get the name of the current season as defined by the year length and temp variation. If there
+     * is no temp variation then the season is "None"
      *
      * @return the name of the season
      */
     public String getSeasonName() {
+        if (config.getTempVariation() == 0)
+            return "None";
         int season = 4 * timeOfYear() / config.getYearLength();
+        if (config.getTempVariation() > 0)
+            season = (season + 2) % 4;
         return SEASON_NAMES[season];
     }
 

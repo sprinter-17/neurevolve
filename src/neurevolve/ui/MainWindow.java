@@ -40,6 +40,7 @@ public class MainWindow {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         addTools(world);
         addMapPanel(world, space, config);
+        addConfigPanel(space, config);
         addStatusBar(world);
         frame.pack();
     }
@@ -71,6 +72,12 @@ public class MainWindow {
         MapPanel mapPanel = new MapPanel(world, space, config);
         mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight()));
         frame.getContentPane().add(mapPanel, BorderLayout.CENTER);
+    }
+
+    private void addConfigPanel(Space space, final WorldConfiguration config) {
+        ConfigPanel configPanel = new ConfigPanel(config);
+        configPanel.setPreferredSize(new Dimension(300, space.getHeight()));
+        frame.getContentPane().add(configPanel, BorderLayout.EAST);
     }
 
     private void addStatusBar(final World world) {

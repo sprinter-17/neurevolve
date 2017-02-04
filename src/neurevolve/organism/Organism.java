@@ -13,6 +13,7 @@ public class Organism {
     private final Network brain;
     private Recipe recipe = null;
     private int age;
+    private int ageAtSplit = 0;
     private int energy;
     private final int[] worldValues = new int[2];
 
@@ -92,14 +93,24 @@ public class Organism {
 
     /**
      * Divide the current organism in two, creating a new descendent from the recipe used to create
-     * this organism. The energy of this organism is split even between itself and its descendent.
+     * this organism. The energy of this organism is split evenly between itself and its descendent.
      *
      * @return the descendent organism
      */
     public Organism divide() {
+        ageAtSplit = age;
         int childEnergy = energy / 2;
         reduceEnergy(childEnergy);
         return recipe.make(environment, childEnergy);
+    }
+
+    /**
+     * Get the time since the organism last split.
+     *
+     * @return the number of activations since the organism split
+     */
+    public int getTimeSinceLastSplit() {
+        return age - ageAtSplit;
     }
 
     /**
@@ -162,7 +173,6 @@ public class Organism {
      */
     public void activate() {
         age++;
-        reduceEnergy(brain.size() / 2 + age / 100);
         if (!isDead())
             brain.activate();
     }

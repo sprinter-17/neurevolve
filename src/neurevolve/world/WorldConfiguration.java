@@ -1,5 +1,7 @@
 package neurevolve.world;
 
+import java.util.EnumMap;
+
 /**
  * Contains all the variables that can be changed through the simulation to adjust the behaviour of
  * the world.
@@ -16,8 +18,13 @@ public class WorldConfiguration {
     private int minTemp = 0;
     private int maxTemp = 0;
     private int tempVariation = 0;
-    private int consumptionRate = 40;
     private int maxResources = 1000;
+
+    private EnumMap<WorldActivity, Integer> activityCosts = new EnumMap<>(WorldActivity.class);
+    private int timeBetweenSplits = 5;
+    private int agingRate = 1;
+    private int consumptionRate = 40;
+    private int sizeRate = 5;
 
     /**
      * Set the mutation rate for the world. The mutation rate determines the likelihood of
@@ -83,6 +90,22 @@ public class WorldConfiguration {
         this.maxResources = resources;
     }
 
+    public void setActivityCost(WorldActivity activity, int cost) {
+        activityCosts.put(activity, cost);
+    }
+
+    public void setTimeBetweenSplits(int delay) {
+        timeBetweenSplits = delay;
+    }
+
+    public void setAgingRate(int rate) {
+        agingRate = rate;
+    }
+
+    public void setSizeRate(int rate) {
+        sizeRate = rate;
+    }
+
     public int getMutationRate() {
         return mutationRate;
     }
@@ -113,5 +136,21 @@ public class WorldConfiguration {
 
     public int getMaxElevation() {
         return 255;
+    }
+
+    public int getActivityCost(WorldActivity activity) {
+        return activityCosts.getOrDefault(activity, 0);
+    }
+
+    public int getTimeBetweenSplits() {
+        return timeBetweenSplits;
+    }
+
+    public int getAgingRate() {
+        return agingRate;
+    }
+
+    public int getSizeRate() {
+        return sizeRate;
     }
 }

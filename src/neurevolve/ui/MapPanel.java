@@ -2,6 +2,8 @@ package neurevolve.ui;
 
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import javax.swing.JPanel;
@@ -47,6 +49,13 @@ public class MapPanel extends JPanel {
         pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         timer = new Timer(100, this::redraw);
         timer.start();
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                ZoomWindow zoom = new ZoomWindow(world, space, config, e.getX(), e.getY());
+                zoom.show();
+            }
+        });
     }
 
     /**
@@ -72,7 +81,7 @@ public class MapPanel extends JPanel {
     /**
      * Convert resources, organism and elevation for a position to a colour to display
      */
-    private int convertToColour(WorldConfiguration config, int resources, Organism organism, int elevation) {
+    public static int convertToColour(WorldConfiguration config, int resources, Organism organism, int elevation) {
         return resourceColour(config, resources)
                 | populationColour(config, organism)
                 | elevationColour(config, elevation);
@@ -81,21 +90,21 @@ public class MapPanel extends JPanel {
     /**
      * Elevation shows in blue with intensity determined by height.
      */
-    private int elevationColour(WorldConfiguration config, int elevation) {
+    public static int elevationColour(WorldConfiguration config, int elevation) {
         return elevation * 255 / config.getMaxElevation() << BLUE_SHIFT;
     }
 
     /**
      * Resources show as green with intensity determined by number of resources.
      */
-    private int resourceColour(WorldConfiguration config, int resource) {
+    public static int resourceColour(WorldConfiguration config, int resource) {
         return (resource * 255 / config.getMaxResources()) << GREEN_SHIFT;
     }
 
     /**
      * An organism shows as a red pixel.
      */
-    private int populationColour(WorldConfiguration config, Organism organism) {
+    public static int populationColour(WorldConfiguration config, Organism organism) {
         return organism == null ? 0 : 200 << RED_SHIFT;
     }
 

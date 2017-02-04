@@ -1,10 +1,12 @@
 package neurevolve.world;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.stream.IntStream;
 import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
@@ -33,6 +35,8 @@ public class World implements Environment {
     private final int[] resources;
     private final int[] elevation;
     private final Random random = new Random();
+
+    private final List<Runnable> tickListeners = new ArrayList<>();
 
     private final Time time;
     private final Population population;
@@ -127,7 +131,15 @@ public class World implements Environment {
      * @param cliff the height of the edge of the hill
      */
     public void addHill(int centre, int radius, int slope, int cliff) {
-        space.forAllPositionsInCircle(centre, radius, (p, d) -> setElevation(p, cliff + (radius - d) * slope));
+        space.forAllPositionsInCircle(centre, radius,
+                (p, d) -> setElevation(p, getElevation(p) + cliff + (radius - d) * slope));
+    }
+
+    public void addHills(int hillCount, int radius) {
+        for (int i = 0; i < hillCount; i++) {
+            int position = random.nextInt(space.size());
+            addHill(position, random.nextInt(radius) + 1, random.nextInt(4) + 1, random.nextInt(10));
+        }
     }
 
     /**
@@ -148,7 +160,7 @@ public class World implements Environment {
      * @param value the elevation to set the position to
      */
     protected void setElevation(int position, int value) {
-        elevation[position] = value;
+        elevation[position] = Math.min(config.getMaxElevation(), value);
     }
 
     /**
@@ -224,12 +236,24 @@ public class World implements Environment {
     public void seed(Recipe recipe, int energy, int count) {
         if (count > space.size())
             throw new IllegalArgumentException("Attempt to seed the world with too many organisms");
+        IntStream.range(0, space.size())
+                .filter(this::hasOrganism)
+                .mapToObj(population::getOrganism)
+                .forEach(this::removeOrganism);
         while (population.size() < count) {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position)) {
                 population.addOrganism(recipe.make(this, energy), position, random.nextInt(4));
             }
         }
+    }
+
+    public void addTickListener(Runnable listner) {
+        tickListeners.add(listner);
+    }
+
+    public void removeTickListener(Runnable listener) {
+        tickListeners.remove(listener);
     }
 
     /**
@@ -240,6 +264,7 @@ public class World implements Environment {
         time.tick();
         growResources();
         processPopulation();
+        tickListeners.forEach(Runnable::run);
     }
 
     /**
@@ -318,9 +343,8 @@ public class World implements Environment {
      * @param organism the organism to split
      */
     public void splitOrganism(Organism organism) {
-        int position = getPosition(organism);
-        if (organism.consume(organism.size() * 2))
-            openPositionNextTo(position)
+        if (organism.getTimeSinceLastSplit() > config.getTimeBetweenSplits())
+            openPositionNextTo(getPosition(organism))
                     .ifPresent(pos -> addOrganism(organism.divide(), pos, population.getDirection(organism)));
     }
 
@@ -345,10 +369,9 @@ public class World implements Environment {
         mostComplexOrganism = null;
         totalComplexity = 0;
         Population copy = population.copy();
-        for (int i = 0; i < space.size(); i++) {
-            if (copy.hasOrganism(i))
-                processPosition(i, copy.getOrganism(i));
-        }
+        IntStream.range(0, space.size())
+                .filter(copy::hasOrganism)
+                .forEach(i -> processPosition(i, copy.getOrganism(i)));
     }
 
     /**
@@ -356,6 +379,8 @@ public class World implements Environment {
      */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
+        organism.reduceEnergy(organism.size() * config.getSizeRate() / 10);
+        organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 1000);
         organism.activate();
         totalComplexity += organism.complexity();
         if (organism.isDead())
@@ -382,7 +407,7 @@ public class World implements Environment {
      */
     public void attackOrganism(Organism attacker, Angle angle) {
         int position = getPosition(attacker, angle);
-        if (hasOrganism(position) && attacker.consume(20)) {
+        if (hasOrganism(position)) {
             Organism target = population.getOrganism(position);
             if (attacker.getEnergy() >= target.getEnergy()) {
                 kill(target);
@@ -394,7 +419,6 @@ public class World implements Environment {
         int position = getPosition(victim);
         addResources(position, victim.getEnergy());
         victim.reduceEnergy(victim.getEnergy());
-
     }
 
     /**
@@ -455,13 +479,14 @@ public class World implements Environment {
     /**
      * Perform an activity by an organism
      *
-     * @param activity the code for the activity to perform, as defined by
-     * {@link WorldActivity#decode}.
      * @param organism the organism to perform the activity
+     * @param code the code for the activity to perform, as defined by {@link WorldActivity#decode}.
      */
     @Override
-    public void performActivity(Organism organism, int activity) {
-        WorldActivity.perform(activity, this, organism);
+    public void performActivity(Organism organism, int code) {
+        WorldActivity activity = WorldActivity.decode(code);
+        if (organism.consume(config.getActivityCost(activity)))
+            activity.perform(this, organism);
     }
 
     /**

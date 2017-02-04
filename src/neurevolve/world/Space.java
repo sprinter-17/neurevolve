@@ -128,7 +128,7 @@ public class Space {
             for (int y = -radius; y <= radius; y++) {
                 int r = (int) Math.sqrt(x * x + y * y);
                 if (r <= radius)
-                    action.accept(position(xc + x, yc + y), r);
+                    action.accept(position(((xc + x) + width) % width, ((yc + y) + height) % height), r);
             }
         }
     }

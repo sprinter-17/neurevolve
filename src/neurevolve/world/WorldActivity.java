@@ -36,10 +36,6 @@ public enum WorldActivity {
         return values()[((code % length) + length) % length];
     }
 
-    public static void perform(int activity, World world, Organism organism) {
-        decode(activity).perform(world, organism);
-    }
-
     public static String describe(int code) {
         return decode(code).name;
     }
