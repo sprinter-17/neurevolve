@@ -24,7 +24,7 @@ public class ZoomWindow {
 
     private static final int PIXEL_SIZE = 20;
     private static final int MARGIN = 2;
-    private static final int SCALE = 20;
+    private static final int SCALE = 30;
     private static final int HALF_SCALE = SCALE / 2;
     private static final int SIDE = PIXEL_SIZE * SCALE;
     private static final int MAX_SNAPSHOTS = 50;
@@ -51,7 +51,7 @@ public class ZoomWindow {
     private void forEachPosition(PositionProcessor processor) {
         for (int x = 0; x < SCALE; x++) {
             for (int y = 0; y < SCALE; y++) {
-                int position = space.position(centreX + x - HALF_SCALE, centreY + y - HALF_SCALE);
+                int position = space.position(Math.floorMod((centreX + x - HALF_SCALE) , space.getWidth()), Math.floorMod((centreY + y - HALF_SCALE) , space.getHeight()));
                 processor.process(x, y, position);
             }
         }
