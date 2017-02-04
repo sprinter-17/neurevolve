@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
+import neurevolve.organism.RecipeDescriber;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -154,14 +155,13 @@ public class ZoomWindow {
                 g.fillRect(0, 0, NETWORK_PANEL_WIDTH, SIDE);
             } else {
                 line = 1;
-                network.organism.describeRecipe().forEach(item -> {
+                RecipeDescriber describer = network.organism.describeRecipe();
+                describer.getNeuronDescriptions().forEach(desc -> {
                     g.setColor(Color.BLACK);
-                    g.drawString(item, 10, line * TEXT_HEIGHT);
-                    if (line > 1) {
-                        int value = network.values[line - 2];
-                        g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
-                        g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
-                    }
+                    g.drawString(desc.getNeuronDescription(), 10, line * TEXT_HEIGHT);
+                    int value = network.values[line - 1];
+                    g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
+                    g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
                     line++;
                 });
             }
