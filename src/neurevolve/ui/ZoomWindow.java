@@ -135,7 +135,7 @@ public class ZoomWindow {
                         g.fillArc(x * PIXEL_SIZE + MARGIN2, y * PIXEL_SIZE + MARGIN2, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2, -90 * direction - 45, 90);
                         if (organism == currentOrganism) {
                             g.setColor(Color.YELLOW);
-                            g.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                            g.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE - 1, PIXEL_SIZE - 1);
                         }
                     }
                 });
@@ -149,6 +149,7 @@ public class ZoomWindow {
 
         @Override
         public void paint(Graphics g) {
+            super.paint(g);
             NetworkSnapShot network = getNetwork(currentOrganism);
             if (network == null) {
                 g.setColor(Color.GRAY);
@@ -211,8 +212,10 @@ public class ZoomWindow {
                     SnapShot snapShot = snapShots.get(currentSnapShot);
                     int x = e.getX() / PIXEL_SIZE;
                     int y = e.getY() / PIXEL_SIZE;
-                    currentOrganism = snapShot.organisms[x][y];
+                    if (x < SIDE && y < SIDE)
+                        currentOrganism = snapShot.organisms[x][y];
                     networkDisplay.repaint();
+                    zoomPanel.repaint();
                 }
             }
         });
