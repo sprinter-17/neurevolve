@@ -364,7 +364,7 @@ public class World implements Environment {
      * @param organism the organism to split
      */
     public void splitOrganism(Organism organism) {
-        if (organism.getTimeSinceLastSplit() > config.getTimeBetweenSplits())
+        if (organism.getTimeSinceLastSplit() >= config.getTimeBetweenSplits())
             openPositionNextTo(getPosition(organism))
                     .ifPresent(pos -> addOrganism(organism.divide(), pos, population.getDirection(organism)));
     }

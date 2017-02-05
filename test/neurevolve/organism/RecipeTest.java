@@ -47,7 +47,7 @@ public class RecipeTest {
         recipe.add(Instruction.ADD_LINK, 0, 5);
         Organism organism = recipe.make(environment, 400);
         organism.getBrain().activate();
-        assertThat(organism.getBrain().getValue(1), is(9));
+        assertThat(organism.getBrain().getValue(1), is(90));
     }
 
     @Test

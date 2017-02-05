@@ -105,7 +105,6 @@ public class RecipeDescriberTest {
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, 4);
         recipe.add(Instruction.ADD_NEURON, 1);
-        recipe.add(Instruction.SET_ACTIVITY, 5);
         assertThat(describeShort(), is("N2+0 Activity4"));
     }
 

@@ -1,5 +1,6 @@
 package neurevolve.world;
 
+import neurevolve.TestConfiguration;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
@@ -22,7 +23,7 @@ public class WorldTest {
 
     @Before
     public void setup() {
-        config = new WorldConfiguration();
+        config = new TestConfiguration();
         config.setTimeBetweenSplits(0);
         frame = new Space(10, 10);
         world = new World(n -> n, frame, config);
@@ -248,12 +249,13 @@ public class WorldTest {
         Recipe recipe = new Recipe();
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
-        world.seed(recipe, 100, 5);
-        assertThat(world.getPopulationSize(), is(5));
+        config.setActivityCost(WorldActivity.DIVIDE, 0);
+        world.seed(recipe, 100, 2);
+        assertThat(world.getPopulationSize(), is(2));
         world.tick();
-        assertThat(world.getPopulationSize(), is(10));
+        assertThat(world.getPopulationSize(), is(4));
         world.tick();
-        assertThat(world.getPopulationSize(), is(20));
+        assertThat(world.getPopulationSize(), is(8));
     }
 
 }
