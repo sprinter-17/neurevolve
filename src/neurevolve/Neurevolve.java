@@ -13,6 +13,7 @@ import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 
 public class Neurevolve {
+    private static ScheduledExecutorService executor;
 
     public static void main(String[] args) {
 
@@ -30,15 +31,8 @@ public class Neurevolve {
         world.addHills(100, 60);
         MainWindow window = new MainWindow(world, frame, config);
         window.show();
-
-        while (world.getTime() < 500000) {
-            tick(world);
-            try {
-                TimeUnit.MILLISECONDS.sleep(world.getDelay());
-            } catch (InterruptedException e) {
-                System.out.println(e);
-            }
-        }
+        executor = Executors.newSingleThreadScheduledExecutor();
+        executor.schedule(() -> tick(world), world.getDelay(), TimeUnit.MILLISECONDS);
     }
 
     private static void tick(World world) {
@@ -53,5 +47,6 @@ public class Neurevolve {
             }
             System.out.println();
         }
+        executor.schedule(() -> tick(world), world.getDelay(), TimeUnit.MILLISECONDS);
     }
 }

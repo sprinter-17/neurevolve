@@ -69,7 +69,7 @@ public class MainWindow {
             }
         }));
         
-        JSlider delaySlider = new JSlider(0, 100, 0);
+        JSlider delaySlider = new JSlider(1, 100, world.getDelay());
         delaySlider.addChangeListener((ChangeEvent e) -> {
             world.setDelay(delaySlider.getValue());
         });

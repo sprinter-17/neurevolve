@@ -88,6 +88,8 @@ public class World implements Environment {
      * 
      */
     public void setDelay(int delay) {
+        if (delay <= 0)
+            throw new IllegalArgumentException("Delay must be greater than zero");
         tickDelay = delay;
     }
 
