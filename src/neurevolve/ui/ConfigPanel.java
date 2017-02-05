@@ -23,20 +23,20 @@ public class ConfigPanel extends JTabbedPane {
         super();
         this.config = config;
         layout.insets = new Insets(0, 8, 0, 8);
-        addWorldPanel(config);
+        addWorldPanel();
         addOrganismPanel();
     }
 
-    private void addWorldPanel(WorldConfiguration config1) {
+    private void addWorldPanel() {
         JPanel worldPanel = new JPanel();
         addTab("World", worldPanel);
         layout.gridy = 0;
         JPanel mutationPanel = addGroupPanel(worldPanel, "Mutation");
-        addValueSlider(mutationPanel, "Rate", 1, 100, config1.getMutationRate(), config1::setMutationRate);
+        addValueSlider(mutationPanel, "Rate", 0, 100, config.getMutationRate(), config::setMutationRate);
 
         JPanel temperaturePanel = addGroupPanel(worldPanel, "Temperature");
-        JSlider minTemp = addValueSlider(temperaturePanel, "At Pole", -200, 400, config1.getMinTemp(), (v) -> config1.setTemperatureRange(v, config1.getMaxTemp()));
-        JSlider maxTemp = addValueSlider(temperaturePanel, "At Equator", -200, 400, config1.getMaxTemp(), (v) -> config1.setTemperatureRange(config1.getMinTemp(), v));
+        JSlider minTemp = addValueSlider(temperaturePanel, "At Pole", -200, 400, config.getMinTemp(), (v) -> config.setTemperatureRange(v, config.getMaxTemp()));
+        JSlider maxTemp = addValueSlider(temperaturePanel, "At Equator", -200, 400, config.getMaxTemp(), (v) -> config.setTemperatureRange(config.getMinTemp(), v));
         minTemp.addChangeListener(e -> {
             if (minTemp.getValue() > maxTemp.getValue())
                 maxTemp.setValue(minTemp.getValue());
@@ -45,8 +45,8 @@ public class ConfigPanel extends JTabbedPane {
             if (minTemp.getValue() > maxTemp.getValue())
                 minTemp.setValue(maxTemp.getValue());
         });
-        addValueSlider(temperaturePanel, "Year Length", 1, 3000, config1.getYearLength(), (v) -> config1.setYear(v, config1.getTempVariation()));
-        addValueSlider(temperaturePanel, "Season Variation", -200, 200, config1.getTempVariation(), (v) -> config1.setYear(config1.getYearLength(), v));
+        addValueSlider(temperaturePanel, "Year Length", 1, 3000, config.getYearLength(), (v) -> config.setYear(v, config.getTempVariation()));
+        addValueSlider(temperaturePanel, "Season Variation", -200, 200, config.getTempVariation(), (v) -> config.setYear(config.getYearLength(), v));
     }
 
     private void addOrganismPanel() {

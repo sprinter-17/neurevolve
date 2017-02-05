@@ -77,11 +77,13 @@ public class ZoomWindow {
 
         private final Organism organism;
         private final int direction;
+        private final int energy;
         private final int[] values;
 
         public NetworkSnapShot(Organism organism) {
             this.organism = organism;
             direction = organism.getWorldValue(Population.DIRECTION_CODE);
+            energy = organism.getEnergy();
             values = organism.copyValues();
         }
     }
@@ -170,6 +172,9 @@ public class ZoomWindow {
                 g.drawString("Amount of junk", 10, line * TEXT_HEIGHT);
                 g.drawString(String.valueOf(describer.getJunk()), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
                 line++;
+                g.drawString("Energy", 10, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(network.energy), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                line++;
                 line++;
                 firstNeuronLine = line;
                 toolTips.clear();
@@ -181,17 +186,18 @@ public class ZoomWindow {
                             int value = network.values[line - firstNeuronLine];
                             g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
                             g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
-                            toolTips.put(line, getInputs(desc));
+                            toolTips.put(line, getInputOutputs(desc));
                             line++;
                         });
             }
         }
 
-        private String getInputs(RecipeDescriber.NeuronDescription neuronDescriber) {
-            if (neuronDescriber.getInputDescriptions().count() == 0)
+        private String getInputOutputs(RecipeDescriber.NeuronDescription neuronDescriber) {
+            if (neuronDescriber.getInputDescriptions().count() == 0 && neuronDescriber.getOutputDescriptions().count() == 0)
                 return "None";
             else
-                return neuronDescriber.getInputDescriptions().collect(Collectors.joining("\n"));
+                return neuronDescriber.getInputDescriptions().collect(Collectors.joining(" "))
+                        + neuronDescriber.getOutputDescriptions().collect(Collectors.joining(" "));
         }
 
         @Override
@@ -244,8 +250,10 @@ public class ZoomWindow {
                     SnapShot snapShot = snapShots.get(currentSnapShot);
                     int x = e.getX() / PIXEL_SIZE;
                     int y = e.getY() / PIXEL_SIZE;
-                    if (x < SIDE && y < SIDE)
+                    if (x < SIDE && y < SIDE) {
                         currentOrganism = snapShot.organisms[x][y];
+                        System.out.println(x + "," + y + ":" + currentOrganism.toString());
+                    }
                     networkDisplay.repaint();
                     zoomPanel.repaint();
                 }

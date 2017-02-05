@@ -8,7 +8,6 @@ import neurevolve.organism.Organism;
 import neurevolve.ui.MainWindow;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 
 public class Neurevolve {
@@ -19,13 +18,7 @@ public class Neurevolve {
     private final World world = new World(new SigmoidFunction(200), space, config);
 
     private Neurevolve() {
-        config.setTemperatureRange(50, 150);
-        config.setYear(200, -100);
-        config.setMutationRate(20);
-        config.setConsumptionRate(20);
-        config.setActivityCost(WorldActivity.DIVIDE, 5);
-        config.setActivityCost(WorldActivity.MOVE, 2);
-        world.addHills(40, 80);
+        world.addHills(space.size() / 400, space.getHeight() / 40);
     }
 
     public static void main(String[] args) {

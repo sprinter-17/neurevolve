@@ -67,8 +67,8 @@ public class Organism {
         StringBuilder description = new StringBuilder();
         description.append("Len").append(recipe.size());
         if (describer.getJunk() > 0)
-            description.append("Junk").append(describer.getJunk());
-        description.append(describer.describe());
+            description.append(" Junk").append(describer.getJunk());
+        description.append(" ").append(describer.describe());
         return description.toString();
     }
 

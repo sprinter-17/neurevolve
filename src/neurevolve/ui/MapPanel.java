@@ -13,8 +13,8 @@ import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
 
 /**
- * A <code>MapPanel</code> displays a with one pixel per position in
- * the world's space. The colour of the pixel indicates the state of the world:
+ * A <code>MapPanel</code> displays a with one pixel per position in the world's space. The colour
+ * of the pixel indicates the state of the world:
  * <ul>
  * <li>green: resources</li>
  * <li>blue: elevation</li>
@@ -88,7 +88,7 @@ public class MapPanel extends JPanel {
      * Elevation shows in blue with intensity determined by height.
      */
     public static int elevationColour(WorldConfiguration config, int elevation) {
-        return elevation * 255 / config.getMaxElevation() << BLUE_SHIFT;
+        return elevation << BLUE_SHIFT;
     }
 
     /**

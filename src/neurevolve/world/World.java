@@ -63,7 +63,7 @@ public class World implements Environment {
         this.population = new Population(space);
         this.resources = new int[frame.size()];
         this.elevation = new int[frame.size()];
-        this.tickDelay = 100;
+        this.tickDelay = 1;
     }
 
     /**
@@ -74,18 +74,18 @@ public class World implements Environment {
     public int[] getResourceCopy() {
         return Arrays.copyOf(resources, space.size());
     }
-    
+
     /**
-     * 
+     *
      * @return the delay between world ticks
      */
     public int getDelay() {
         return tickDelay;
     }
-    
+
     /**
      * sets the delay between ticks
-     * 
+     *
      */
     public void setDelay(int delay) {
         if (delay <= 0)
@@ -159,7 +159,7 @@ public class World implements Environment {
     public void addHills(int hillCount, int radius) {
         for (int i = 0; i < hillCount; i++) {
             int position = random.nextInt(space.size());
-            addHill(position, random.nextInt(radius) + 1, random.nextInt(4) + 1, random.nextInt(10));
+            addHill(position, random.nextInt(radius) + 1, random.nextInt(10) + 1, random.nextInt(10));
         }
     }
 
@@ -181,7 +181,7 @@ public class World implements Environment {
      * @param value the elevation to set the position to
      */
     protected void setElevation(int position, int value) {
-        elevation[position] = Math.min(config.getMaxElevation(), value);
+        elevation[position] = Math.min(255, value);
     }
 
     /**

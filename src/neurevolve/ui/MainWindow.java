@@ -13,7 +13,6 @@ import javax.swing.JSlider;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Recipe;
 import neurevolve.world.Space;
@@ -41,14 +40,14 @@ public class MainWindow {
     public MainWindow(final World world, final Space space, final WorldConfiguration config) {
         frame = new JFrame("Neurevolve");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        addTools(world);
+        addTools(world, config);
         addMapPanel(world, space, config);
         addConfigPanel(space, config);
         addStatusBar(world);
         frame.pack();
     }
 
-    private void addTools(final World world) {
+    private void addTools(final World world, final WorldConfiguration config) {
         JPanel tools = new JPanel();
         tools.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         tools.add(new JButton(new AbstractAction("Seed") {
@@ -65,20 +64,21 @@ public class MainWindow {
         tools.add(new JButton(new AbstractAction("Exit") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                config.write();
                 System.exit(0);
             }
         }));
-        
+
         JSlider delaySlider = new JSlider(1, 100, world.getDelay());
         delaySlider.addChangeListener((ChangeEvent e) -> {
             world.setDelay(delaySlider.getValue());
         });
-        
+
         tools.add(new JLabel("Delay (ms)"));
         tools.add(new JLabel(String.valueOf(delaySlider.getMinimum())));
         tools.add(delaySlider);
         tools.add(new JLabel(String.valueOf(delaySlider.getMaximum())));
-        
+
         frame.getContentPane().add(tools, BorderLayout.NORTH);
     }
 

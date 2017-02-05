@@ -1,6 +1,7 @@
 package neurevolve.world;
 
 import java.util.EnumMap;
+import java.util.prefs.Preferences;
 
 /**
  * Contains all the variables that can be changed through the simulation to adjust the behaviour of
@@ -13,18 +14,62 @@ import java.util.EnumMap;
  */
 public class WorldConfiguration {
 
-    private int mutationRate = 0;
-    private int yearLength = 1;
-    private int minTemp = 0;
-    private int maxTemp = 0;
-    private int tempVariation = 0;
-    private int maxResources = 1000;
+    private static final Preferences PREFERENCES = Preferences.userNodeForPackage(WorldConfiguration.class);
 
-    private EnumMap<WorldActivity, Integer> activityCosts = new EnumMap<>(WorldActivity.class);
-    private int timeBetweenSplits = 5;
-    private int agingRate = 1;
-    private int consumptionRate = 40;
-    private int sizeRate = 5;
+    private enum Key {
+        MUTATION_RATE("Mutation Rate", 1),
+        MIN_TEMP("Min Temp", 100),
+        MAX_TEMP("Max Temp", 120),
+        YEAR_LENGTH("Year Length", 500),
+        TEMP_VARIATION("Temp Variation", -100),
+        MAX_RESOURCES("Max Resources", 500),
+        AGING_RATE("Aging Rate", 10),
+        CONSUMPTION_RATE("Consumption Rate", 50),
+        SIZE_RATE("Size Rate", 5),
+        TIME_BETWEEN_SPLITS("Time Between Splits", 10),
+        ACTIVITY("Activity", 1);
+
+        private final String name;
+        private final int defaultValue;
+
+        private Key(String name, int defaultValue) {
+            this.name = name;
+            this.defaultValue = defaultValue;
+        }
+
+        public int getValue(WorldConfiguration config) {
+            return config.values.getOrDefault(this, defaultValue);
+        }
+
+        public void setValue(WorldConfiguration config, int value) {
+            config.values.put(this, value);
+        }
+    }
+
+    private final EnumMap<Key, Integer> values = new EnumMap<>(Key.class);
+    private final EnumMap<WorldActivity, Integer> costs = new EnumMap<>(WorldActivity.class);
+
+    public WorldConfiguration() {
+        for (Key key : Key.values()) {
+            values.put(key, PREFERENCES.getInt(key.name, key.defaultValue));
+        }
+        for (WorldActivity activity : WorldActivity.values()) {
+            costs.put(activity, PREFERENCES.getInt(activityKey(activity), Key.ACTIVITY.defaultValue));
+        }
+    }
+
+    public void write() {
+        values.forEach((key, value) -> PREFERENCES.putInt(key.name, value));
+        costs.forEach((act, value) -> PREFERENCES.putInt(activityKey(act), value));
+    }
+
+    private String activityKey(WorldActivity activity) {
+        return Key.ACTIVITY.name + activity.name();
+    }
+
+    public int getMutationRate() {
+        return Key.MUTATION_RATE.getValue(this);
+    }
 
     /**
      * Set the mutation rate for the world. The mutation rate determines the likelihood of
@@ -37,7 +82,15 @@ public class WorldConfiguration {
     public void setMutationRate(int mutationRate) {
         if (mutationRate < 0 || mutationRate > 1000)
             throw new IllegalArgumentException("Mutation rate must be in the range 0-1000");
-        this.mutationRate = mutationRate;
+        Key.MUTATION_RATE.setValue(this, mutationRate);
+    }
+
+    public int getMinTemp() {
+        return Key.MIN_TEMP.getValue(this);
+    }
+
+    public int getMaxTemp() {
+        return Key.MAX_TEMP.getValue(this);
     }
 
     /**
@@ -52,8 +105,16 @@ public class WorldConfiguration {
     public void setTemperatureRange(int minTemp, int maxTemp) {
         if (minTemp > maxTemp)
             throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
-        this.minTemp = minTemp;
-        this.maxTemp = maxTemp;
+        Key.MIN_TEMP.setValue(this, minTemp);
+        Key.MAX_TEMP.setValue(this, maxTemp);
+    }
+
+    public int getYearLength() {
+        return Key.YEAR_LENGTH.getValue(this);
+    }
+
+    public int getTempVariation() {
+        return Key.TEMP_VARIATION.getValue(this);
     }
 
     /**
@@ -68,8 +129,12 @@ public class WorldConfiguration {
     public void setYear(int yearLength, int tempVariation) {
         if (yearLength < 1)
             throw new IllegalArgumentException("Year length must be positive");
-        this.yearLength = yearLength;
-        this.tempVariation = tempVariation;
+        Key.YEAR_LENGTH.setValue(this, yearLength);;
+        Key.TEMP_VARIATION.setValue(this, tempVariation);
+    }
+
+    public int getConsumptionRate() {
+        return Key.CONSUMPTION_RATE.getValue(this);
     }
 
     /**
@@ -81,76 +146,48 @@ public class WorldConfiguration {
     public void setConsumptionRate(int consumptionRate) {
         if (consumptionRate < 1)
             throw new IllegalArgumentException("Consumption rate must be greater than 0");
-        this.consumptionRate = consumptionRate;
+        Key.CONSUMPTION_RATE.setValue(this, consumptionRate);
+    }
+
+    public int getMaxResources() {
+        return Key.MAX_RESOURCES.getValue(this);
     }
 
     public void setMaxResources(int resources) {
         if (resources < 1)
             throw new IllegalArgumentException("Max resources must be greater than 0");
-        this.maxResources = resources;
-    }
-
-    public void setActivityCost(WorldActivity activity, int cost) {
-        activityCosts.put(activity, cost);
-    }
-
-    public void setTimeBetweenSplits(int delay) {
-        timeBetweenSplits = delay;
-    }
-
-    public void setAgingRate(int rate) {
-        agingRate = rate;
-    }
-
-    public void setSizeRate(int rate) {
-        sizeRate = rate;
-    }
-
-    public int getMutationRate() {
-        return mutationRate;
-    }
-
-    public int getMinTemp() {
-        return minTemp;
-    }
-
-    public int getMaxTemp() {
-        return maxTemp;
-    }
-
-    public int getYearLength() {
-        return yearLength;
-    }
-
-    public int getTempVariation() {
-        return tempVariation;
-    }
-
-    public int getConsumptionRate() {
-        return consumptionRate;
-    }
-
-    public int getMaxResources() {
-        return maxResources;
-    }
-
-    public int getMaxElevation() {
-        return 255;
+        Key.MAX_RESOURCES.setValue(this, resources);
     }
 
     public int getActivityCost(WorldActivity activity) {
-        return activityCosts.getOrDefault(activity, 0);
+        return costs.getOrDefault(activity, Key.ACTIVITY.defaultValue);
+    }
+
+    public void setActivityCost(WorldActivity activity, int cost) {
+        costs.put(activity, cost);
     }
 
     public int getTimeBetweenSplits() {
-        return timeBetweenSplits;
+        return Key.TIME_BETWEEN_SPLITS.getValue(this);
+    }
+
+    public void setTimeBetweenSplits(int delay) {
+        Key.TIME_BETWEEN_SPLITS.setValue(this, delay);
     }
 
     public int getAgingRate() {
-        return agingRate;
+        return Key.AGING_RATE.getValue(this);
+    }
+
+    public void setAgingRate(int rate) {
+        Key.AGING_RATE.setValue(this, rate);
     }
 
     public int getSizeRate() {
-        return sizeRate;
+        return Key.SIZE_RATE.getValue(this);
+    }
+
+    public void setSizeRate(int rate) {
+        Key.SIZE_RATE.setValue(this, rate);
     }
 }

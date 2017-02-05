@@ -48,7 +48,7 @@ public class InstructionTest {
         Instruction.ADD_LINK.complete(organism, values);
 
         organism.getBrain().activate();
-        assertThat(organism.getBrain().getValue(1), is(54));
+        assertThat(organism.getBrain().getValue(1), is(540));
     }
 
     @Test
@@ -60,6 +60,6 @@ public class InstructionTest {
         Instruction.ADD_INPUT.complete(organism, values);
 
         organism.getBrain().activate();
-        assertThat(organism.getBrain().getValue(0), is(25));
+        assertThat(organism.getBrain().getValue(0), is(250));
     }
 }
