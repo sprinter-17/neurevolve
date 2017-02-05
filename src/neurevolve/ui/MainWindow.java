@@ -9,8 +9,11 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Recipe;
 import neurevolve.world.Space;
@@ -65,6 +68,17 @@ public class MainWindow {
                 System.exit(0);
             }
         }));
+        
+        JSlider delaySlider = new JSlider(0, 100, 0);
+        delaySlider.addChangeListener((ChangeEvent e) -> {
+            world.setDelay(delaySlider.getValue());
+        });
+        
+        tools.add(new JLabel("Delay (ms)"));
+        tools.add(new JLabel(String.valueOf(delaySlider.getMinimum())));
+        tools.add(delaySlider);
+        tools.add(new JLabel(String.valueOf(delaySlider.getMaximum())));
+        
         frame.getContentPane().add(tools, BorderLayout.NORTH);
     }
 
