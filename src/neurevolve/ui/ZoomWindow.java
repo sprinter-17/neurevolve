@@ -8,8 +8,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntSupplier;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -32,8 +35,8 @@ public class ZoomWindow {
     private static final int SCALE = 30;
     private static final int HALF_SCALE = SCALE / 2;
     private static final int SIDE = PIXEL_SIZE * SCALE;
-    private static final int NETWORK_PANEL_WIDTH = 300;
-    private static final int NETWORK_PANEL_VALUE = 270;
+    private static final int NETWORK_PANEL_WIDTH = 200;
+    private static final int NETWORK_PANEL_VALUE = 170;
     private static final int TEXT_HEIGHT = 17;
     private static final int MAX_SNAPSHOTS = 100;
     private static final Color POSITIVE = new Color(40, 120, 20);
@@ -145,7 +148,10 @@ public class ZoomWindow {
 
     private class NetworkPanel extends JPanel {
 
-        private int line;
+        private int line = 1;
+        private int firstNeuronLine;
+        private RecipeDescriber describer = null;
+        private final Map<Integer, String> toolTips = new HashMap<>();
 
         @Override
         public void paint(Graphics g) {
@@ -156,16 +162,42 @@ public class ZoomWindow {
                 g.fillRect(0, 0, NETWORK_PANEL_WIDTH, SIDE);
             } else {
                 line = 1;
-                RecipeDescriber describer = network.organism.describeRecipe();
-                describer.getNeuronDescriptions().forEach(desc -> {
-                    g.setColor(Color.BLACK);
-                    g.drawString(desc.getNeuronDescription(), 10, line * TEXT_HEIGHT);
-                    int value = network.values[line - 1];
-                    g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
-                    g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
-                    line++;
-                });
+                describer = network.organism.describeRecipe();
+                g.setColor(Color.BLACK);
+                g.drawString("Length of recipe", 10, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(describer.getLength()), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                line++;
+                g.drawString("Amount of junk", 10, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(describer.getJunk()), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                line++;
+                line++;
+                firstNeuronLine = line;
+                toolTips.clear();
+                describer.getNeuronDescriptions()
+                        .filter(RecipeDescriber.NeuronDescription::isNotJunk)
+                        .forEach(desc -> {
+                            g.setColor(Color.BLACK);
+                            g.drawString(desc.getNeuronDescription(), 10, line * TEXT_HEIGHT);
+                            int value = network.values[line - firstNeuronLine];
+                            g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
+                            g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                            toolTips.put(line, getInputs(desc));
+                            line++;
+                        });
             }
+        }
+
+        private String getInputs(RecipeDescriber.NeuronDescription neuronDescriber) {
+            if (neuronDescriber.getInputDescriptions().count() == 0)
+                return "None";
+            else
+                return neuronDescriber.getInputDescriptions().collect(Collectors.joining("\n"));
+        }
+
+        @Override
+        public String getToolTipText(MouseEvent event) {
+            int mouseLine = 1 + event.getY() / TEXT_HEIGHT;
+            return toolTips.getOrDefault(mouseLine, "None");
         }
 
     }
@@ -221,6 +253,7 @@ public class ZoomWindow {
         });
 
         frame.add(networkDisplay, BorderLayout.EAST);
+        networkDisplay.setToolTipText("Network information");
         frame.setLocationRelativeTo(null);
         frame.pack();
     }

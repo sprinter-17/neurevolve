@@ -20,10 +20,10 @@ public class Neurevolve {
         config.setActivityCost(WorldActivity.DIVIDE, 5);
         config.setActivityCost(WorldActivity.MOVE, 2);
 
-        Space frame = new Space(300, 300);
+        Space frame = new Space(1000, 800);
 
         World world = new World(new SigmoidFunction(100), frame, config);
-        world.addHills(20, 60);
+        world.addHills(40, 80);
         MainWindow window = new MainWindow(world, frame, config);
         window.show();
 

@@ -20,6 +20,7 @@ public class RecipeDescriber {
 
     private final Environment environment;
     private final Queue<Integer> instructions;
+    private final int length;
     private int junk = 0;
     private final List<NeuronDescription> descriptions = new ArrayList<>();
     private int neuronCount = 0;
@@ -28,15 +29,38 @@ public class RecipeDescriber {
     public class NeuronDescription {
 
         private final StringBuilder neuron = new StringBuilder();
-        private final StringBuilder inputs = new StringBuilder();
+        private final List<StringBuilder> inputs = new ArrayList<>();
+        private final List<StringBuilder> outputs = new ArrayList<>();
+        private boolean hasActivity = false;
 
         public String getNeuronDescription() {
             return neuron.toString();
         }
 
-        public String getInputDescriptions() {
-            return inputs.toString();
+        public boolean isNotJunk() {
+            return hasActivity || !outputs.isEmpty();
         }
+
+        public StringBuilder getInput() {
+            StringBuilder input = new StringBuilder();
+            inputs.add(input);
+            return input;
+        }
+
+        public Stream<String> getInputDescriptions() {
+            return inputs.stream().map(StringBuilder::toString);
+        }
+
+        public StringBuilder getOutput() {
+            StringBuilder output = new StringBuilder();
+            outputs.add(output);
+            return output;
+        }
+
+        public Stream<String> getOutputDescriptions() {
+            return outputs.stream().map(StringBuilder::toString);
+        }
+
     }
 
     /**
@@ -60,15 +84,18 @@ public class RecipeDescriber {
             NeuronDescription description = new NeuronDescription();
             description.neuron.append("N").append(id);
             describeWeight(description.neuron, threshold);
-            activity.ifPresent(act -> description.neuron
-                    .append(" ")
-                    .append(environment.describeActivity(act)));
             if (delay > 0)
                 description.neuron.append("d").append(delay);
-            inputs.forEach(i -> i.describe(description.inputs));
+            if (activity.isPresent()) {
+                description.hasActivity = true;
+                description.neuron
+                        .append(" ")
+                        .append(environment.describeActivity(activity.getAsInt()));
+            }
+            inputs.forEach(i -> i.describe(description.getInput()));
             synapses.stream()
                     .sorted(Comparator.comparingInt(s -> s.from))
-                    .forEach(s -> s.describe(description.inputs));
+                    .forEach(s -> s.describe(description.getInput()));
             descriptions.add(description);
         }
     }
@@ -87,7 +114,7 @@ public class RecipeDescriber {
         }
 
         public void describe(StringBuilder description) {
-            description.append(" ^N").append(from);
+            description.append(" <N").append(from);
             describeWeight(description, weight);
         }
     }
@@ -120,6 +147,7 @@ public class RecipeDescriber {
     public RecipeDescriber(Recipe recipe, Environment environment) {
         this.instructions = recipe.instructionInQueue();
         this.environment = environment;
+        this.length = recipe.size();
         describeInstructions();
     }
 
@@ -161,8 +189,11 @@ public class RecipeDescriber {
 
     private void addLink() {
         int from = value();
-        if (from >= 0 && from < neuronCount - 1)
+        if (from >= 0 && from < neuronCount - 1) {
             neuron.get().synapses.add(new SynapseDescriber(from + 1, value()));
+            descriptions.get(from).getOutput().append(" >N").append(neuron.get().id);
+        } else
+            junk++;
     }
 
     private void addInput() {
@@ -173,9 +204,13 @@ public class RecipeDescriber {
         int delay = value();
         if (delay > 0)
             neuron.get().delay += delay;
+        else
+            junk++;
     }
 
     private void setActivity() {
+        if (neuron.get().activity.isPresent())
+            junk++;
         neuron.get().activity = OptionalInt.of(value());
     }
 
@@ -206,8 +241,22 @@ public class RecipeDescriber {
     }
 
     public String describe() {
-        return descriptions.stream().map(nd -> nd.getNeuronDescription() + nd.getInputDescriptions())
+        return describe(descriptions.stream().filter(NeuronDescription::isNotJunk));
+    }
+
+    public String describeAll() {
+        return describe(descriptions.stream());
+    }
+
+    private String describe(Stream<NeuronDescription> descriptions) {
+        return descriptions.map(nd -> nd.getNeuronDescription()
+                + nd.getInputDescriptions().collect(Collectors.joining())
+                + nd.getOutputDescriptions().collect(Collectors.joining()))
                 .collect(Collectors.joining(" | "));
+    }
+
+    public int getLength() {
+        return length;
     }
 
     public int getJunk() {

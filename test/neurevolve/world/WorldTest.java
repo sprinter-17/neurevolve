@@ -23,6 +23,7 @@ public class WorldTest {
     @Before
     public void setup() {
         config = new WorldConfiguration();
+        config.setTimeBetweenSplits(0);
         frame = new Space(10, 10);
         world = new World(n -> n, frame, config);
     }
@@ -142,8 +143,8 @@ public class WorldTest {
         world.addOrganism(organism, position, EAST);
         world.addOrganism(victim, world.getPosition(organism, FORWARD), EAST);
         world.attackOrganism(organism, FORWARD);
-        assertThat(organism.getEnergy(), is(80));
-        assertThat(world.getResource(world.getPosition(victim)), is(30));
+        assertThat(organism.getEnergy(), is(115));
+        assertThat(world.getResource(world.getPosition(victim)), is(15));
         assertTrue(victim.isDead());
     }
 
