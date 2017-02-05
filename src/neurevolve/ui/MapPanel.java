@@ -13,7 +13,7 @@ import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
 
 /**
- * A <code>MapPanel</code> displays a {@link neurevolve#world#World} with one pixel per position in
+ * A <code>MapPanel</code> displays a with one pixel per position in
  * the world's space. The colour of the pixel indicates the state of the world:
  * <ul>
  * <li>green: resources</li>
