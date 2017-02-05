@@ -2,7 +2,6 @@ package neurevolve;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import neurevolve.network.SigmoidFunction;
 import neurevolve.organism.Organism;
@@ -13,29 +12,38 @@ import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 
 public class Neurevolve {
-    private static ScheduledExecutorService executor;
 
-    public static void main(String[] args) {
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final WorldConfiguration config = new WorldConfiguration();
+    private final Space space = new Space(800, 600);
+    private final World world = new World(new SigmoidFunction(200), space, config);
 
-        WorldConfiguration config = new WorldConfiguration();
+    private Neurevolve() {
         config.setTemperatureRange(50, 150);
         config.setYear(200, -100);
         config.setMutationRate(20);
         config.setConsumptionRate(20);
         config.setActivityCost(WorldActivity.DIVIDE, 5);
         config.setActivityCost(WorldActivity.MOVE, 2);
-
-        Space frame = new Space(1000, 800);
-
-        World world = new World(new SigmoidFunction(100), frame, config);
         world.addHills(40, 80);
-        MainWindow window = new MainWindow(world, frame, config);
-        window.show();
-        executor = Executors.newSingleThreadScheduledExecutor();
-        executor.schedule(() -> tick(world), world.getDelay(), TimeUnit.MILLISECONDS);
     }
 
-    private static void tick(World world) {
+    public static void main(String[] args) {
+        Neurevolve neurevolve = new Neurevolve();
+        neurevolve.showWindow();
+        neurevolve.scheduleTick();
+    }
+
+    private void showWindow() {
+        MainWindow window = new MainWindow(world, space, config);
+        window.show();
+    }
+
+    private void scheduleTick() {
+        executor.schedule(this::tick, world.getDelay(), TimeUnit.MILLISECONDS);
+    }
+
+    private void tick() {
         world.tick();
         if (world.getTime() % 100 == 0) {
             Organism mostComplex = world.getMostComplexOrganism();
@@ -47,6 +55,6 @@ public class Neurevolve {
             }
             System.out.println();
         }
-        executor.schedule(() -> tick(world), world.getDelay(), TimeUnit.MILLISECONDS);
+        scheduleTick();
     }
 }
