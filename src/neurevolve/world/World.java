@@ -46,6 +46,7 @@ public class World implements Environment {
 
     private Organism mostComplexOrganism;
     private float totalComplexity;
+    private int tickDelay;
 
     /**
      * Construct a world within a frame with a configuration
@@ -62,6 +63,7 @@ public class World implements Environment {
         this.population = new Population(space);
         this.resources = new int[frame.size()];
         this.elevation = new int[frame.size()];
+        this.tickDelay = 100;
     }
 
     /**
@@ -71,6 +73,24 @@ public class World implements Environment {
      */
     public int[] getResourceCopy() {
         return Arrays.copyOf(resources, space.size());
+    }
+    
+    /**
+     * 
+     * @return the delay between world ticks
+     */
+    public int getDelay() {
+        return tickDelay;
+    }
+    
+    /**
+     * sets the delay between ticks
+     * 
+     */
+    public void setDelay(int delay) {
+        if (delay <= 0)
+            throw new IllegalArgumentException("Delay must be greater than zero");
+        tickDelay = delay;
     }
 
     /**
@@ -482,7 +502,10 @@ public class World implements Environment {
     @Override
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
-        if (organism.consume(config.getActivityCost(activity)))
+        int cost = config.getActivityCost(activity);
+        if (activity == WorldActivity.DIVIDE)
+            cost *= 10;
+        if (organism.consume(cost))
             activity.perform(this, organism);
     }
 

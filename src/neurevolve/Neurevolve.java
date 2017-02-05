@@ -1,5 +1,9 @@
 package neurevolve;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import neurevolve.network.SigmoidFunction;
 import neurevolve.organism.Organism;
 import neurevolve.ui.MainWindow;
@@ -9,6 +13,7 @@ import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 
 public class Neurevolve {
+    private static ScheduledExecutorService executor;
 
     public static void main(String[] args) {
 
@@ -26,10 +31,8 @@ public class Neurevolve {
         world.addHills(40, 80);
         MainWindow window = new MainWindow(world, frame, config);
         window.show();
-
-        while (world.getTime() < 500000) {
-            tick(world);
-        }
+        executor = Executors.newSingleThreadScheduledExecutor();
+        executor.schedule(() -> tick(world), world.getDelay(), TimeUnit.MILLISECONDS);
     }
 
     private static void tick(World world) {
@@ -38,10 +41,12 @@ public class Neurevolve {
             Organism mostComplex = world.getMostComplexOrganism();
             System.out.print(" Pop " + world.getPopulationSize());
             System.out.print(" Complexity " + String.format("%.4f", world.getAverageComplexity()));
-            if (mostComplex != null)
+            if (mostComplex != null) {
                 System.out.print(" Leader " + String.format("%.4f", mostComplex.complexity())
                         + " :" + mostComplex);
+            }
             System.out.println();
         }
+        executor.schedule(() -> tick(world), world.getDelay(), TimeUnit.MILLISECONDS);
     }
 }
