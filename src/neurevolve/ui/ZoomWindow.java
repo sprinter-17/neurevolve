@@ -35,7 +35,7 @@ public class ZoomWindow {
     private static final int SCALE = 30;
     private static final int HALF_SCALE = SCALE / 2;
     private static final int SIDE = PIXEL_SIZE * SCALE;
-    private static final int NETWORK_PANEL_WIDTH = 200;
+    private static final int NETWORK_PANEL_WIDTH = 210;
     private static final int NETWORK_PANEL_VALUE = 170;
     private static final int TEXT_HEIGHT = 17;
     private static final int MAX_SNAPSHOTS = 100;
@@ -167,13 +167,13 @@ public class ZoomWindow {
                 describer = network.organism.describeRecipe();
                 g.setColor(Color.BLACK);
                 g.drawString("Length of recipe", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(describer.getLength()), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(describer.getLength()), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
                 line++;
                 g.drawString("Amount of junk", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(describer.getJunk()), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(describer.getJunk()), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
                 line++;
                 g.drawString("Energy", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(network.energy), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(network.energy), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
                 line++;
                 line++;
                 firstNeuronLine = line;

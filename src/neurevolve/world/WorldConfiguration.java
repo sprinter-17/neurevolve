@@ -23,6 +23,8 @@ public class WorldConfiguration {
         YEAR_LENGTH("Year Length", 500),
         TEMP_VARIATION("Temp Variation", -100),
         MAX_RESOURCES("Max Resources", 500),
+        SEED_COUNT("Seed Count", 200),
+        INITIAL_ENERGY("Initial Energy", 1000),
         AGING_RATE("Aging Rate", 10),
         CONSUMPTION_RATE("Consumption Rate", 50),
         SIZE_RATE("Size Rate", 5),
@@ -131,6 +133,22 @@ public class WorldConfiguration {
             throw new IllegalArgumentException("Year length must be positive");
         Key.YEAR_LENGTH.setValue(this, yearLength);;
         Key.TEMP_VARIATION.setValue(this, tempVariation);
+    }
+
+    public int getSeedCount() {
+        return Key.SEED_COUNT.getValue(this);
+    }
+
+    public void setSeedCount(int count) {
+        Key.SEED_COUNT.setValue(this, count);
+    }
+
+    public int getInitialEnergy() {
+        return Key.INITIAL_ENERGY.getValue(this);
+    }
+
+    public void setInitialEnergy(int energy) {
+        Key.INITIAL_ENERGY.setValue(this, energy);
     }
 
     public int getConsumptionRate() {

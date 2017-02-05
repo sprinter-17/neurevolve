@@ -3,6 +3,9 @@ package neurevolve.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -12,8 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
-import javax.swing.event.ChangeEvent;
 import neurevolve.organism.Instruction;
+import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -25,10 +28,15 @@ import neurevolve.world.WorldConfiguration;
  */
 public class MainWindow {
 
+    private final NewWorldDialog newWorldDialog;
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final World world;
     private final JFrame frame;
     private final JLabel seasonLabel = new JLabel();
     private final JLabel populationLabel = new JLabel();
     private final JLabel averageComplexityLabel = new JLabel();
+
+    private int delay = 1;
 
     /**
      * Construct a frame for displaying a world
@@ -37,7 +45,9 @@ public class MainWindow {
      * @param space the frame for the world
      * @param config the configuration for this world
      */
-    public MainWindow(final World world, final Space space, final WorldConfiguration config) {
+    public MainWindow(final World world, final Space space, final WorldConfiguration config, NewWorldDialog newWorldDialog) {
+        this.world = world;
+        this.newWorldDialog = newWorldDialog;
         frame = new JFrame("Neurevolve");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         addTools(world, config);
@@ -45,11 +55,20 @@ public class MainWindow {
         addConfigPanel(space, config);
         addStatusBar(world);
         frame.pack();
+        scheduleTick();
     }
 
     private void addTools(final World world, final WorldConfiguration config) {
         JPanel tools = new JPanel();
         tools.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        tools.add(new JButton(new AbstractAction("New World") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                executor.shutdownNow();
+                newWorldDialog.setVisible(true);
+                frame.setVisible(false);
+            }
+        }));
         tools.add(new JButton(new AbstractAction("Seed") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -58,21 +77,20 @@ public class MainWindow {
                 recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.ordinal());
                 recipe.add(Instruction.ADD_NEURON, 0);
                 recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
-                world.seed(recipe, 1000, 100);
+                world.seed(recipe, config.getInitialEnergy(), 100);
             }
         }));
         tools.add(new JButton(new AbstractAction("Exit") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 config.write();
+                executor.shutdownNow();
                 System.exit(0);
             }
         }));
 
-        JSlider delaySlider = new JSlider(1, 100, world.getDelay());
-        delaySlider.addChangeListener((ChangeEvent e) -> {
-            world.setDelay(delaySlider.getValue());
-        });
+        JSlider delaySlider = new JSlider(1, 200, delay);
+        delaySlider.addChangeListener(ev -> delay = delaySlider.getValue());
 
         tools.add(new JLabel("Delay (ms)"));
         tools.add(new JLabel(String.valueOf(delaySlider.getMinimum())));
@@ -115,5 +133,24 @@ public class MainWindow {
      */
     public void show() {
         frame.setVisible(true);
+    }
+
+    private void scheduleTick() {
+        executor.schedule(this::tick, delay, TimeUnit.MILLISECONDS);
+    }
+
+    private void tick() {
+        world.tick();
+        if (world.getTime() % 100 == 0) {
+            Organism mostComplex = world.getMostComplexOrganism();
+            System.out.print(" Pop " + world.getPopulationSize());
+            System.out.print(" Complexity " + String.format("%.4f", world.getAverageComplexity()));
+            if (mostComplex != null) {
+                System.out.print(" Leader " + String.format("%.4f", mostComplex.complexity())
+                        + " :" + mostComplex);
+            }
+            System.out.println();
+        }
+        scheduleTick();
     }
 }

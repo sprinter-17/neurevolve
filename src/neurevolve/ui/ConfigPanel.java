@@ -52,6 +52,11 @@ public class ConfigPanel extends JTabbedPane {
     private void addOrganismPanel() {
         JPanel organismPanel = new JPanel();
         addTab("Organism", organismPanel);
+        JPanel seedPanel = addGroupPanel(organismPanel, "Seed Values");
+        addValueSlider(seedPanel, "Count", 1, 1000,
+                config.getSeedCount(), config::setSeedCount);
+        addValueSlider(seedPanel, "Initial Energy", 100, 1000,
+                config.getInitialEnergy(), config::setInitialEnergy);
         JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
         addValueSlider(ratePanel, "Time Between Splits", 0, 20,
                 config.getTimeBetweenSplits(), config::setTimeBetweenSplits);

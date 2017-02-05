@@ -76,24 +76,6 @@ public class World implements Environment {
     }
 
     /**
-     *
-     * @return the delay between world ticks
-     */
-    public int getDelay() {
-        return tickDelay;
-    }
-
-    /**
-     * sets the delay between ticks
-     *
-     */
-    public void setDelay(int delay) {
-        if (delay <= 0)
-            throw new IllegalArgumentException("Delay must be greater than zero");
-        tickDelay = delay;
-    }
-
-    /**
      * Make a copy of the population
      *
      * @return a complete copy of the population array
@@ -156,10 +138,10 @@ public class World implements Environment {
                 (p, d) -> setElevation(p, getElevation(p) + cliff + (radius - d) * slope));
     }
 
-    public void addHills(int hillCount, int radius) {
+    public void addHills(int hillCount, int radius, int elevation) {
         for (int i = 0; i < hillCount; i++) {
             int position = random.nextInt(space.size());
-            addHill(position, random.nextInt(radius) + 1, random.nextInt(10) + 1, random.nextInt(10));
+            addHill(position, random.nextInt(radius) + 1, random.nextInt(elevation / radius) + 1, random.nextInt(10));
         }
     }
 
@@ -364,7 +346,7 @@ public class World implements Environment {
      * @param organism the organism to split
      */
     public void splitOrganism(Organism organism) {
-        if (organism.getTimeSinceLastSplit() >= config.getTimeBetweenSplits())
+        if (organism.canDivide())
             openPositionNextTo(getPosition(organism))
                     .ifPresent(pos -> addOrganism(organism.divide(), pos, population.getDirection(organism)));
     }

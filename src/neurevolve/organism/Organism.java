@@ -128,13 +128,8 @@ public class Organism {
         return recipe.make(environment, childEnergy);
     }
 
-    /**
-     * Get the time since the organism last split.
-     *
-     * @return the number of activations since the organism split
-     */
-    public int getTimeSinceLastSplit() {
-        return age - ageAtSplit;
+    public boolean canDivide() {
+        return (age - ageAtSplit) >= recipe.size() / 10;
     }
 
     /**
