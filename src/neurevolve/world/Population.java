@@ -1,6 +1,8 @@
 package neurevolve.world;
 
-import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.FORWARD;
 
@@ -9,12 +11,25 @@ import static neurevolve.world.Angle.FORWARD;
  */
 public class Population {
 
-    public static final int POSITION_CODE = 0;
-    public static final int DIRECTION_CODE = 1;
-
     private final Space space;
     private final Organism[] organisms;
-    private int size = 0;
+    private final Map<Organism, OrganismInfo> info = new HashMap<>();
+
+    private class OrganismInfo {
+
+        private final int position;
+        private int direction;
+        private EnumMap<WorldActivity, Integer> activityCount = new EnumMap<>(WorldActivity.class);
+
+        public OrganismInfo(int position, int direction) {
+            this.position = position;
+            this.direction = direction;
+        }
+
+        public OrganismInfo copy() {
+            return new OrganismInfo(position, direction);
+        }
+    }
 
     /**
      * Construct a new population.
@@ -22,12 +37,8 @@ public class Population {
      * @param space the space the population will live within.
      */
     public Population(Space space) {
-        this(space, new Organism[space.size()]);
-    }
-
-    private Population(Space space, Organism[] organisms) {
         this.space = space;
-        this.organisms = organisms;
+        organisms = new Organism[space.size()];
     }
 
     /**
@@ -35,8 +46,11 @@ public class Population {
      *
      * @return a copy of the population
      */
-    public Population copy() {
-        return new Population(space, Arrays.copyOf(organisms, space.size()));
+    public synchronized Population copy() {
+        Population copy = new Population(space);
+        System.arraycopy(organisms, 0, copy.organisms, 0, space.size());
+        info.forEach((o, i) -> copy.info.put(o, i.copy()));
+        return copy;
     }
 
     /**
@@ -45,7 +59,7 @@ public class Population {
      * @return the number of organisms that have been added
      */
     public int size() {
-        return size;
+        return info.size();
     }
 
     /**
@@ -76,21 +90,11 @@ public class Population {
      * @param direction the direction the organism is facing
      * @throws IllegalArgumentException if the position already has an organism in it
      */
-    public void addOrganism(Organism organism, int position, int direction) {
+    public synchronized void addOrganism(Organism organism, int position, int direction) {
         if (hasOrganism(position))
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
         organisms[position] = organism;
-        setPosition(organism, position);
-        setDirection(organism, direction);
-        size++;
-    }
-
-    private void setPosition(Organism organism, int position) {
-        organism.setWorldValue(POSITION_CODE, position);
-    }
-
-    private void setDirection(Organism organism, int direction) {
-        organism.setWorldValue(DIRECTION_CODE, direction);
+        info.put(organism, new OrganismInfo(position, direction));
     }
 
     /**
@@ -98,11 +102,11 @@ public class Population {
      *
      * @param organism the organism to remove
      */
-    public void removeOrganism(Organism organism) {
+    public synchronized void removeOrganism(Organism organism) {
         int position = getPosition(organism);
         assert hasOrganism(position);
         organisms[position] = null;
-        size--;
+        info.remove(organism);
     }
 
     /**
@@ -113,12 +117,24 @@ public class Population {
      * @return the resulting position
      */
     protected int getPosition(Organism organism, Angle... angles) {
-        int position = organism.getWorldValue(POSITION_CODE);
+        int position = info.get(organism).position;
         for (Angle angle : angles) {
-            int direction = angle.add(organism.getWorldValue(DIRECTION_CODE));
+            int direction = angle.add(info.get(organism).direction);
             position = space.move(position, direction);
         }
         return position;
+    }
+
+    protected int getActivityCount(Organism organism, WorldActivity activity) {
+        return info.get(organism).activityCount.getOrDefault(activity, 0);
+    }
+
+    protected void incrementActivityCount(Organism organism, WorldActivity activity) {
+        info.get(organism).activityCount.merge(activity, 1, (n, i) -> n + i);
+    }
+
+    protected void resetActivityCount(Organism organism) {
+        info.get(organism).activityCount.clear();
     }
 
     /**
@@ -128,7 +144,7 @@ public class Population {
      * @return the direction
      */
     protected int getDirection(Organism organism) {
-        return organism.getWorldValue(DIRECTION_CODE);
+        return info.get(organism).direction;
     }
 
     /**
@@ -138,7 +154,7 @@ public class Population {
      * @param angle the angle to add to the current direction
      */
     protected void turn(Organism organism, Angle angle) {
-        setDirection(organism, angle.add(getDirection(organism)));
+        info.get(organism).direction = angle.add(getDirection(organism));
     }
 
     /**
@@ -152,8 +168,9 @@ public class Population {
         int position = getPosition(organism, FORWARD);
         if (!hasOrganism(position)) {
             if (organism.consume(energyCost)) {
+                int direction = getDirection(organism);
                 removeOrganism(organism);
-                addOrganism(organism, position, getDirection(organism));
+                addOrganism(organism, position, direction);
             }
         }
     }

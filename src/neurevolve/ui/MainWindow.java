@@ -16,7 +16,6 @@ import javax.swing.JSlider;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import neurevolve.organism.Instruction;
-import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -140,17 +139,11 @@ public class MainWindow {
     }
 
     private void tick() {
-        world.tick();
-        if (world.getTime() % 100 == 0) {
-            Organism mostComplex = world.getMostComplexOrganism();
-            System.out.print(" Pop " + world.getPopulationSize());
-            System.out.print(" Complexity " + String.format("%.4f", world.getAverageComplexity()));
-            if (mostComplex != null) {
-                System.out.print(" Leader " + String.format("%.4f", mostComplex.complexity())
-                        + " :" + mostComplex);
-            }
-            System.out.println();
+        try {
+            world.tick();
+            scheduleTick();
+        } catch (Exception exception) {
+            exception.printStackTrace(System.out);
         }
-        scheduleTick();
     }
 }

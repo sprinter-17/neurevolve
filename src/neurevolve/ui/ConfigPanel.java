@@ -3,13 +3,18 @@ package neurevolve.ui;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.LayoutManager;
 import java.util.function.Consumer;
 import static javax.swing.BorderFactory.createEtchedBorder;
 import static javax.swing.BorderFactory.createTitledBorder;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import javax.swing.border.Border;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
@@ -29,7 +34,9 @@ public class ConfigPanel extends JTabbedPane {
 
     private void addWorldPanel() {
         JPanel worldPanel = new JPanel();
-        addTab("World", worldPanel);
+        LayoutManager panelLayout = new BoxLayout(worldPanel, BoxLayout.Y_AXIS);
+        worldPanel.setLayout(panelLayout);
+        addTab("World", new JScrollPane(worldPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         layout.gridy = 0;
         JPanel mutationPanel = addGroupPanel(worldPanel, "Mutation");
         addValueSlider(mutationPanel, "Rate", 0, 100, config.getMutationRate(), config::setMutationRate);
@@ -51,15 +58,15 @@ public class ConfigPanel extends JTabbedPane {
 
     private void addOrganismPanel() {
         JPanel organismPanel = new JPanel();
-        addTab("Organism", organismPanel);
+        LayoutManager panelLayout = new BoxLayout(organismPanel, BoxLayout.Y_AXIS);
+        organismPanel.setLayout(panelLayout);
+        addTab("Organism", new JScrollPane(organismPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         JPanel seedPanel = addGroupPanel(organismPanel, "Seed Values");
         addValueSlider(seedPanel, "Count", 1, 1000,
                 config.getSeedCount(), config::setSeedCount);
         addValueSlider(seedPanel, "Initial Energy", 100, 1000,
                 config.getInitialEnergy(), config::setInitialEnergy);
         JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
-        addValueSlider(ratePanel, "Time Between Splits", 0, 20,
-                config.getTimeBetweenSplits(), config::setTimeBetweenSplits);
         addValueSlider(ratePanel, "Consumption Rate", 1, 100,
                 config.getConsumptionRate(), config::setConsumptionRate);
         addValueSlider(ratePanel, "Aging Cost", 0, 20,

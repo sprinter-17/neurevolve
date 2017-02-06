@@ -89,4 +89,34 @@ public class Recipe {
         return values;
     }
 
+    /**
+     * Calculate the distance between this recipe and another. The distance is defined as the
+     * minimum total changes required to go from one recipe to the other. A change is increasing or
+     * decreasing a single value by one.
+     *
+     * @param other the recipe to compare
+     * @return the distance to the other recipe
+     */
+    public int distanceTo(Recipe other) {
+        // This algorithm is from https://en.wikipedia.org/wiki/Levenshtein_distance
+        int distance[][] = new int[this.size + 1][other.size + 1];
+        for (int i = 0; i <= this.size; i++) {
+            distance[i][0] = Arrays.stream(this.instructions).limit(i).map(Math::abs).sum();
+        }
+        for (int j = 0; j <= other.size; j++) {
+            distance[0][j] = Arrays.stream(other.instructions).limit(j).map(Math::abs).sum();
+        }
+        for (int i = 1; i <= this.size; i++) {
+            for (int j = 1; j <= other.size; j++) {
+                int val1 = this.instructions[i - 1];
+                int val2 = other.instructions[j - 1];
+                int cost = distance[i - 1][j - 1] + Math.abs(val1 - val2);
+                cost = Math.min(cost, distance[i][j - 1] + Math.abs(val2));
+                cost = Math.min(cost, distance[i - 1][j] + Math.abs(val1));
+                distance[i][j] = cost;
+            }
+        }
+        return distance[this.size][other.size];
+    }
+
 }

@@ -9,13 +9,15 @@ import neurevolve.network.Network;
  */
 public class Organism {
 
+    private static long lastID = 0;
+
+    private final long id = lastID++;
     private final Environment environment;
     private final Network brain;
     private Recipe recipe = null;
     private int age;
     private int ageAtSplit = 0;
     private int energy;
-    private final int[] worldValues = new int[2];
 
     /**
      * Construct an organism.
@@ -38,13 +40,11 @@ public class Organism {
         this.recipe = recipe;
     }
 
-    public Organism copy() {
-        Organism copy = new Organism(environment, brain, energy, recipe);
-        copy.age = age;
-        System.arraycopy(worldValues, 0, copy.worldValues, 0, worldValues.length);
-        return copy;
-    }
-
+    /**
+     * Copy the current values for the neurons in the organism's brain
+     *
+     * @return the neuron values
+     */
     public int[] copyValues() {
         return brain.copyValues();
     }
@@ -74,6 +74,11 @@ public class Organism {
         return description.toString();
     }
 
+    /**
+     * Generate a description of the organism's recipe.
+     *
+     * @return the description
+     */
     public RecipeDescriber describeRecipe() {
         return new RecipeDescriber(recipe, environment);
     }
@@ -135,6 +140,12 @@ public class Organism {
         return recipe.make(environment, childEnergy);
     }
 
+    /**
+     * Test if the organism is able to divide. It requires 1 activation for each 10 instructions in
+     * its recipe.
+     *
+     * @return true if the organism can divide
+     */
     public boolean canDivide() {
         return (age - ageAtSplit) >= recipe.size() / 10;
     }
@@ -187,6 +198,17 @@ public class Organism {
     }
 
     /**
+     * Get the difference between this organism's recipe and another. The difference is defined by
+     * the Levenshtein distance between the two recipes.
+     *
+     * @param other the organism to compare to
+     * @return the difference between the recipes
+     */
+    public int getDifference(Organism other) {
+        return recipe.distanceTo(other.recipe);
+    }
+
+    /**
      * Get the {@link Network} associated with this organism
      *
      * @return the associated network
@@ -226,11 +248,21 @@ public class Organism {
         return () -> environment.performActivity(this, value);
     }
 
-    public void setWorldValue(int code, int value) {
-        worldValues[code] = value;
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 53 * hash + (int) (this.id ^ (this.id >>> 32));
+        return hash;
     }
 
-    public int getWorldValue(int code) {
-        return worldValues[code];
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        else if (obj == null || getClass() != obj.getClass())
+            return false;
+        final Organism other = (Organism) obj;
+        return other.id == this.id;
     }
+
 }

@@ -28,7 +28,6 @@ public class WorldConfiguration {
         AGING_RATE("Aging Rate", 10),
         CONSUMPTION_RATE("Consumption Rate", 50),
         SIZE_RATE("Size Rate", 5),
-        TIME_BETWEEN_SPLITS("Time Between Splits", 10),
         ACTIVITY("Activity", 1);
 
         private final String name;
@@ -183,14 +182,6 @@ public class WorldConfiguration {
 
     public void setActivityCost(WorldActivity activity, int cost) {
         costs.put(activity, cost);
-    }
-
-    public int getTimeBetweenSplits() {
-        return Key.TIME_BETWEEN_SPLITS.getValue(this);
-    }
-
-    public void setTimeBetweenSplits(int delay) {
-        Key.TIME_BETWEEN_SPLITS.setValue(this, delay);
     }
 
     public int getAgingRate() {

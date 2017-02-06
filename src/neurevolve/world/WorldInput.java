@@ -18,6 +18,7 @@ public enum WorldInput {
     LOOK_ORGANISM_LEFT("Energy Left", getOrganism(LEFT)),
     LOOK_ORGANISM_RIGHT("Energy Right", getOrganism(RIGHT)),
     LOOK_ORGANISM_FAR_FORWARD("Energy Far Forward", getOrganism(FORWARD, FORWARD)),
+    LOOK_ORGANISM_DIFFERENCE("Organism Recipe Distance", getDifference(FORWARD)),
     LOOK_RESOURCE_HERE("Resource Here", getResource()),
     LOOK_RESOURCE_FORWARD("Resource Forward", getResource(FORWARD)),
     LOOK_RESOURCE_LEFT("Resource Left", getResource(LEFT)),
@@ -65,6 +66,13 @@ public enum WorldInput {
         return (world, organism) -> {
             int position = world.getPosition(organism, angles);
             return world.getResource(position);
+        };
+    }
+
+    private static ValueGetter getDifference(Angle... angles) {
+        return (world, organism) -> {
+            int position = world.getPosition(organism, angles);
+            return world.getDifference(organism, position);
         };
     }
 

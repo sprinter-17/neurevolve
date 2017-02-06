@@ -84,6 +84,10 @@ public class World implements Environment {
         return population.copy();
     }
 
+    public int getOrganismDirection(Organism organism) {
+        return population.getDirection(organism);
+    }
+
     /**
      * Make a copy of the elevations
      *
@@ -206,6 +210,13 @@ public class World implements Environment {
      */
     public int getOrganismEnergy(int position) {
         return hasOrganism(position) ? population.getOrganism(position).getEnergy() : 0;
+    }
+
+    public int getDifference(Organism organism, int position) {
+        if (!hasOrganism(position))
+            return -100;
+        else
+            return organism.getDifference(population.getOrganism(position));
     }
 
     /**
@@ -356,7 +367,7 @@ public class World implements Environment {
      * adjacent positions have an organism.
      */
     private OptionalInt openPositionNextTo(int position) {
-        List<Integer> directions = Arrays.asList(EAST, WEST, NORTH, SOUTH);
+        final List<Integer> directions = Arrays.asList(EAST, WEST, NORTH, SOUTH);
         Collections.shuffle(directions);
         return directions.stream()
                 .mapToInt(dir -> space.move(position, dir))
@@ -384,6 +395,7 @@ public class World implements Environment {
         reduceEnergyByTemperature(position, organism);
         organism.reduceEnergy(organism.size() * config.getSizeRate() / 100);
         organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 1000);
+        population.resetActivityCount(organism);
         organism.activate();
         totalComplexity += organism.complexity();
         if (organism.isDead())
@@ -484,11 +496,12 @@ public class World implements Environment {
     @Override
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
-        int cost = config.getActivityCost(activity);
-        if (activity == WorldActivity.DIVIDE)
-            cost *= 10;
-        if (organism.consume(cost))
+        int activityCount = population.getActivityCount(organism, activity);
+        int cost = config.getActivityCost(activity) * (activityCount + 1);
+        if (organism.consume(cost)) {
             activity.perform(this, organism);
+            population.incrementActivityCount(organism, activity);
+        }
     }
 
     /**
