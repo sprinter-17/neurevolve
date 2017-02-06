@@ -77,6 +77,12 @@ public class MapPanel extends JPanel {
 
     /**
      * Convert resources, organism and elevation for a position to a colour to display
+     *
+     * @param config the configuration for the world
+     * @param resources the amount of resources
+     * @param organism the organism, or null if none
+     * @param elevation the height of the position
+     * @return a colour, in RGB format, representing the status of the position
      */
     public static int convertToColour(WorldConfiguration config, int resources, Organism organism, int elevation) {
         return resourceColour(config, resources)
@@ -86,6 +92,10 @@ public class MapPanel extends JPanel {
 
     /**
      * Elevation shows in blue with intensity determined by height.
+     *
+     * @param config the configuration for the world
+     * @param elevation the height of the position
+     * @return a colour, in RGB format, representing the height of the position
      */
     public static int elevationColour(WorldConfiguration config, int elevation) {
         return elevation << BLUE_SHIFT;
@@ -93,6 +103,10 @@ public class MapPanel extends JPanel {
 
     /**
      * Resources show as green with intensity determined by number of resources.
+     *
+     * @param config the configuration of the world
+     * @param resource the number of resources
+     * @return a colour, in RGB format, representing the number of resources
      */
     public static int resourceColour(WorldConfiguration config, int resource) {
         return (resource * 255 / config.getMaxResources()) << GREEN_SHIFT;
@@ -100,6 +114,10 @@ public class MapPanel extends JPanel {
 
     /**
      * An organism shows as a red pixel.
+     *
+     * @param config the configuration of the world
+     * @param organism an organism, or null if none
+     * @return a colour, in RGB format, representing the organism, if any
      */
     public static int populationColour(WorldConfiguration config, Organism organism) {
         return organism == null ? 0 : 200 << RED_SHIFT;

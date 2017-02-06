@@ -66,24 +66,35 @@ public class Population {
         return info.size();
     }
 
-    public List<List<Organism>> getDistinctPopulations(int sampleSize, int maxDistance) {
+    /**
+     * Divides a random sample of the population up into species. A species is defined by all
+     * organisms in the group having similar recipes. The distance between the recipes of the
+     * organisms in the group are all less than a given amount. To increase performance each new
+     * organism is tested against the first 5 members of the group.
+     *
+     * @param sampleSize the maximum number of organisms to sample
+     * @param maxDistance the maximum distance of the recipes of all organisms in a species
+     * @return a list of lists of organisms, with each list defining a species
+     */
+    public List<List<Organism>> getSpecies(int sampleSize, int maxDistance) {
         List<List<Organism>> populations = new ArrayList<>();
         List<Organism> sample = new ArrayList<>(info.keySet());
         Collections.shuffle(sample);
-        sample.stream().limit(sampleSize)
-                .forEach((org) -> {
-                    Optional<List<Organism>> population = populations.stream()
-                            .filter(pop -> pop.stream()
-                                    .limit(5)
-                                    .allMatch(o -> org.getDifference(o) < maxDistance))
-                            .findFirst();
-                    if (!population.isPresent()) {
-                        population = Optional.of(new ArrayList<>());
-                        populations.add(population.get());
-                    }
-                    population.get().add(org);
-                });
+        sample.stream().limit(sampleSize).forEach((org) -> addToPopulation(org, populations, maxDistance));
         return populations;
+    }
+
+    private void addToPopulation(Organism organism, List<List<Organism>> populations, int maxDistance) {
+        Optional<List<Organism>> population = populations.stream()
+                .filter(pop -> pop.stream()
+                        .limit(5)
+                        .allMatch(o -> organism.getDifference(o) < maxDistance))
+                .findFirst();
+        if (!population.isPresent()) {
+            population = Optional.of(new ArrayList<>());
+            populations.add(population.get());
+        }
+        population.get().add(organism);
     }
 
     /**

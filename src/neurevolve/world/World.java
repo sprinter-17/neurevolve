@@ -244,8 +244,15 @@ public class World implements Environment {
         population.removeOrganism(organism);
     }
 
-    public List<List<Organism>> getDistinctPopulations(int sampleSize, int maxDistance) {
-        return population.copy().getDistinctPopulations(sampleSize, maxDistance);
+    /**
+     * Gets a list of species from a random sample of organisms in the population.
+     *
+     * @param sampleSize the size of the random sample
+     * @param maxDistance the maximum distance between recipes within a species
+     * @return a list of lists of organisms, with each list defining a species
+     */
+    public List<List<Organism>> getSpecies(int sampleSize, int maxDistance) {
+        return population.copy().getSpecies(sampleSize, maxDistance);
     }
 
     public void addTickListener(Runnable listner) {

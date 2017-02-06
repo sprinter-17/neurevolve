@@ -48,6 +48,7 @@ public class MainWindow {
      * @param world the world to display
      * @param space the frame for the world
      * @param config the configuration for this world
+     * @param newWorldDialog the dialog to use to create new worlds
      */
     public MainWindow(final World world, final Space space, final WorldConfiguration config, NewWorldDialog newWorldDialog) {
         this.world = world;
@@ -99,7 +100,7 @@ public class MainWindow {
                 SwingWorker worker = new SwingWorker() {
                     @Override
                     protected Object doInBackground() throws Exception {
-                        return world.getDistinctPopulations(3000, 20);
+                        return world.getSpecies(3000, 20);
                     }
 
                     @Override

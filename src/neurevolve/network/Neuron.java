@@ -97,7 +97,7 @@ public class Neuron {
      * amount, one activation occurs before the current value is returned. If <code>addDelay</code>
      * is called multiple times the delays are added together.
      *
-     * @param delay
+     * @param delay the number of activations before a value is available
      */
     public void addDelay(int delay) {
         values = Arrays.copyOf(values, values.length + delay);
