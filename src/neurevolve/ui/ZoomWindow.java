@@ -82,7 +82,7 @@ public class ZoomWindow {
 
         public NetworkSnapShot(Organism organism) {
             this.organism = organism;
-            direction = organism.getWorldValue(Population.DIRECTION_CODE);
+            direction = world.getOrganismDirection(organism);
             energy = organism.getEnergy();
             values = organism.copyValues();
         }

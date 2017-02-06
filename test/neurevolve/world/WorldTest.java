@@ -24,7 +24,6 @@ public class WorldTest {
     @Before
     public void setup() {
         config = new TestConfiguration();
-        config.setTimeBetweenSplits(0);
         frame = new Space(10, 10);
         world = new World(n -> n, frame, config);
     }

@@ -9,13 +9,15 @@ import neurevolve.network.Network;
  */
 public class Organism {
 
+    private static long lastID = 0;
+
+    private final long id = lastID++;
     private final Environment environment;
     private final Network brain;
     private Recipe recipe = null;
     private int age;
     private int ageAtSplit = 0;
     private int energy;
-    private final int[] worldValues = new int[2];
 
     /**
      * Construct an organism.
@@ -35,13 +37,6 @@ public class Organism {
         this.brain = brain;
         this.energy = initialEnergy;
         this.recipe = recipe;
-    }
-
-    public Organism copy() {
-        Organism copy = new Organism(environment, brain, energy, recipe);
-        copy.age = age;
-        System.arraycopy(worldValues, 0, copy.worldValues, 0, worldValues.length);
-        return copy;
     }
 
     public int[] copyValues() {
@@ -216,11 +211,21 @@ public class Organism {
         return () -> environment.performActivity(this, value);
     }
 
-    public void setWorldValue(int code, int value) {
-        worldValues[code] = value;
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 53 * hash + (int) (this.id ^ (this.id >>> 32));
+        return hash;
     }
 
-    public int getWorldValue(int code) {
-        return worldValues[code];
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        else if (obj == null || getClass() != obj.getClass())
+            return false;
+        final Organism other = (Organism) obj;
+        return other.id == this.id;
     }
+
 }

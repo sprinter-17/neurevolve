@@ -10,6 +10,7 @@ import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.SOUTH;
 import static neurevolve.world.Space.WEST;
+import static neurevolve.world.WorldActivity.DIVIDE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -105,5 +106,15 @@ public class PopulationTest {
         assertTrue(population.hasOrganism(position));
         assertThat(population.getOrganism(position), is(organism));
         assertThat(organism.getEnergy(), is(100));
+    }
+
+    @Test
+    public void testActivityCount() {
+        population.addOrganism(organism, position, EAST);
+        assertThat(population.getActivityCount(organism, DIVIDE), is(0));
+        population.incrementActivityCount(organism, DIVIDE);
+        assertThat(population.getActivityCount(organism, DIVIDE), is(1));
+        population.resetActivityCount(organism);
+        assertThat(population.getActivityCount(organism, DIVIDE), is(0));
     }
 }

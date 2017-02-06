@@ -84,6 +84,10 @@ public class World implements Environment {
         return population.copy();
     }
 
+    public int getOrganismDirection(Organism organism) {
+        return population.getDirection(organism);
+    }
+
     /**
      * Make a copy of the elevations
      *
@@ -384,6 +388,7 @@ public class World implements Environment {
         reduceEnergyByTemperature(position, organism);
         organism.reduceEnergy(organism.size() * config.getSizeRate() / 100);
         organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 1000);
+        population.resetActivityCount(organism);
         organism.activate();
         totalComplexity += organism.complexity();
         if (organism.isDead())
@@ -484,11 +489,11 @@ public class World implements Environment {
     @Override
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
-        int cost = config.getActivityCost(activity);
-        if (activity == WorldActivity.DIVIDE)
-            cost *= 10;
-        if (organism.consume(cost))
+        int cost = config.getActivityCost(activity) * (population.getActivityCount(organism, activity) + 1);
+        if (organism.consume(cost)) {
             activity.perform(this, organism);
+            population.incrementActivityCount(organism, activity);
+        }
     }
 
     /**

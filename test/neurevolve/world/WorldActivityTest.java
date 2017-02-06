@@ -45,7 +45,6 @@ public class WorldActivityTest {
 
     @Test
     public void testDivide() {
-        config.setTimeBetweenSplits(0);
         WorldActivity.DIVIDE.perform(world, organism);
         assertThat(organism.getEnergy(), is(50));
         assertThat(world.getPopulationSize(), is(2));
