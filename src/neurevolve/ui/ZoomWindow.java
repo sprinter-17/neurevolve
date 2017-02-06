@@ -76,12 +76,14 @@ public class ZoomWindow {
     private class NetworkSnapShot {
 
         private final Organism organism;
+        private final int age;
         private final int direction;
         private final int energy;
         private final int[] values;
 
         public NetworkSnapShot(Organism organism) {
             this.organism = organism;
+            age = organism.getAge();
             direction = world.getOrganismDirection(organism);
             energy = organism.getEnergy();
             values = organism.copyValues();
@@ -172,6 +174,10 @@ public class ZoomWindow {
                 g.drawString("Amount of junk", 10, line * TEXT_HEIGHT);
                 g.drawString(String.valueOf(describer.getJunk()), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
                 line++;
+                line++;
+                g.drawString("Age", 10, line * TEXT_HEIGHT);
+                g.drawString(String.valueOf(network.age), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
+                line++;
                 g.drawString("Energy", 10, line * TEXT_HEIGHT);
                 g.drawString(String.valueOf(network.energy), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
                 line++;
@@ -252,7 +258,6 @@ public class ZoomWindow {
                     int y = e.getY() / PIXEL_SIZE;
                     if (x < SIDE && y < SIDE) {
                         currentOrganism = snapShot.organisms[x][y];
-                        System.out.println(x + "," + y + ":" + currentOrganism.toString());
                     }
                     networkDisplay.repaint();
                     zoomPanel.repaint();

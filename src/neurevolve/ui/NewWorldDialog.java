@@ -40,7 +40,7 @@ public class NewWorldDialog extends JDialog {
         width = addSpinner("Width", 800, 100, 2000, 50);
         height = addSpinner("Height", 600, 100, 1000, 50);
         hillCount = addSpinner("Hill Count", 150, 0, 1000, 10);
-        hillRadius = addSpinner("Max Radius", 50, 10, 500, 10);
+        hillRadius = addSpinner("Max Radius", 30, 10, 500, 10);
         hillElevation = addSpinner("Max Elevation", 200, 10, 250, 10);
 
         add(optionPanel, BorderLayout.CENTER);
@@ -84,7 +84,7 @@ public class NewWorldDialog extends JDialog {
     private void createWorld() {
         WorldConfiguration config = new WorldConfiguration();
         Space space = new Space(width.get(), height.get());
-        World world = new World(new SigmoidFunction(200), space, config);
+        World world = new World(new SigmoidFunction(1000), space, config);
         world.addHills(hillCount.get(), hillRadius.get(), hillElevation.get());
         MainWindow window = new MainWindow(world, space, config, this);
         window.show();

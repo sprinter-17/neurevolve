@@ -46,7 +46,7 @@ public class Population {
      *
      * @return a copy of the population
      */
-    public Population copy() {
+    public synchronized Population copy() {
         Population copy = new Population(space);
         System.arraycopy(organisms, 0, copy.organisms, 0, space.size());
         info.forEach((o, i) -> copy.info.put(o, i.copy()));
@@ -90,7 +90,7 @@ public class Population {
      * @param direction the direction the organism is facing
      * @throws IllegalArgumentException if the position already has an organism in it
      */
-    public void addOrganism(Organism organism, int position, int direction) {
+    public synchronized void addOrganism(Organism organism, int position, int direction) {
         if (hasOrganism(position))
             throw new IllegalArgumentException("Attempt to add two organisms to same position");
         organisms[position] = organism;
@@ -102,7 +102,7 @@ public class Population {
      *
      * @param organism the organism to remove
      */
-    public void removeOrganism(Organism organism) {
+    public synchronized void removeOrganism(Organism organism) {
         int position = getPosition(organism);
         assert hasOrganism(position);
         organisms[position] = null;

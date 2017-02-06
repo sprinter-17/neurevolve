@@ -212,6 +212,13 @@ public class World implements Environment {
         return hasOrganism(position) ? population.getOrganism(position).getEnergy() : 0;
     }
 
+    public int getDifference(Organism organism, int position) {
+        if (!hasOrganism(position))
+            return -100;
+        else
+            return organism.getDifference(population.getOrganism(position));
+    }
+
     /**
      * Add an organism to the world.
      *
@@ -360,7 +367,7 @@ public class World implements Environment {
      * adjacent positions have an organism.
      */
     private OptionalInt openPositionNextTo(int position) {
-        List<Integer> directions = Arrays.asList(EAST, WEST, NORTH, SOUTH);
+        final List<Integer> directions = Arrays.asList(EAST, WEST, NORTH, SOUTH);
         Collections.shuffle(directions);
         return directions.stream()
                 .mapToInt(dir -> space.move(position, dir))
@@ -489,7 +496,8 @@ public class World implements Environment {
     @Override
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
-        int cost = config.getActivityCost(activity) * (population.getActivityCount(organism, activity) + 1);
+        int activityCount = population.getActivityCount(organism, activity);
+        int cost = config.getActivityCost(activity) * (activityCount + 1);
         if (organism.consume(cost)) {
             activity.perform(this, organism);
             population.incrementActivityCount(organism, activity);

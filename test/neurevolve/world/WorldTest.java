@@ -242,19 +242,4 @@ public class WorldTest {
         world.tick();
         assertFalse(world.hasOrganism(frame.position(5, 5)));
     }
-
-    @Test
-    public void testInitialGrowth() {
-        Recipe recipe = new Recipe();
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
-        config.setActivityCost(WorldActivity.DIVIDE, 0);
-        world.seed(recipe, 100, 2);
-        assertThat(world.getPopulationSize(), is(2));
-        world.tick();
-        assertThat(world.getPopulationSize(), is(4));
-        world.tick();
-        assertThat(world.getPopulationSize(), is(8));
-    }
-
 }

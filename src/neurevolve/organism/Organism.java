@@ -39,6 +39,11 @@ public class Organism {
         this.recipe = recipe;
     }
 
+    /**
+     * Copy the current values for the neurons in the organism's brain
+     *
+     * @return the neuron values
+     */
     public int[] copyValues() {
         return brain.copyValues();
     }
@@ -67,6 +72,11 @@ public class Organism {
         return description.toString();
     }
 
+    /**
+     * Generate a description of the organism's recipe.
+     *
+     * @return the description
+     */
     public RecipeDescriber describeRecipe() {
         return new RecipeDescriber(recipe, environment);
     }
@@ -123,6 +133,12 @@ public class Organism {
         return recipe.make(environment, childEnergy);
     }
 
+    /**
+     * Test if the organism is able to divide. It requires 1 activation for each 10 instructions in
+     * its recipe.
+     *
+     * @return true if the organism can divide
+     */
     public boolean canDivide() {
         return (age - ageAtSplit) >= recipe.size() / 10;
     }
@@ -170,6 +186,17 @@ public class Organism {
      */
     public boolean isDead() {
         return energy <= 0;
+    }
+
+    /**
+     * Get the difference between this organism's recipe and another. The difference is defined by
+     * the Levenshtein distance between the two recipes.
+     *
+     * @param other the organism to compare to
+     * @return the difference between the recipes
+     */
+    public int getDifference(Organism other) {
+        return recipe.distanceTo(other.recipe);
     }
 
     /**
