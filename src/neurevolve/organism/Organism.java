@@ -31,8 +31,9 @@ public class Organism {
     }
 
     private Organism(Environment environment, Network brain, int initialEnergy, Recipe recipe) {
-        if (initialEnergy < 0)
+        if (initialEnergy < 0) {
             throw new IllegalArgumentException("Negative initial energy");
+        }
         this.environment = environment;
         this.brain = brain;
         this.energy = initialEnergy;
@@ -65,9 +66,10 @@ public class Organism {
     public String toString() {
         RecipeDescriber describer = describeRecipe();
         StringBuilder description = new StringBuilder();
-        description.append("Len").append(recipe.size());
-        if (describer.getJunk() > 0)
+        description.append("Len ").append(recipe.size());
+        if (describer.getJunk() > 0) {
             description.append(" Junk").append(describer.getJunk());
+        }
         description.append(" ").append(describer.describe());
         return description.toString();
     }
@@ -91,7 +93,7 @@ public class Organism {
     }
 
     /**
-     * Get the age of the organim
+     * Get the age of the organism
      *
      * @return the number of activations that have occurred on this organism
      */
@@ -100,9 +102,11 @@ public class Organism {
     }
 
     /**
-     * Get the size of the organism, as defined by the number of neurons in its brain.
+     * Get the size of the organism, as defined by the number of neurons in its
+     * brain.
      *
-     * @return the number of neurons in the network associated with this organism
+     * @return the number of neurons in the network associated with this
+     * organism
      */
     public int size() {
         return brain.size();
@@ -111,18 +115,21 @@ public class Organism {
     /**
      * Get a measure of the complexity of the organism.
      *
-     * @return the total number of activity switches of the associated network per ticks.
+     * @return the total number of activity switches of the associated network
+     * per ticks.
      */
     public float complexity() {
-        if (age == 0)
+        if (age == 0) {
             return 0;
-        else
+        } else {
             return (float) brain.getTotalActivitySwitches() / age;
+        }
     }
 
     /**
-     * Divide the current organism in two, creating a new descendent from the recipe used to create
-     * this organism. The energy of this organism is split evenly between itself and its descendent.
+     * Divide the current organism in two, creating a new descendent from the
+     * recipe used to create this organism. The energy of this organism is split
+     * evenly between itself and its descendent.
      *
      * @return the descendent organism
      */
@@ -151,20 +158,22 @@ public class Organism {
     public void reduceEnergy(int reduction) {
         assert reduction >= 0;
         energy -= reduction;
-        if (energy < 0)
+        if (energy < 0) {
             energy = 0;
+        }
     }
 
     /**
      * If organism has enough energy, reduce it by the given amount.
      *
      * @param amount amount of energy to reduce
-     * @return <tt>true</tt>, if the energy was reduced, <tt>false</tt> if there was insufficient
-     * energy
+     * @return <tt>true</tt>, if the energy was reduced, <tt>false</tt> if there
+     * was insufficient energy
      */
     public boolean consume(int amount) {
-        if (energy < amount)
+        if (energy < amount) {
             return false;
+        }
         reduceEnergy(amount);
         return true;
     }
@@ -209,13 +218,14 @@ public class Organism {
     }
 
     /**
-     * Activate the organism by using energy relative to its size and age then activating the
-     * associated network.
+     * Activate the organism by using energy relative to its size and age then
+     * activating the associated network.
      */
     public void activate() {
         age++;
-        if (!isDead())
+        if (!isDead()) {
             brain.activate();
+        }
     }
 
     /**
