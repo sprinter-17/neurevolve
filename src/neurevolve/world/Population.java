@@ -1,8 +1,12 @@
 package neurevolve.world;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.FORWARD;
 
@@ -60,6 +64,26 @@ public class Population {
      */
     public int size() {
         return info.size();
+    }
+
+    public List<List<Organism>> getDistinctPopulations(int sampleSize, int maxDistance) {
+        List<List<Organism>> populations = new ArrayList<>();
+        List<Organism> sample = new ArrayList<>(info.keySet());
+        Collections.shuffle(sample);
+        sample.stream().limit(sampleSize)
+                .forEach((org) -> {
+                    Optional<List<Organism>> population = populations.stream()
+                            .filter(pop -> pop.stream()
+                                    .limit(5)
+                                    .allMatch(o -> org.getDifference(o) < maxDistance))
+                            .findFirst();
+                    if (!population.isPresent()) {
+                        population = Optional.of(new ArrayList<>());
+                        populations.add(population.get());
+                    }
+                    population.get().add(org);
+                });
+        return populations;
     }
 
     /**

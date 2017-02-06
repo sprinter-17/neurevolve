@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
+import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
@@ -104,6 +105,11 @@ public class World implements Environment {
      */
     public int getPopulationSize() {
         return population.size();
+    }
+
+    public void addResourcesEverywhere(int amount) {
+        IntStream.range(0, space.size())
+                .forEach(pos -> resources[pos] += amount);
     }
 
     /**
@@ -238,28 +244,8 @@ public class World implements Environment {
         population.removeOrganism(organism);
     }
 
-    /**
-     * Seed the world with organisms constructed from a recipe until the population size reaches a
-     * given level. The organisms will be placed randomly within the frame.
-     *
-     * @param recipe the recipe to use to construct the organisms
-     * @param energy the starting energy for the new organisms
-     * @param count the number of organism to add
-     * @throws IllegalArgumentException if <tt>count &gt; space.size()</tt>
-     */
-    public void seed(Recipe recipe, int energy, int count) {
-        if (count > space.size())
-            throw new IllegalArgumentException("Attempt to seed the world with too many organisms");
-        IntStream.range(0, space.size())
-                .filter(this::hasOrganism)
-                .mapToObj(population::getOrganism)
-                .forEach(this::removeOrganism);
-        while (population.size() < count) {
-            int position = random.nextInt(space.size());
-            if (!population.hasOrganism(position)) {
-                population.addOrganism(recipe.make(this, energy), position, random.nextInt(4));
-            }
-        }
+    public List<List<Organism>> getDistinctPopulations(int sampleSize, int maxDistance) {
+        return population.copy().getDistinctPopulations(sampleSize, maxDistance);
     }
 
     public void addTickListener(Runnable listner) {
@@ -276,9 +262,24 @@ public class World implements Environment {
      */
     public void tick() {
         time.tick();
+        seedOrganisms();
         growResources();
         processPopulation();
         tickListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
+    }
+
+    private void seedOrganisms() {
+        Recipe recipe = new Recipe();
+        recipe.add(Instruction.ADD_NEURON, 0);
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.ordinal());
+        recipe.add(Instruction.ADD_NEURON, 0);
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
+        if (population.size() < config.getSeedCount()) {
+            int position = random.nextInt(space.size());
+            if (!population.hasOrganism(position)) {
+                population.addOrganism(recipe.make(this, config.getInitialEnergy()), position, random.nextInt(4));
+            }
+        }
     }
 
     /**

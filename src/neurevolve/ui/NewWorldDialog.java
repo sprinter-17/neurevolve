@@ -28,6 +28,7 @@ public class NewWorldDialog extends JDialog {
     private Supplier<Integer> hillCount;
     private Supplier<Integer> hillRadius;
     private Supplier<Integer> hillElevation;
+    private Supplier<Integer> startingResources;
 
     public NewWorldDialog() {
         createUI();
@@ -42,6 +43,7 @@ public class NewWorldDialog extends JDialog {
         hillCount = addSpinner("Hill Count", 150, 0, 1000, 10);
         hillRadius = addSpinner("Max Radius", 30, 10, 500, 10);
         hillElevation = addSpinner("Max Elevation", 200, 10, 250, 10);
+        startingResources = addSpinner("Starting Resources", 50, 0, 200, 10);
 
         add(optionPanel, BorderLayout.CENTER);
 
@@ -86,6 +88,7 @@ public class NewWorldDialog extends JDialog {
         Space space = new Space(width.get(), height.get());
         World world = new World(new SigmoidFunction(1000), space, config);
         world.addHills(hillCount.get(), hillRadius.get(), hillElevation.get());
+        world.addResourcesEverywhere(startingResources.get());
         MainWindow window = new MainWindow(world, space, config, this);
         window.show();
     }

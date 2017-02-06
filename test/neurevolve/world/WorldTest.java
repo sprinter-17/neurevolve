@@ -205,13 +205,6 @@ public class WorldTest {
     }
 
     @Test
-    public void testSeedWorld() {
-        Recipe recipe = new Recipe();
-        world.seed(recipe, 100, 5);
-        assertThat(world.getPopulationSize(), is(5));
-    }
-
-    @Test
     public void testGetElevationAsInput() {
         int position = frame.position(4, 7);
         Organism organism = new Organism(world, 100);
