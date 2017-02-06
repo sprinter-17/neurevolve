@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,7 +154,6 @@ public class ZoomWindow {
     private class NetworkPanel extends JPanel {
 
         private int line = 1;
-        private int firstNeuronLine;
         private RecipeDescriber describer = null;
         private final Map<Integer, String> toolTips = new HashMap<>();
 
@@ -167,35 +167,30 @@ public class ZoomWindow {
             } else {
                 line = 1;
                 describer = network.organism.describeRecipe();
-                g.setColor(Color.BLACK);
-                g.drawString("Length of recipe", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(describer.getLength()), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
+                drawLine(g, "Length of recipe", Color.BLACK, describer.getLength());
+                drawLine(g, "Amount of junk", Color.BLACK, describer.getJunk());
                 line++;
-                g.drawString("Amount of junk", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(describer.getJunk()), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
+                drawLine(g, "Age", Color.BLACK, network.age);
+                drawLine(g, "Energy", Color.BLACK, network.energy);
                 line++;
-                line++;
-                g.drawString("Age", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(network.age), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
-                line++;
-                g.drawString("Energy", 10, line * TEXT_HEIGHT);
-                g.drawString(String.valueOf(network.energy), NETWORK_PANEL_VALUE - 35, line * TEXT_HEIGHT);
-                line++;
-                line++;
-                firstNeuronLine = line;
                 toolTips.clear();
                 describer.getNeuronDescriptions()
                         .filter(RecipeDescriber.NeuronDescription::isNotJunk)
                         .forEach(desc -> {
-                            g.setColor(Color.BLACK);
-                            g.drawString(desc.getNeuronDescription(), 10, line * TEXT_HEIGHT);
-                            int value = network.values[line - firstNeuronLine];
-                            g.setColor(value >= 0 ? POSITIVE : NEGATIVE);
-                            g.drawString(String.valueOf(Math.abs(value)), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+                            int value = network.values[desc.getId() - 1];
                             toolTips.put(line, getInputOutputs(desc));
-                            line++;
+                            Color valueColour = value >= 0 ? POSITIVE : NEGATIVE;
+                            drawLine(g, desc.getNeuronDescription(), valueColour, abs(value));
                         });
             }
+        }
+
+        private void drawLine(Graphics g, String label, Color valueColour, int value) {
+            g.setColor(Color.BLACK);
+            g.drawString(label, 10, line * TEXT_HEIGHT);
+            g.setColor(valueColour);
+            g.drawString(String.valueOf(value), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
+            line++;
         }
 
         private String getInputOutputs(RecipeDescriber.NeuronDescription neuronDescriber) {

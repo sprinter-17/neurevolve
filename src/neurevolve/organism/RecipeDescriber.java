@@ -28,10 +28,19 @@ public class RecipeDescriber {
 
     public class NeuronDescription {
 
+        private final int id;
         private final StringBuilder neuron = new StringBuilder();
         private final List<StringBuilder> inputs = new ArrayList<>();
         private final List<StringBuilder> outputs = new ArrayList<>();
         private boolean hasActivity = false;
+
+        public NeuronDescription(int id) {
+            this.id = id;
+        }
+
+        public int getId() {
+            return id;
+        }
 
         public String getNeuronDescription() {
             return neuron.toString();
@@ -81,7 +90,7 @@ public class RecipeDescriber {
         }
 
         public void describe() {
-            NeuronDescription description = new NeuronDescription();
+            NeuronDescription description = new NeuronDescription(id);
             description.neuron.append("N").append(id);
             describeWeight(description.neuron, threshold);
             if (delay > 0)

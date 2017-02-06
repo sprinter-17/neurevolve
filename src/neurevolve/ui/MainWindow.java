@@ -100,7 +100,7 @@ public class MainWindow {
                 SwingWorker worker = new SwingWorker() {
                     @Override
                     protected Object doInBackground() throws Exception {
-                        return world.getSpecies(3000, 20);
+                        return world.getSpecies(1000, 50);
                     }
 
                     @Override
@@ -113,7 +113,7 @@ public class MainWindow {
                             populations.stream()
                                     .sorted(Comparator.comparingInt((List l) -> l.size()).reversed())
                                     .limit(10)
-                                    .forEach(pop -> text.append(pop.size() + "\t" + pop.get(0) + "\n"));
+                                    .forEach(pop -> text.append(String.format("%2.2f%%\t%s\n", 100f * pop.size() / 1000, pop.get(0))));
                             analysisFrame.getContentPane().add(text, BorderLayout.CENTER);
                             analysisFrame.pack();
                             analysisFrame.setLocationRelativeTo(null);
