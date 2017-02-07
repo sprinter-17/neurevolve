@@ -8,6 +8,7 @@ public class TestConfiguration extends WorldConfiguration {
         setYear(1, 0);
         setTemperatureRange(0, 0);
         setSeedCount(0);
+        setBaseCost(0);
     }
 
 }

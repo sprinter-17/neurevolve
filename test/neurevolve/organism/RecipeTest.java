@@ -109,4 +109,12 @@ public class RecipeTest {
         assertThat(recipe.distanceTo(other), is(4));
     }
 
+    @Test
+    public void testInverseDistance() {
+        Recipe other = new Recipe();
+        recipe.add(5);
+        other.add(-5);
+        assertThat(recipe.distanceTo(other), is(10));
+    }
+
 }

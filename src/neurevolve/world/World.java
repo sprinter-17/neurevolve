@@ -8,6 +8,7 @@ import java.util.OptionalInt;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Instruction;
@@ -47,7 +48,6 @@ public class World implements Environment {
 
     private Organism mostComplexOrganism;
     private float totalComplexity;
-    private int tickDelay;
 
     /**
      * Construct a world within a frame with a configuration
@@ -64,7 +64,6 @@ public class World implements Environment {
         this.population = new Population(space);
         this.resources = new int[frame.size()];
         this.elevation = new int[frame.size()];
-        this.tickDelay = 1;
     }
 
     /**
@@ -244,15 +243,11 @@ public class World implements Environment {
         population.removeOrganism(organism);
     }
 
-    /**
-     * Gets a list of species from a random sample of organisms in the population.
-     *
-     * @param sampleSize the size of the random sample
-     * @param maxDistance the maximum distance between recipes within a species
-     * @return a list of lists of organisms, with each list defining a species
-     */
-    public List<List<Organism>> getSpecies(int sampleSize, int maxDistance) {
-        return population.copy().getSpecies(sampleSize, maxDistance);
+    public Stream<Organism> getOrganisms() {
+        Population copy = population.copy();
+        return IntStream.range(0, space.size())
+                .filter(copy::hasOrganism)
+                .mapToObj(copy::getOrganism);
     }
 
     public void addTickListener(Runnable listner) {
@@ -401,8 +396,9 @@ public class World implements Environment {
      */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
-        organism.reduceEnergy(organism.size() * config.getSizeRate() / 100);
-        organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 1000);
+        organism.reduceEnergy(config.getBaseCost());
+        organism.reduceEnergy(organism.size() * config.getSizeRate() / 10);
+        organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 100);
         population.resetActivityCount(organism);
         organism.activate();
         totalComplexity += organism.complexity();

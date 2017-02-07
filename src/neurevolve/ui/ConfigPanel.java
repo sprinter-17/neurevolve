@@ -69,6 +69,8 @@ public class ConfigPanel extends JTabbedPane {
         JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
         addValueSlider(ratePanel, "Consumption Rate", 1, 100,
                 config.getConsumptionRate(), config::setConsumptionRate);
+        addValueSlider(ratePanel, "Base Cost", 0, 20,
+                config.getBaseCost(), config::setBaseCost);
         addValueSlider(ratePanel, "Aging Cost", 0, 20,
                 config.getAgingRate(), config::setAgingRate);
         addValueSlider(ratePanel, "Size Cost", 0, 20,

@@ -19,6 +19,7 @@ public class Population {
     private final Organism[] organisms;
     private final Map<Organism, OrganismInfo> info = new HashMap<>();
 
+
     private class OrganismInfo {
 
         private final int position;

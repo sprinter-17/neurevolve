@@ -25,6 +25,7 @@ public class WorldConfiguration {
         MAX_RESOURCES("Max Resources", 500),
         SEED_COUNT("Seed Count", 200),
         INITIAL_ENERGY("Initial Energy", 1000),
+        BASE_COST("Base Cost", 1),
         AGING_RATE("Aging Rate", 10),
         CONSUMPTION_RATE("Consumption Rate", 50),
         SIZE_RATE("Size Rate", 5),
@@ -164,6 +165,16 @@ public class WorldConfiguration {
         if (consumptionRate < 1)
             throw new IllegalArgumentException("Consumption rate must be greater than 0");
         Key.CONSUMPTION_RATE.setValue(this, consumptionRate);
+    }
+
+    public int getBaseCost() {
+        return Key.BASE_COST.getValue(this);
+    }
+
+    public void setBaseCost(int cost) {
+        if (cost < 0)
+            throw new IllegalArgumentException("Base cost must be greater than or equal to 0");
+        Key.BASE_COST.setValue(this, cost);
     }
 
     public int getMaxResources() {

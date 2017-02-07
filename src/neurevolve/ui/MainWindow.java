@@ -3,9 +3,6 @@ package neurevolve.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -16,12 +13,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
-import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
-import neurevolve.organism.Organism;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
@@ -35,6 +29,8 @@ public class MainWindow {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final World world;
     private final JFrame frame;
+    private final AnalysisWindow analysisWindow;
+    private final JToggleButton pauseButton = new JToggleButton("Pause");
     private final JLabel seasonLabel = new JLabel();
     private final JLabel populationLabel = new JLabel();
     private final JLabel averageComplexityLabel = new JLabel();
@@ -50,11 +46,13 @@ public class MainWindow {
      * @param config the configuration for this world
      * @param newWorldDialog the dialog to use to create new worlds
      */
-    public MainWindow(final World world, final Space space, final WorldConfiguration config, NewWorldDialog newWorldDialog) {
+    public MainWindow(final World world, final Space space, final WorldConfiguration config,
+            NewWorldDialog newWorldDialog) {
         this.world = world;
         this.newWorldDialog = newWorldDialog;
         frame = new JFrame("Neurevolve");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        analysisWindow = new AnalysisWindow(world);
         addTools(world, config);
         addMapPanel(world, space, config);
         addConfigPanel(space, config);
@@ -83,48 +81,23 @@ public class MainWindow {
             }
         }));
 
-        tools.add(new JToggleButton(new AbstractAction("Pause") {
+        tools.add(pauseButton);
+        pauseButton.setAction(new AbstractAction("Pause") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (paused)
                     scheduleTick();
                 paused = !paused;
             }
-        }));
+        });
 
         JButton analysisButton = new JButton();
         analysisButton.setAction(new AbstractAction("Analysis") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                analysisButton.setEnabled(false);
-                SwingWorker worker = new SwingWorker() {
-                    @Override
-                    protected Object doInBackground() throws Exception {
-                        return world.getSpecies(1000, 50);
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            List<List<Organism>> populations = (List<List<Organism>>) get();
-                            JFrame analysisFrame = new JFrame("Population Analysis");
-                            JTextArea text = new JTextArea();
-                            text.setPreferredSize(new Dimension(600, 600));
-                            populations.stream()
-                                    .sorted(Comparator.comparingInt((List l) -> l.size()).reversed())
-                                    .limit(10)
-                                    .forEach(pop -> text.append(String.format("%2.2f%%\t%s\n", 100f * pop.size() / 1000, pop.get(0))));
-                            analysisFrame.getContentPane().add(text, BorderLayout.CENTER);
-                            analysisFrame.pack();
-                            analysisFrame.setLocationRelativeTo(null);
-                            analysisFrame.setVisible(true);
-                            analysisButton.setEnabled(true);
-                        } catch (InterruptedException | ExecutionException ex) {
-                            ex.printStackTrace(System.out);
-                        }
-                    }
-                };
-                worker.execute();
+                analysisWindow.setVisible(true);
+                pauseButton.setSelected(true);
+                paused = true;
             }
         });
         tools.add(analysisButton);
@@ -176,7 +149,8 @@ public class MainWindow {
     }
 
     private void scheduleTick() {
-        executor.schedule(this::tick, delay, TimeUnit.MILLISECONDS);
+        if (!executor.isShutdown())
+            executor.schedule(this::tick, delay, TimeUnit.MILLISECONDS);
     }
 
     private void tick() {
