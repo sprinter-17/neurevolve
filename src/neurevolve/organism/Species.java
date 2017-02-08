@@ -14,22 +14,26 @@ public class Species {
 
     private final int maxDistance;
     private final List<Organism> organisms = new ArrayList<>();
+    private final RecipeDescriber recipeDescriber;
     private int largestDistance = 0;
 
     /**
-     * Construct a new species with a single organism.
+     * Construct a new species with a single organism. This organism becomes the archetype for the
+     * species. All organisms tested for membership of the species are compared to this organism.
      *
      * @param maxDistance the maximum distance between all members
      * @param organism an organism to add to the species
      */
     private Species(int maxDistance, Organism organism) {
         this.maxDistance = maxDistance;
+        recipeDescriber = organism.describeRecipe();
         add(organism);
     }
 
     /**
      * Find the species matching an organism in a list and add the organism to the species. If there
-     * is not matching species, create a new species for the organism and add it to the list.
+     * is not matching species, create a new species using the organism as the archetype and add the
+     * new species to the list.
      *
      * @param organism the organism to find a species for
      * @param speciesList the list of species to search
@@ -57,13 +61,28 @@ public class Species {
         return organisms.size();
     }
 
+    /**
+     * Get the maximum distance between the recipe of the first organism and any other organism in
+     * the species.
+     *
+     * @return the largest distance
+     */
     public int getLargestDistance() {
         return largestDistance;
     }
 
     /**
+     * Get a describer for the first organism's recipe.
+     *
+     * @return a recipe describer for the species
+     */
+    public RecipeDescriber getRecipeDescriber() {
+        return recipeDescriber;
+    }
+
+    /**
      * Check if an organism belongs in this species by checking the distance of its recipe against
-     * the first member.
+     * the archetype member. If it belongs then add it and return true. Otherwise return false
      */
     private boolean includes(Organism organism) {
         int distance = organisms.get(0).getDifference(organism);
@@ -81,9 +100,5 @@ public class Species {
      */
     private void add(Organism organism) {
         organisms.add(organism);
-    }
-
-    public String toString() {
-        return organisms.get(0).toString();
     }
 }

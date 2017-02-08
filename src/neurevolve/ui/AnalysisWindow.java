@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -20,14 +21,15 @@ import javax.swing.JToolBar;
 import javax.swing.SwingWorker;
 import static javax.swing.SwingWorker.StateValue.DONE;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Species;
 import neurevolve.world.World;
 
 /**
- * The <code>AnalysisWindow</code> is used to analyse the world's current population. It attempts to
- * group the organisms into {@link neurevolve.organism.Species} by comparing the distances between
- * their recipes. The user can set the maximum distance that defines the boundaries of a species.
+ * The <code>AnalysisWindow</code> is used to analyse the world's current population. It groups the
+ * organisms into {@link neurevolve.organism.Species} by comparing the distances between their
+ * recipes. The user can set the maximum distance that defines the boundaries of a species.
  *
  * The window displays a table of the species with columns for the size (number of members), max
  * (maximum distance between any member and the first) and a textual description of the recipe of
@@ -41,14 +43,19 @@ public class AnalysisWindow extends JFrame {
     private JProgressBar progressBar;
     private JLabel statusLabel;
 
+    /**
+     * A table model that displays a list of species
+     */
     private static class SpeciesTableModel extends AbstractTableModel {
 
         private final List<Species> speciesList = new ArrayList<>();
 
         private enum Column {
             SIZE("Size", Integer.class, Species::size),
-            DISTANCE("Width", Integer.class, Species::getLargestDistance),
-            RECIPE("Recipe", String.class, Species::toString);
+            DISTANCE("Distance", Integer.class, Species::getLargestDistance),
+            RECIPE_LENGTH("Length", Integer.class, s -> s.getRecipeDescriber().getLength()),
+            RECIPE_JUNK("Junk", Integer.class, s -> s.getRecipeDescriber().getJunk()),
+            RECIPE("Recipe", String.class, s -> s.getRecipeDescriber().describe());
 
             private final String columnName;
             private final Class columnClass;
@@ -62,16 +69,21 @@ public class AnalysisWindow extends JFrame {
         }
 
         public void add(List<Species> newSpecies) {
-            for (Species species : newSpecies) {
-                if (!speciesList.contains(species))
-                    speciesList.add(species);
-            }
+            newSpecies.stream()
+                    .filter(s -> !speciesList.contains(s))
+                    .forEach(speciesList::add);
             fireTableDataChanged();
         }
 
         public void clear() {
             speciesList.clear();
             fireTableDataChanged();
+        }
+
+        public void setColumnSizes(TableColumnModel columns) {
+            IntStream.range(0, Column.values().length)
+                    .filter(i -> Column.values()[i].columnClass.equals(Integer.class))
+                    .forEach(i -> columns.getColumn(i).setMaxWidth(50));
         }
 
         @Override
@@ -100,6 +112,10 @@ public class AnalysisWindow extends JFrame {
         }
     }
 
+    /**
+     * A SwingWorker that analyses a population on a worker thread and progressively updates the
+     * table
+     */
     private class AnalysisWorker extends SwingWorker<Integer, Species> {
 
         private final int maxDistance;
@@ -149,6 +165,9 @@ public class AnalysisWindow extends JFrame {
         pack();
     }
 
+    /**
+     * Construct a tool bar
+     */
     private void makeToolBar() {
         JToolBar toolBar = new JToolBar();
         toolBar.setBorder(BorderFactory.createEtchedBorder());
@@ -175,15 +194,20 @@ public class AnalysisWindow extends JFrame {
         add(toolBar, BorderLayout.NORTH);
     }
 
+    /**
+     * Construct the table to display species
+     */
     private void makePopulationTable() {
         JTable table = new JTable(speciesTable);
         table.setAutoCreateRowSorter(true);
-        table.getColumnModel().getColumn(0).setMaxWidth(50);
-        table.getColumnModel().getColumn(1).setMaxWidth(50);
+        speciesTable.setColumnSizes(table.getColumnModel());
         table.setPreferredSize(new Dimension(600, 600));
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
+    /**
+     * Construct a status bar to show the status and progress of analysis
+     */
     private void makeStatusBar() {
         JPanel statusBar = new JPanel();
         statusLabel = new JLabel("Waiting");

@@ -10,11 +10,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The function of a <code>RecipeDescriber</code> is to turn a {@link Recipe} into human-readable
- * text. It is designed to ignore all instructions in the recipe that have no effect on the
- * constructed network. It outputs the length of the recipe followed by a description of each of the
- * neurons. Only valid inputs, lengths and final activity set are shown so that the description
- * represents the network that the recipe constructs.
+ * The function of a <code>RecipeDescriber</code> is to turn a {@link Recipe} into information about
+ * the recipe that can be displayed to the user. It is designed to ignore all instructions in the
+ * recipe that have no effect on the constructed network.
  */
 public class RecipeDescriber {
 
@@ -26,6 +24,9 @@ public class RecipeDescriber {
     private int neuronCount = 0;
     private Optional<NeuronDescriber> neuron = Optional.empty();
 
+    /**
+     * A <code>NeuronDescription</code> contains information about an individual neuron.
+     */
     public class NeuronDescription {
 
         private final int id;

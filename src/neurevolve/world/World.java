@@ -19,6 +19,8 @@ import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.SOUTH;
 import static neurevolve.world.Space.WEST;
+import static neurevolve.world.World.Data.ELEVATION;
+import static neurevolve.world.World.Data.RESOURCES;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -35,8 +37,7 @@ public class World implements Environment {
 
     private final Space space;
     private final WorldConfiguration config;
-    private final int[] resources;
-    private final int[] elevation;
+    private final int[] data;
     private final Random random = new Random();
 
     private final List<Runnable> tickListeners = new ArrayList<>();
@@ -48,6 +49,44 @@ public class World implements Environment {
 
     private Organism mostComplexOrganism;
     private float totalComplexity;
+
+    static enum Data {
+        ACID(1),
+        WALL(ACID, 1),
+        ELEVATION(WALL, 8),
+        RESOURCES(ELEVATION, 8);
+
+        private final int shift;
+        private final int bits;
+        private final int max;
+        private final int mask;
+
+        private Data(Data previous, int bits) {
+            this(previous.shift + previous.bits, bits);
+        }
+
+        private Data(int bits) {
+            this(0, bits);
+        }
+
+        private Data(int shift, int bits) {
+            this.shift = shift;
+            this.bits = bits;
+            this.max = (1 << bits) - 1;
+            this.mask = max << shift;
+        }
+
+        public int get(int input) {
+            return (input & mask) >> shift;
+        }
+
+        public int set(int input, int data) {
+            if (data > max || data < 0)
+                throw new IllegalArgumentException("Data out of range");
+            return (input & ~mask) | (data << shift) & mask;
+        }
+
+    }
 
     /**
      * Construct a world within a frame with a configuration
@@ -62,8 +101,7 @@ public class World implements Environment {
         this.space = frame;
         this.time = new Time(configuration);
         this.population = new Population(space);
-        this.resources = new int[frame.size()];
-        this.elevation = new int[frame.size()];
+        this.data = new int[frame.size()];
     }
 
     /**
@@ -72,7 +110,10 @@ public class World implements Environment {
      * @return a complete copy of the resource array
      */
     public int[] getResourceCopy() {
-        return Arrays.copyOf(resources, space.size());
+        int[] resources = new int[space.size()];
+        IntStream.range(0, space.size())
+                .forEach(i -> resources[i] = RESOURCES.get(data[i]));
+        return resources;
     }
 
     /**
@@ -94,7 +135,10 @@ public class World implements Environment {
      * @return a complete copy of the elevation array
      */
     public int[] getElevationCopy() {
-        return Arrays.copyOf(elevation, space.size());
+        int[] elevations = new int[space.size()];
+        IntStream.range(0, space.size())
+                .forEach(i -> elevations[i] = ELEVATION.get(data[i]));
+        return elevations;
     }
 
     /**
@@ -108,7 +152,7 @@ public class World implements Environment {
 
     public void addResourcesEverywhere(int amount) {
         IntStream.range(0, space.size())
-                .forEach(pos -> resources[pos] += amount);
+                .forEach(pos -> addResources(pos, amount));
     }
 
     /**
@@ -118,7 +162,7 @@ public class World implements Environment {
      * @param amount the amount of resource to set
      */
     protected void setResource(int position, int amount) {
-        resources[position] = amount;
+        data[position] = RESOURCES.set(data[position], amount);
     }
 
     /**
@@ -128,7 +172,7 @@ public class World implements Environment {
      * @return the amount of resource at the given position
      */
     public int getResource(int position) {
-        return resources[position];
+        return RESOURCES.get(data[position]);
     }
 
     /**
@@ -172,7 +216,7 @@ public class World implements Environment {
      * @param value the elevation to set the position to
      */
     protected void setElevation(int position, int value) {
-        elevation[position] = Math.min(255, value);
+        data[position] = ELEVATION.set(data[position], value);
     }
 
     /**
@@ -182,7 +226,7 @@ public class World implements Environment {
      * @return the elevation at the given position
      */
     protected int getElevation(int position) {
-        return elevation[position];
+        return ELEVATION.get(data[position]);
     }
 
     /**
@@ -301,7 +345,8 @@ public class World implements Environment {
     }
 
     private void addResources(int position, int amount) {
-        resources[position] = Math.min(config.getMaxResources(), resources[position] + amount);
+        int resources = RESOURCES.get(data[position]) + amount;
+        data[position] = RESOURCES.set(data[position], resources);
     }
 
     public Organism getMostComplexOrganism() {
@@ -325,9 +370,9 @@ public class World implements Environment {
      */
     public void feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
-        int amount = Math.min(resources[position], config.getConsumptionRate());
+        int amount = Math.min(getResource(position), config.getConsumptionRate());
         organism.increaseEnergy(amount);
-        resources[position] -= amount;
+        addResources(position, -amount);
     }
 
     /**
