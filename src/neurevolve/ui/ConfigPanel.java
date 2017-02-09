@@ -42,6 +42,7 @@ public class ConfigPanel extends JTabbedPane {
         addValueSlider(mutationPanel, "Rate", 0, 100, config.getMutationRate(), config::setMutationRate);
 
         JPanel temperaturePanel = addGroupPanel(worldPanel, "Temperature");
+        addValueSlider(temperaturePanel, "Growth Rate", 0, 20, config.getGrowthRate(), config::setGrowthRate);
         JSlider minTemp = addValueSlider(temperaturePanel, "At Pole", -200, 400, config.getMinTemp(), (v) -> config.setTemperatureRange(v, config.getMaxTemp()));
         JSlider maxTemp = addValueSlider(temperaturePanel, "At Equator", -200, 400, config.getMaxTemp(), (v) -> config.setTemperatureRange(config.getMinTemp(), v));
         minTemp.addChangeListener(e -> {
@@ -52,8 +53,10 @@ public class ConfigPanel extends JTabbedPane {
             if (minTemp.getValue() > maxTemp.getValue())
                 minTemp.setValue(maxTemp.getValue());
         });
-        addValueSlider(temperaturePanel, "Year Length", 1, 3000, config.getYearLength(), (v) -> config.setYear(v, config.getTempVariation()));
-        addValueSlider(temperaturePanel, "Season Variation", -200, 200, config.getTempVariation(), (v) -> config.setYear(config.getYearLength(), v));
+        addValueSlider(temperaturePanel, "Year Length", 1, 3000,
+                config.getYearLength(), (v) -> config.setYear(v, config.getTempVariation()));
+        addValueSlider(temperaturePanel, "Season Variation", 0, 200,
+                config.getTempVariation(), (v) -> config.setYear(config.getYearLength(), v));
     }
 
     private void addOrganismPanel() {
@@ -67,6 +70,8 @@ public class ConfigPanel extends JTabbedPane {
         addValueSlider(seedPanel, "Initial Energy", 100, 1000,
                 config.getInitialEnergy(), config::setInitialEnergy);
         JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
+        addValueSlider(ratePanel, "Minimum Split Time", 0, 20,
+                config.getMinimumSplitTime(), config::setMinimumSplitTime);
         addValueSlider(ratePanel, "Consumption Rate", 1, 100,
                 config.getConsumptionRate(), config::setConsumptionRate);
         addValueSlider(ratePanel, "Base Cost", 0, 20,

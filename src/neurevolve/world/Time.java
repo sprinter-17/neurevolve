@@ -27,11 +27,9 @@ public class Time {
      * @return the name of the season
      */
     public String getSeasonName() {
-        if (config.getTempVariation() == 0)
+        if (config.getTempVariation() == 0 || config.getYearLength() < 4)
             return "None";
-        int season = 4 * timeOfYear() / config.getYearLength();
-        if (config.getTempVariation() > 0)
-            season = (season + 2) % 4;
+        int season = (7 + 8 * timeOfYear() / config.getYearLength()) / 2 % 4;
         return SEASON_NAMES[season];
     }
 
@@ -43,8 +41,12 @@ public class Time {
      * @return the variation in temperature at the current time of year
      */
     public int getSeasonalTemp() {
+        int seasonLength = config.getYearLength() / 4;
+        if (seasonLength == 0)
+            return 0;
         int timeFromMidYear = Math.abs(config.getYearLength() / 2 - timeOfYear());
-        return config.getTempVariation() * 2 * timeFromMidYear / config.getYearLength();
+        int timeFromMidSeason = seasonLength - timeFromMidYear;
+        return config.getTempVariation() * timeFromMidSeason / seasonLength;
     }
 
     /**

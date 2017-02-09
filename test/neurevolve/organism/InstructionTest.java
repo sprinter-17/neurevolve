@@ -3,6 +3,7 @@ package neurevolve.organism;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import neurevolve.TestEnvironment;
+import neurevolve.network.Neuron;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -44,7 +45,7 @@ public class InstructionTest {
         Instruction.ADD_NEURON.complete(organism, values);
 
         values.add(0);
-        values.add(20);
+        values.add(20 * Neuron.WEIGHT_DIVISOR);
         Instruction.ADD_LINK.complete(organism, values);
 
         organism.getBrain().activate();
@@ -56,7 +57,7 @@ public class InstructionTest {
         Instruction.ADD_NEURON.complete(organism, values);
 
         values.add(5);
-        values.add(5);
+        values.add(5 * Neuron.WEIGHT_DIVISOR);
         Instruction.ADD_INPUT.complete(organism, values);
 
         organism.getBrain().activate();

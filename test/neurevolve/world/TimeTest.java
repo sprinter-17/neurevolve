@@ -31,32 +31,32 @@ public class TimeTest {
 
     @Test
     public void testSeasons() {
-        config.setYear(8, -8);
-        assertThat(time.getSeasonName(), is("Spring"));
-        assertThat(time.getSeasonalTemp(), is(-8));
-        time.tick();
-        assertThat(time.getSeasonName(), is("Spring"));
-        assertThat(time.getSeasonalTemp(), is(-6));
-        time.tick();
-        assertThat(time.getSeasonName(), is("Summer"));
+        config.setYear(8, 4);
+        assertThat(time.getSeasonName(), is("Winter"));
         assertThat(time.getSeasonalTemp(), is(-4));
         time.tick();
-        assertThat(time.getSeasonName(), is("Summer"));
+        assertThat(time.getSeasonName(), is("Spring"));
         assertThat(time.getSeasonalTemp(), is(-2));
+        time.tick();
+        assertThat(time.getSeasonName(), is("Spring"));
+        assertThat(time.getSeasonalTemp(), is(0));
+        time.tick();
+        assertThat(time.getSeasonName(), is("Summer"));
+        assertThat(time.getSeasonalTemp(), is(+2));
+        time.tick();
+        assertThat(time.getSeasonName(), is("Summer"));
+        assertThat(time.getSeasonalTemp(), is(+4));
+        time.tick();
+        assertThat(time.getSeasonName(), is("Autumn"));
+        assertThat(time.getSeasonalTemp(), is(+2));
         time.tick();
         assertThat(time.getSeasonName(), is("Autumn"));
         assertThat(time.getSeasonalTemp(), is(0));
         time.tick();
-        assertThat(time.getSeasonName(), is("Autumn"));
+        assertThat(time.getSeasonName(), is("Winter"));
         assertThat(time.getSeasonalTemp(), is(-2));
         time.tick();
         assertThat(time.getSeasonName(), is("Winter"));
         assertThat(time.getSeasonalTemp(), is(-4));
-        time.tick();
-        assertThat(time.getSeasonName(), is("Winter"));
-        assertThat(time.getSeasonalTemp(), is(-6));
-        time.tick();
-        assertThat(time.getSeasonName(), is("Spring"));
-        assertThat(time.getSeasonalTemp(), is(-8));
     }
 }

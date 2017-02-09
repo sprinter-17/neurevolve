@@ -14,9 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import neurevolve.network.SigmoidFunction;
+import neurevolve.maker.WorldMaker;
 import neurevolve.world.Space;
-import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
 
 public class NewWorldDialog extends JDialog {
@@ -39,7 +38,7 @@ public class NewWorldDialog extends JDialog {
         setTitle("Create New World");
 
         width = addSpinner("Width", 800, 100, 2000, 50);
-        height = addSpinner("Height", 600, 100, 1000, 50);
+        height = addSpinner("Height", 500, 100, 1000, 50);
         hillCount = addSpinner("Hill Count", 150, 0, 1000, 10);
         hillRadius = addSpinner("Max Radius", 30, 10, 500, 10);
         hillElevation = addSpinner("Max Elevation", 200, 10, 250, 10);
@@ -84,12 +83,15 @@ public class NewWorldDialog extends JDialog {
     }
 
     private void createWorld() {
-        WorldConfiguration config = new WorldConfiguration();
         Space space = new Space(width.get(), height.get());
-        World world = new World(new SigmoidFunction(1000), space, config);
-        world.addHills(hillCount.get(), hillRadius.get(), hillElevation.get());
-        world.addResourcesEverywhere(startingResources.get());
-        MainWindow window = new MainWindow(world, space, config, this);
+        WorldConfiguration config = new WorldConfiguration();
+        WorldMaker maker = new WorldMaker(space, config);
+        maker.add(maker.atStart(), maker.elevation(200), maker.verticalEdges(50));
+        maker.add(maker.atStart(), maker.acid(), maker.horizontalEdges(40));
+        maker.add(maker.atStart(), maker.addResources(150), maker.everywhere());
+        maker.add(maker.atStart(), maker.addResources(60), maker.pools(10, 100));
+        maker.add(maker.atStart(), maker.elevation(250), maker.pools(1000, 10));
+        MainWindow window = new MainWindow(maker.make(), space, config, this);
         window.show();
     }
 

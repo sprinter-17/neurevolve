@@ -29,7 +29,7 @@ public class WorldInputTest {
     @Test
     public void testElevation() {
         assertThat(WorldInput.LOOK_SLOPE_FORWARD.getValue(world, organism), is(0));
-        world.setElevation(frame.move(position, 0), 17);
+        world.addElevation(frame.move(position, 0), 17);
         assertThat(WorldInput.LOOK_SLOPE_FORWARD.getValue(world, organism), is(17));
     }
 

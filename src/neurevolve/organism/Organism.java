@@ -102,11 +102,9 @@ public class Organism {
     }
 
     /**
-     * Get the size of the organism, as defined by the number of neurons in its
-     * brain.
+     * Get the size of the organism, as defined by the number of neurons in its brain.
      *
-     * @return the number of neurons in the network associated with this
-     * organism
+     * @return the number of neurons in the network associated with this organism
      */
     public int size() {
         return brain.size();
@@ -115,8 +113,7 @@ public class Organism {
     /**
      * Get a measure of the complexity of the organism.
      *
-     * @return the total number of activity switches of the associated network
-     * per ticks.
+     * @return the total number of activity switches of the associated network per ticks.
      */
     public float complexity() {
         if (age == 0) {
@@ -127,9 +124,8 @@ public class Organism {
     }
 
     /**
-     * Divide the current organism in two, creating a new descendent from the
-     * recipe used to create this organism. The energy of this organism is split
-     * evenly between itself and its descendent.
+     * Divide the current organism in two, creating a new descendent from the recipe used to create
+     * this organism. The energy of this organism is split evenly between itself and its descendent.
      *
      * @return the descendent organism
      */
@@ -146,8 +142,8 @@ public class Organism {
      *
      * @return true if the organism can divide
      */
-    public boolean canDivide() {
-        return (age - ageAtSplit) >= recipe.size() / 10;
+    public boolean canDivide(int minDivisionTime) {
+        return (age - ageAtSplit) >= minDivisionTime + recipe.size() / 10;
     }
 
     /**
@@ -156,7 +152,8 @@ public class Organism {
      * @param reduction the amount by which to reduce the organism's energy
      */
     public void reduceEnergy(int reduction) {
-        assert reduction >= 0;
+        if (reduction < 0)
+            throw new IllegalArgumentException("Negative energy reduction");
         energy -= reduction;
         if (energy < 0) {
             energy = 0;
@@ -167,8 +164,8 @@ public class Organism {
      * If organism has enough energy, reduce it by the given amount.
      *
      * @param amount amount of energy to reduce
-     * @return <tt>true</tt>, if the energy was reduced, <tt>false</tt> if there
-     * was insufficient energy
+     * @return <tt>true</tt>, if the energy was reduced, <tt>false</tt> if there was insufficient
+     * energy
      */
     public boolean consume(int amount) {
         if (energy < amount) {
@@ -218,8 +215,8 @@ public class Organism {
     }
 
     /**
-     * Activate the organism by using energy relative to its size and age then
-     * activating the associated network.
+     * Activate the organism by using energy relative to its size and age then activating the
+     * associated network.
      */
     public void activate() {
         age++;

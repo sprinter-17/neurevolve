@@ -1,5 +1,6 @@
 package neurevolve.world;
 
+import neurevolve.TestConfiguration;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Space.EAST;
 import static org.hamcrest.CoreMatchers.is;
@@ -19,7 +20,7 @@ public class WorldActivityTest {
 
     @Before
     public void setup() {
-        config = new WorldConfiguration();
+        config = new TestConfiguration();
         frame = new Space(10, 10);
         world = new World(n -> n, frame, config);
         position = frame.position(5, 7);

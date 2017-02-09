@@ -62,10 +62,10 @@ public class NetworkTest {
         network.addInput(input, 10);
         when(input.getValue()).thenReturn(17);
         network.activate();
-        assertThat(network.getValue(0), is(170));
+        assertThat(network.getValue(0), is(170 / Neuron.WEIGHT_DIVISOR));
         when(input.getValue()).thenReturn(14);
         network.activate();
-        assertThat(network.getValue(0), is(140));
+        assertThat(network.getValue(0), is(140 / Neuron.WEIGHT_DIVISOR));
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
@@ -86,9 +86,9 @@ public class NetworkTest {
         network.addNeuron();
         network.setThreshold(-28);
         network.addNeuron();
-        network.addLink(0, 10);
+        network.addLink(0, weight(2));
         network.activate();
-        assertThat(network.getValue(1), is(280));
+        assertThat(network.getValue(1), is(56));
     }
 
     @Test
@@ -119,10 +119,14 @@ public class NetworkTest {
         network.addNeuron();
         network.setThreshold(-17);
         network.addNeuron();
-        network.addLink(0, 2);
+        network.addLink(0, weight(2));
         network.activate();
         int[] expected = {17, 34};
         assertArrayEquals(expected, network.copyValues());
+    }
+
+    private int weight(int weight) {
+        return weight * Neuron.WEIGHT_DIVISOR;
     }
 
 }

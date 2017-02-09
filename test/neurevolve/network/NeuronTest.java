@@ -33,32 +33,32 @@ public class NeuronTest {
 
     @Test
     public void testSingleInput() {
-        neuron.addInput(() -> 17, 10);
+        neuron.addInput(() -> 17, weight(10));
         neuron.activate();
         assertThat(neuron.getValue(), is(170));
     }
 
     @Test
     public void testMultipleInputs() {
-        neuron.addInput(() -> 11, 10);
-        neuron.addInput(() -> -5, 10);
+        neuron.addInput(() -> 11, weight(10));
+        neuron.addInput(() -> -5, weight(10));
         neuron.activate();
         assertThat(neuron.getValue(), is(60));
     }
 
     @Test
     public void testInputsWithThreshold() {
-        neuron.addInput(() -> 11, 10);
-        neuron.addInput(() -> -5, 10);
+        neuron.addInput(() -> 11, weight(1));
+        neuron.addInput(() -> -5, weight(2));
         neuron.setThreshold(3);
         neuron.activate();
-        assertThat(neuron.getValue(), is(57));
+        assertThat(neuron.getValue(), is(-2));
     }
 
     @Test
     public void testActivationFunction() {
         neuron = new Neuron(n -> -n);
-        neuron.addInput(() -> 10, 10);
+        neuron.addInput(() -> 10, weight(10));
         neuron.activate();
         assertThat(neuron.getValue(), is(-100));
     }
@@ -87,7 +87,7 @@ public class NeuronTest {
     public void testMemory() {
         Input input = mock(Input.class);
         when(input.getValue()).thenReturn(7);
-        neuron.addInput(input, 1);
+        neuron.addInput(input, weight(1));
         neuron.addDelay(2);
         neuron.activate();
         assertThat(neuron.getValue(), is(0));
@@ -95,6 +95,10 @@ public class NeuronTest {
         assertThat(neuron.getValue(), is(0));
         neuron.activate();
         assertThat(neuron.getValue(), is(7));
+    }
+
+    private int weight(int weight) {
+        return weight * Neuron.WEIGHT_DIVISOR;
     }
 
 }

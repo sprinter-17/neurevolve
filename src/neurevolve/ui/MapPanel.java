@@ -1,5 +1,6 @@
 package neurevolve.ui;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -62,9 +63,16 @@ public class MapPanel extends JPanel {
         int[] resources = world.getResourceCopy();
         Population population = world.getPopulationCopy();
         int[] elevation = world.getElevationCopy();
+        boolean[] acid = world.getAcidCopy();
         for (int i = 0; i < resources.length; i++) {
-            pixels[i] = convertToColour(config, resources[i], population.getOrganism(i), elevation[i]);
-            pixels[i] |= 255 << 24;
+            if (world.hasWall(i)) {
+                pixels[i] = Color.DARK_GRAY.getRGB();
+            } else if (population.hasOrganism(i)) {
+                pixels[i] = 200 << RED_SHIFT | 255 << 24;
+            } else {
+                pixels[i] = convertToColour(config, resources[i], elevation[i], acid[i]);
+                pixels[i] |= 255 << 24;
+            }
         }
         repaint();
     }
@@ -84,10 +92,10 @@ public class MapPanel extends JPanel {
      * @param elevation the height of the position
      * @return a colour, in RGB format, representing the status of the position
      */
-    public static int convertToColour(WorldConfiguration config, int resources, Organism organism, int elevation) {
+    public static int convertToColour(WorldConfiguration config, int resources, int elevation, boolean acid) {
         return resourceColour(config, resources)
-                | populationColour(config, organism)
-                | elevationColour(config, elevation);
+                | elevationColour(config, elevation)
+                | acidColour(config, acid);
     }
 
     /**
@@ -109,7 +117,11 @@ public class MapPanel extends JPanel {
      * @return a colour, in RGB format, representing the number of resources
      */
     public static int resourceColour(WorldConfiguration config, int resource) {
-        return (resource * 255 / config.getMaxResources()) << GREEN_SHIFT;
+        return (resource * 128 / config.getMaxResources()) << GREEN_SHIFT;
+    }
+
+    public static int acidColour(WorldConfiguration config, boolean acid) {
+        return acid ? 172 << GREEN_SHIFT | 172 << RED_SHIFT : 0;
     }
 
     /**

@@ -19,8 +19,6 @@ import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.SOUTH;
 import static neurevolve.world.Space.WEST;
-import static neurevolve.world.World.Data.ELEVATION;
-import static neurevolve.world.World.Data.RESOURCES;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -37,7 +35,7 @@ public class World implements Environment {
 
     private final Space space;
     private final WorldConfiguration config;
-    private final int[] data;
+    private final int[] positionData;
     private final Random random = new Random();
 
     private final List<Runnable> tickListeners = new ArrayList<>();
@@ -50,10 +48,11 @@ public class World implements Environment {
     private Organism mostComplexOrganism;
     private float totalComplexity;
 
-    static enum Data {
+    protected static enum Data {
         ACID(1),
         WALL(ACID, 1),
-        ELEVATION(WALL, 8),
+        RADIATION(WALL, 2),
+        ELEVATION(RADIATION, 8),
         RESOURCES(ELEVATION, 8);
 
         private final int shift;
@@ -101,7 +100,7 @@ public class World implements Environment {
         this.space = frame;
         this.time = new Time(configuration);
         this.population = new Population(space);
-        this.data = new int[frame.size()];
+        this.positionData = new int[frame.size()];
     }
 
     /**
@@ -112,7 +111,7 @@ public class World implements Environment {
     public int[] getResourceCopy() {
         int[] resources = new int[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> resources[i] = RESOURCES.get(data[i]));
+                .forEach(i -> resources[i] = Data.RESOURCES.get(positionData[i]));
         return resources;
     }
 
@@ -137,8 +136,15 @@ public class World implements Environment {
     public int[] getElevationCopy() {
         int[] elevations = new int[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> elevations[i] = ELEVATION.get(data[i]));
+                .forEach(i -> elevations[i] = getData(i, Data.ELEVATION));
         return elevations;
+    }
+
+    public boolean[] getAcidCopy() {
+        boolean[] acid = new boolean[space.size()];
+        IntStream.range(0, space.size())
+                .forEach(i -> acid[i] = getData(i, Data.ACID) == 1);
+        return acid;
     }
 
     /**
@@ -162,7 +168,7 @@ public class World implements Environment {
      * @param amount the amount of resource to set
      */
     protected void setResource(int position, int amount) {
-        data[position] = RESOURCES.set(data[position], amount);
+        setData(position, Data.RESOURCES, amount);
     }
 
     /**
@@ -172,7 +178,27 @@ public class World implements Environment {
      * @return the amount of resource at the given position
      */
     public int getResource(int position) {
-        return RESOURCES.get(data[position]);
+        return getData(position, Data.RESOURCES);
+    }
+
+    public boolean isAcidic(int position) {
+        return getData(position, Data.ACID) == 1;
+    }
+
+    public void setAcidic(int position, boolean acidic) {
+        setData(position, Data.ACID, acidic);
+    }
+
+    private int getData(int position, Data data) {
+        return data.get(positionData[position]);
+    }
+
+    private void setData(int position, Data data, int value) {
+        positionData[position] = data.set(positionData[position], value);
+    }
+
+    private void setData(int position, Data data, boolean value) {
+        setData(position, data, value ? 1 : 0);
     }
 
     /**
@@ -188,7 +214,7 @@ public class World implements Environment {
      */
     public void addHill(int centre, int radius, int slope, int cliff) {
         space.forAllPositionsInCircle(centre, radius,
-                (p, d) -> setElevation(p, getElevation(p) + cliff + (radius - d) * slope));
+                (p, d) -> addElevation(p, cliff + (radius - d) * slope));
     }
 
     public void addHills(int hillCount, int radius, int elevation) {
@@ -215,8 +241,13 @@ public class World implements Environment {
      * @param position the position whose elevation will be set
      * @param value the elevation to set the position to
      */
-    protected void setElevation(int position, int value) {
-        data[position] = ELEVATION.set(data[position], value);
+    public void addElevation(int position, int value) {
+        value += getData(position, Data.ELEVATION);
+        if (value < 0)
+            throw new IllegalArgumentException("Elevation out of range");
+        if (value > Data.ELEVATION.max)
+            value = Data.ELEVATION.max;
+        setData(position, Data.ELEVATION, value);
     }
 
     /**
@@ -225,8 +256,16 @@ public class World implements Environment {
      * @param position the position to get the elevation for
      * @return the elevation at the given position
      */
-    protected int getElevation(int position) {
-        return ELEVATION.get(data[position]);
+    public int getElevation(int position) {
+        return getData(position, Data.ELEVATION);
+    }
+
+    public void setWall(int position, boolean wall) {
+        setData(position, Data.WALL, wall);
+    }
+
+    public boolean hasWall(int position) {
+        return getData(position, Data.WALL) == 1;
     }
 
     /**
@@ -277,7 +316,11 @@ public class World implements Environment {
      * @throws IllegalArgumentException if the position already has an organism
      */
     public void addOrganism(Organism organism, int position, int direction) {
+        if (hasWall(position))
+            throw new IllegalArgumentException("Attempt to add organism in wall");
         population.addOrganism(organism, position, direction);
+        if (isAcidic(position))
+            organism.reduceEnergy(50);
     }
 
     /**
@@ -322,7 +365,7 @@ public class World implements Environment {
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
         if (population.size() < config.getSeedCount()) {
             int position = random.nextInt(space.size());
-            if (!population.hasOrganism(position)) {
+            if (!population.hasOrganism(position) && !hasWall(position)) {
                 population.addOrganism(recipe.make(this, config.getInitialEnergy()), position, random.nextInt(4));
             }
         }
@@ -335,18 +378,20 @@ public class World implements Environment {
     private void growResources() {
         for (int i = 0; i < space.size(); i++) {
             int temp = getTemperature(i);
-            while (temp >= 100) {
-                addResources(i, 1);
-                temp -= 100;
+            if (temp > 0) {
+                int growthPerPeriod = config.getGrowthRate() * temp;
+                addResources(i, growthPerPeriod / 500);
+                if (getTime() % (1 + growthPerPeriod % 500) == 0)
+                    addResources(i, 1);
             }
-            if (time.getTime() % (100 - temp) == 0)
-                addResources(i, 1);
         }
     }
 
-    private void addResources(int position, int amount) {
-        int resources = RESOURCES.get(data[position]) + amount;
-        data[position] = RESOURCES.set(data[position], resources);
+    public void addResources(int position, int amount) {
+        int resources = getData(position, Data.RESOURCES) + amount;
+        resources = Math.min(resources, Data.RESOURCES.max);
+        resources = Math.max(resources, 0);
+        setData(position, Data.RESOURCES, resources);
     }
 
     public Organism getMostComplexOrganism() {
@@ -383,7 +428,8 @@ public class World implements Environment {
      */
     public void moveOrganism(Organism organism) {
         int slope = Math.max(0, getSlope(organism, FORWARD));
-        population.moveOrganism(organism, slope);
+        if (!hasWall(population.getPosition(organism, FORWARD)))
+            population.moveOrganism(organism, slope);
     }
 
     /**
@@ -405,7 +451,7 @@ public class World implements Environment {
      * @param organism the organism to split
      */
     public void splitOrganism(Organism organism) {
-        if (organism.canDivide())
+        if (organism.canDivide(config.getMinimumSplitTime()))
             openPositionNextTo(getPosition(organism))
                     .ifPresent(pos -> addOrganism(organism.divide(), pos, population.getDirection(organism)));
     }
@@ -419,7 +465,7 @@ public class World implements Environment {
         Collections.shuffle(directions);
         return directions.stream()
                 .mapToInt(dir -> space.move(position, dir))
-                .filter(pos -> !hasOrganism(pos))
+                .filter(pos -> !hasOrganism(pos) && !hasWall(pos))
                 .findFirst();
     }
 
@@ -546,7 +592,7 @@ public class World implements Environment {
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
         int activityCount = population.getActivityCount(organism, activity);
-        int cost = config.getActivityCost(activity) * (activityCount + 1);
+        int cost = config.getActivityCost(activity) * activityCount;
         if (organism.consume(cost)) {
             activity.perform(this, organism);
             population.incrementActivityCount(organism, activity);

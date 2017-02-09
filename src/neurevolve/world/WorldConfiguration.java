@@ -20,11 +20,13 @@ public class WorldConfiguration {
         MUTATION_RATE("Mutation Rate", 1),
         MIN_TEMP("Min Temp", 100),
         MAX_TEMP("Max Temp", 120),
+        RESOURCE_GROWTH_RATE("Growth Rate", 5),
         YEAR_LENGTH("Year Length", 500),
         TEMP_VARIATION("Temp Variation", -100),
         MAX_RESOURCES("Max Resources", 500),
         SEED_COUNT("Seed Count", 200),
         INITIAL_ENERGY("Initial Energy", 1000),
+        MIN_SPLIT_TIME("Minimum Split Time", 8),
         BASE_COST("Base Cost", 1),
         AGING_RATE("Aging Rate", 10),
         CONSUMPTION_RATE("Consumption Rate", 50),
@@ -111,6 +113,14 @@ public class WorldConfiguration {
         Key.MAX_TEMP.setValue(this, maxTemp);
     }
 
+    public int getGrowthRate() {
+        return Key.RESOURCE_GROWTH_RATE.getValue(this);
+    }
+
+    public void setGrowthRate(int rate) {
+        Key.RESOURCE_GROWTH_RATE.setValue(this, rate);
+    }
+
     public int getYearLength() {
         return Key.YEAR_LENGTH.getValue(this);
     }
@@ -131,6 +141,8 @@ public class WorldConfiguration {
     public void setYear(int yearLength, int tempVariation) {
         if (yearLength < 1)
             throw new IllegalArgumentException("Year length must be positive");
+        if (tempVariation < 0)
+            throw new IllegalArgumentException("Temperature variation must not be negative");
         Key.YEAR_LENGTH.setValue(this, yearLength);;
         Key.TEMP_VARIATION.setValue(this, tempVariation);
     }
@@ -149,6 +161,14 @@ public class WorldConfiguration {
 
     public void setInitialEnergy(int energy) {
         Key.INITIAL_ENERGY.setValue(this, energy);
+    }
+
+    public int getMinimumSplitTime() {
+        return Key.MIN_SPLIT_TIME.getValue(this);
+    }
+
+    public void setMinimumSplitTime(int delay) {
+        Key.MIN_SPLIT_TIME.setValue(this, delay);
     }
 
     public int getConsumptionRate() {
