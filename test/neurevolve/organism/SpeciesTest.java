@@ -53,7 +53,7 @@ public class SpeciesTest {
     }
 
     private Organism makeOrganism(int instruction) {
-        Recipe recipe = new Recipe();
+        Recipe recipe = new Recipe(0);
         recipe.add(instruction);
         return recipe.make(environment, 100);
     }

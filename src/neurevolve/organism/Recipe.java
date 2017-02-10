@@ -16,8 +16,17 @@ public class Recipe {
     private static final int INITIAL_CAPACITY = 50;
     private static final int EXPANSION_FACTOR = 3;
 
+    private final int colour;
     private int[] instructions = new int[INITIAL_CAPACITY];
     private int size = 0;
+
+    public Recipe(int colour) {
+        this.colour = colour;
+    }
+
+    public int getColour() {
+        return colour;
+    }
 
     /**
      * Get the total number of instructions and values in the recipe
@@ -64,8 +73,8 @@ public class Recipe {
      * @return the constructed organism
      */
     public Organism make(Environment environment, int initialEnergy) {
-        Organism organism = new Organism(environment, initialEnergy);
-        environment.copyInstructions(instructions, size).applyTo(organism);
+        Organism organism = new Organism(environment, initialEnergy, colour);
+        environment.copyInstructions(instructions, size, colour).applyTo(organism);
         return organism;
     }
 

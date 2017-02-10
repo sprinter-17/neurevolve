@@ -19,9 +19,9 @@ public class WorldMaker {
 
     private class Element {
 
+        private final Timing timing;
         private final Type type;
         private final Shape shape;
-        private final Timing timing;
 
         public Element(Timing timing, Type type, Shape shape) {
             this.type = type;
@@ -32,6 +32,11 @@ public class WorldMaker {
         public void apply(World world, WorldConfiguration config) {
             shape.forEachPosition((p, f) -> type.apply(world, p, f));
         }
+    }
+
+    public WorldMaker(Space space, WorldConfiguration config) {
+        this.space = space;
+        this.config = config;
     }
 
     public Type acid() {
@@ -73,8 +78,61 @@ public class WorldMaker {
                 }));
     }
 
+    public Shape horizontalDividers(int count, int width, int gap) {
+        return action -> IntStream.range(0, count)
+                .map(i -> (i + 1) * space.getHeight() / (count + 1))
+                .forEach(yc -> horizontalWall(yc, gap, space.getWidth() - gap, width, action));
+    }
+
+    private void horizontalWall(int yc, int x1, int x2, int width, BiConsumer<Integer, Integer> action) {
+        for (int x = x1; x < x2; x++) {
+            for (int y = -width / 2; y < width / 2; y++) {
+                int factor = 100 - Math.abs(y) * 200 / width;
+                action.accept(space.position(x, yc + y), factor);
+            }
+        }
+    }
+
+    public Shape verticalDividers(int count, int width, int gap) {
+        return action -> IntStream.range(0, count)
+                .map(i -> (i + 1) * space.getWidth() / (count + 1))
+                .forEach(x -> verticalWall(x, gap, space.getHeight() - gap, width, action));
+    }
+
+    private void verticalWall(int xc, int y1, int y2, int width, BiConsumer<Integer, Integer> action) {
+        for (int y = y1; y < y2; y++) {
+            for (int x = -width / 2; x < width / 2; x++) {
+                int factor = 100 - Math.abs(x) * 200 / width;
+                action.accept(space.position(xc + x, y), factor);
+            }
+        }
+    }
+
     public Shape pools(int count, int radius) {
         return action -> IntStream.range(0, count).forEach(i -> makePool(radius, action));
+    }
+
+    public Shape maze(int cellWidth, int wallWidth) {
+        int cellSize = cellWidth + wallWidth;
+        return action -> {
+            int mazeWidth = (space.getWidth() - wallWidth) / cellSize;
+            int mazeHeight = (space.getHeight() - wallWidth) / cellSize;
+            int gapX = (space.getWidth() - mazeWidth * cellSize - wallWidth) / 2;
+            int gapY = (space.getHeight() - mazeHeight * cellSize - wallWidth) / 2;
+            Maze maze = new Maze(mazeWidth, mazeHeight);
+            for (int mx = 0; mx <= mazeWidth; mx++) {
+                for (int my = 0; my <= mazeHeight; my++) {
+                    if (mx < mazeWidth && maze.hasWallSouth(mx, my)) {
+                        horizontalWall(gapY + my * cellSize + wallWidth / 2, gapX + mx * cellSize,
+                                gapX + (mx + 1) * cellSize + wallWidth, wallWidth, action);
+                    }
+                    if (my < mazeHeight && maze.hasWallWest(mx, my)) {
+                        verticalWall(gapX + mx * cellSize + wallWidth / 2, gapY + my * cellSize,
+                                gapY + (my + 1) * cellSize + wallWidth, wallWidth, action);
+                    }
+                }
+            }
+        };
     }
 
     private void makePool(int maxRadius, BiConsumer<Integer, Integer> action) {
@@ -85,36 +143,22 @@ public class WorldMaker {
     }
 
     public Timing atStart() {
-        return new Timing() {
-
-        };
+        return time -> time == 0;
     }
 
-    public WorldMaker(Space space, WorldConfiguration config) {
-        this.space = space;
-        this.config = config;
+    public Timing withPeriod(int period) {
+        return time -> time % period == 0;
     }
 
     @FunctionalInterface
     public interface Type {
 
-        // resource growth
-        // resource set
-        // elevation
         // radiation
         public void apply(World world, int position, int factor);
     }
 
     public interface Shape {
 
-        // all
-        // small pools
-        // medium pools
-        // big pools
-        // two sections
-        // three sections
-        // four sections
-        // maze
         public void forEachPosition(BiConsumer<Integer, Integer> action);
     }
 
@@ -123,6 +167,8 @@ public class WorldMaker {
         // winter
         // permanent
         // high population
+
+        public boolean shouldMake(int time);
     }
 
     public void add(Timing timing, Type type, Shape shape) {
@@ -131,8 +177,15 @@ public class WorldMaker {
 
     public World make() {
         World world = new World(new SigmoidFunction(1000), space, config);
-        elements.forEach(el -> el.apply(world, config));
+        process(world);
+        world.addTickListener(() -> process(world));
         return world;
+    }
+
+    private void process(World world) {
+        elements.stream()
+                .filter(e -> e.timing.shouldMake(world.getTime()))
+                .forEach(el -> el.apply(world, config));
     }
 
 }

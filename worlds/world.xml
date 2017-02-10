@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<world name="Amazing">
+    <description>This world is absolutely amazing. It has acidic edges, pools of resources and a walled maze!
+    </description>
+    <at_start>
+        <add_resources amount='60'>
+            <everywhere/>
+        </add_resources>
+        <add_resources amount='200'>
+            <pools count='20' radius='80'/>
+        </add_resources>
+        <wall>
+            <maze cell='50' edge='5'/>
+        </wall>
+        <acid>
+            <vertical_edges width='10'/>
+            <horizontal_edges width='10'/>
+        </acid>
+    </at_start>
+    <with_period period='10'>
+        <add_resources amount='50'>
+            <pools count='1' radius='30'/>
+        </add_resources>
+    </with_period>
+</world>

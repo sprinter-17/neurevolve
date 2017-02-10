@@ -3,6 +3,7 @@ package neurevolve.world;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -300,11 +301,11 @@ public class World implements Environment {
         return hasOrganism(position) ? population.getOrganism(position).getEnergy() : 0;
     }
 
-    public int getDifference(Organism organism, int position) {
+    public int getColourDifference(Organism organism, int position) {
         if (!hasOrganism(position))
             return -100;
         else
-            return organism.getDifference(population.getOrganism(position));
+            return organism.getColour() ^ population.getOrganism(position).getColour();
     }
 
     /**
@@ -358,7 +359,7 @@ public class World implements Environment {
     }
 
     private void seedOrganisms() {
-        Recipe recipe = new Recipe();
+        Recipe recipe = new Recipe(random.nextInt(1 << 24));
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.ordinal());
         recipe.add(Instruction.ADD_NEURON, 0);
@@ -366,7 +367,8 @@ public class World implements Environment {
         if (population.size() < config.getSeedCount()) {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position) && !hasWall(position)) {
-                population.addOrganism(recipe.make(this, config.getInitialEnergy()), position, random.nextInt(4));
+                population.addOrganism(recipe.make(this, config.getInitialEnergy()),
+                        position, random.nextInt(4));
             }
         }
     }
@@ -379,9 +381,12 @@ public class World implements Environment {
         for (int i = 0; i < space.size(); i++) {
             int temp = getTemperature(i);
             if (temp > 0) {
-                int growthPerPeriod = config.getGrowthRate() * temp;
-                addResources(i, growthPerPeriod / 500);
-                if (getTime() % (1 + growthPerPeriod % 500) == 0)
+                int growthPeriod = 500 / config.getGrowthRate();
+                while (temp >= growthPeriod) {
+                    addResources(i, 1);
+                    temp -= growthPeriod;
+                }
+                if (getTime() % (growthPeriod - temp) == 0)
                     addResources(i, 1);
             }
         }
@@ -599,6 +604,41 @@ public class World implements Environment {
         }
     }
 
+    private class Mutator {
+
+        private final Random random = new Random();
+        private int mutationCount = 0;
+
+        private boolean mutate() {
+            boolean mutated = config.getMutationRate() > 0
+                    && random.nextInt(1000 / config.getMutationRate()) == 0;
+            if (mutated)
+                mutationCount++;
+            return mutated;
+        }
+
+        private int advance() {
+            if (mutate())
+                return random.nextInt(7) - 3;
+            else
+                return 1;
+        }
+
+        private int copy(int code) {
+            if (mutate())
+                code += random.nextInt(11) - 5;
+            return code;
+        }
+
+        public int colour(int colour) {
+            for (int i = 0; i < mutationCount; i++) {
+                colour ^= 1 << random.nextInt(24);
+            }
+            return colour;
+        }
+
+    }
+
     /**
      * Copy a set of instructions within a recipe. The copy is designed to be imperfect to simulate
      * transcription errors. Three types of errors can occur:
@@ -614,31 +654,16 @@ public class World implements Environment {
      * @return the copied instructions, with errors
      */
     @Override
-    public Recipe copyInstructions(int[] instructions, int size) {
-        Recipe recipe = new Recipe();
-        for (int pos = 0; pos < size; pos += advance()) {
+    public Recipe copyInstructions(int[] instructions, int size, int colour) {
+        Mutator mutator = new Mutator();
+        List<Integer> copy = new LinkedList<>();
+        for (int pos = 0; pos < size; pos += mutator.advance()) {
             if (pos >= 0)
-                recipe.add(copy(instructions[pos]));
+                copy.add(mutator.copy(instructions[pos]));
         }
+        Recipe recipe = new Recipe(mutator.colour(colour));
+        copy.forEach(recipe::add);
         return recipe;
-    }
-
-    private int advance() {
-        if (mutate())
-            return random.nextInt(7) - 3;
-        else
-            return 1;
-    }
-
-    private int copy(int code) {
-        if (mutate())
-            code += random.nextInt(11) - 5;
-        return code;
-    }
-
-    private boolean mutate() {
-        return config.getMutationRate() > 0
-                && random.nextInt(1000 / config.getMutationRate()) == 0;
     }
 
     @Override

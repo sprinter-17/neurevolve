@@ -26,8 +26,12 @@ public class Organism {
      * @param initialEnergy the initial energy to assign
      * @throws IllegalArgumentException if <tt>initialHealth @lt; 0</tt>
      */
+    public Organism(Environment environment, int initialEnergy, int colour) {
+        this(environment, new Network(environment::applyActivationFunction), initialEnergy, new Recipe(colour));
+    }
+
     public Organism(Environment environment, int initialEnergy) {
-        this(environment, new Network(environment::applyActivationFunction), initialEnergy, new Recipe());
+        this(environment, initialEnergy, 0);
     }
 
     private Organism(Environment environment, Network brain, int initialEnergy, Recipe recipe) {
@@ -56,6 +60,10 @@ public class Organism {
      */
     public final void setRecipe(Recipe recipe) {
         this.recipe = recipe;
+    }
+
+    public int getColour() {
+        return recipe.getColour();
     }
 
     /**

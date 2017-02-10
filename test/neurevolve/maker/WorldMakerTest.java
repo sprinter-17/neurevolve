@@ -2,6 +2,8 @@ package neurevolve.maker;
 
 import java.util.stream.IntStream;
 import neurevolve.TestConfiguration;
+import neurevolve.maker.WorldMaker.Shape;
+import neurevolve.maker.WorldMaker.Type;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
@@ -23,7 +25,7 @@ public class WorldMakerTest {
         maker = new WorldMaker(space, config);
     }
 
-    @Before
+    @Test
     public void testEmptyWorld() {
         World world = maker.make();
         assertTrue(allPositions().map(world::getResource).allMatch(r -> r == 0));
@@ -57,14 +59,59 @@ public class WorldMakerTest {
     }
 
     @Test
+    public void testDividers() {
+        assertThat(wallCount(make(maker.wall(), maker.horizontalDividers(1, 30, 20))), is(30 * 60));
+        assertThat(wallCount(make(maker.wall(), maker.horizontalDividers(3, 10, 10))), is(30 * 80));
+    }
+
+    @Test
     public void testSetResourcesEverywhere() {
         maker.add(maker.atStart(), maker.addResources(7), maker.everywhere());
         World world = maker.make();
         assertThat(allPositions().map(world::getResource).sum(), is(70000));
     }
 
+    @Test
+    public void testMaze() {
+        Space mazeSpace = new Space(800, 500);
+        maker = new WorldMaker(mazeSpace, config);
+        maker.add(maker.atStart(), maker.elevation(200), maker.maze(25, 8));
+        World world = maker.make();
+        assertTrue(IntStream.range(0, mazeSpace.size())
+                .filter(p -> world.getElevation(p) > 0).count() > 80000);
+    }
+
+    @Test
+    public void testRegularMaker() {
+        maker.add(maker.withPeriod(2), maker.addResources(10), maker.everywhere());
+        World world = maker.make();
+        assertThat(resourceCount(world), is(100000));
+        world.tick();
+        assertThat(resourceCount(world), is(100000));
+        world.tick();
+        assertThat(resourceCount(world), is(200000));
+        world.tick();
+        assertThat(resourceCount(world), is(200000));
+        world.tick();
+        assertThat(resourceCount(world), is(300000));
+    }
+
     private IntStream allPositions() {
         return IntStream.range(0, space.size());
+    }
+
+    private World make(Type type, Shape shape) {
+        maker = new WorldMaker(space, config);
+        maker.add(maker.atStart(), type, shape);
+        return maker.make();
+    }
+
+    private int wallCount(World world) {
+        return (int) allPositions().filter(world::hasWall).count();
+    }
+
+    private int resourceCount(World world) {
+        return allPositions().map(p -> world.getResource(p)).sum();
     }
 
 }

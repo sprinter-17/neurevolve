@@ -136,7 +136,7 @@ public class ZoomWindow {
                     g.fillRect(x * PIXEL_SIZE + MARGIN1, y * PIXEL_SIZE + MARGIN1, PIXEL_SIZE - 2 * MARGIN1, PIXEL_SIZE - 2 * MARGIN1);
                     Organism organism = snapShot.organisms[x][y];
                     if (organism != null) {
-                        g.setColor(Color.RED);
+                        g.setColor(new Color(MapPanel.populationColour(config, organism)));
                         g.fillOval(x * PIXEL_SIZE + MARGIN2, y * PIXEL_SIZE + MARGIN2, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2);
                         int direction = getNetwork(organism).direction;
                         g.setColor(Color.BLACK);

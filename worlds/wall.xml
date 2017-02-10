@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<world name="Walled World">
+    <description>Not much on this world</description>
+    <at_start>
+        <add_rources amount='200'>
+            <everywhere/>
+        </add_rources>
+    </at_start>
+</world>

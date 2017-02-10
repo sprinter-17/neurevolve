@@ -12,7 +12,7 @@ public class RecipeDescriberTest {
 
     @Before
     public void setup() {
-        recipe = new Recipe();
+        recipe = new Recipe(0);
     }
 
     @Test

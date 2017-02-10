@@ -46,11 +46,12 @@ public class MainWindow {
      * @param config the configuration for this world
      * @param newWorldDialog the dialog to use to create new worlds
      */
-    public MainWindow(final World world, final Space space, final WorldConfiguration config,
+    public MainWindow(String title, final World world, final Space space, final WorldConfiguration config,
             NewWorldDialog newWorldDialog) {
         this.world = world;
         this.newWorldDialog = newWorldDialog;
         frame = new JFrame("Neurevolve");
+        frame.setTitle(title);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         analysisWindow = new AnalysisWindow(world);
         addTools(world, config);

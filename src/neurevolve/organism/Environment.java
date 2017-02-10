@@ -44,5 +44,5 @@ public interface Environment {
      * @param size the number of instructions in the recipe
      * @return a new copy of the instructions, including possible transcription errors.
      */
-    public Recipe copyInstructions(int[] instructions, int size);
+    public Recipe copyInstructions(int[] instructions, int size, int colour);
 }

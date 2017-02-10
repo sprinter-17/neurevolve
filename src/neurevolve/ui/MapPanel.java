@@ -68,7 +68,7 @@ public class MapPanel extends JPanel {
             if (world.hasWall(i)) {
                 pixels[i] = Color.DARK_GRAY.getRGB();
             } else if (population.hasOrganism(i)) {
-                pixels[i] = 200 << RED_SHIFT | 255 << 24;
+                pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
             } else {
                 pixels[i] = convertToColour(config, resources[i], elevation[i], acid[i]);
                 pixels[i] |= 255 << 24;
@@ -132,7 +132,7 @@ public class MapPanel extends JPanel {
      * @return a colour, in RGB format, representing the organism, if any
      */
     public static int populationColour(WorldConfiguration config, Organism organism) {
-        return organism == null ? 0 : 200 << RED_SHIFT;
+        return organism == null ? 0 : organism.getColour();
     }
 
 }

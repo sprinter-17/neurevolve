@@ -171,8 +171,8 @@ public class WorldTest {
         config.setTemperatureRange(0, 500);
         world.tick();
         assertThat(world.getResource(space.position(0, 0)), is(0));
-        assertThat(world.getResource(space.position(7, 3)), is(7));
-        assertThat(world.getResource(space.position(4, 5)), is(11));
+        assertThat(world.getResource(space.position(7, 3)), is(3));
+        assertThat(world.getResource(space.position(4, 5)), is(5));
     }
 
     @Test
@@ -236,7 +236,7 @@ public class WorldTest {
 
     @Test
     public void testMoveAsPartOfRecipe() {
-        Recipe recipe = new Recipe();
+        Recipe recipe = new Recipe(0);
         recipe.add(Instruction.ADD_NEURON, -10);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.ordinal());
         Organism organism = recipe.make(world, 50);

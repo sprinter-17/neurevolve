@@ -15,7 +15,12 @@ public class RecipeTest {
 
     @Before
     public void setup() {
-        recipe = new Recipe();
+        recipe = new Recipe(0);
+    }
+
+    @Test
+    public void testColour() {
+        assertThat(new Recipe(1000).getColour(), is(1000));
     }
 
     @Test
@@ -70,18 +75,18 @@ public class RecipeTest {
     @Test
     public void testSingleInsertionDistance() {
         recipe.add(5);
-        assertThat(recipe.distanceTo(new Recipe()), is(5));
+        assertThat(recipe.distanceTo(new Recipe(0)), is(5));
     }
 
     @Test
     public void testSingleDeletionDistance() {
         recipe.add(5);
-        assertThat(new Recipe().distanceTo(recipe), is(5));
+        assertThat(new Recipe(0).distanceTo(recipe), is(5));
     }
 
     @Test
     public void testSingleSubstituteDistance() {
-        Recipe other = new Recipe();
+        Recipe other = new Recipe(0);
         recipe.add(5);
         recipe.add(17);
         other.add(-2);
@@ -91,7 +96,7 @@ public class RecipeTest {
 
     @Test
     public void testMultipleSubstituteDistance() {
-        Recipe other = new Recipe();
+        Recipe other = new Recipe(0);
         recipe.add(7);
         other.add(9);
         recipe.add(12);
@@ -101,7 +106,7 @@ public class RecipeTest {
 
     @Test
     public void testComplexInsertionDistance() {
-        Recipe other = new Recipe();
+        Recipe other = new Recipe(0);
         recipe.add(65);
         recipe.add(-4);
         recipe.add(17);
@@ -112,7 +117,7 @@ public class RecipeTest {
 
     @Test
     public void testInverseDistance() {
-        Recipe other = new Recipe();
+        Recipe other = new Recipe(0);
         recipe.add(5);
         other.add(-5);
         assertThat(recipe.distanceTo(other), is(10));

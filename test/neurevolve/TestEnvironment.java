@@ -30,8 +30,8 @@ public class TestEnvironment implements Environment {
     }
 
     @Override
-    public Recipe copyInstructions(int[] instructions, int size) {
-        Recipe recipe = new Recipe();
+    public Recipe copyInstructions(int[] instructions, int size, int colour) {
+        Recipe recipe = new Recipe(colour);
         for (int i = 0; i < size; i++) {
             recipe.add(instructions[i]);
         }
