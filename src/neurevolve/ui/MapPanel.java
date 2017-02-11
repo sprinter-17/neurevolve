@@ -64,13 +64,14 @@ public class MapPanel extends JPanel {
         Population population = world.getPopulationCopy();
         int[] elevation = world.getElevationCopy();
         boolean[] acid = world.getAcidCopy();
+        int[] radiation = world.getRadiationCopy();
         for (int i = 0; i < resources.length; i++) {
             if (world.hasWall(i)) {
                 pixels[i] = Color.DARK_GRAY.getRGB();
             } else if (population.hasOrganism(i)) {
                 pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
             } else {
-                pixels[i] = convertToColour(config, resources[i], elevation[i], acid[i]);
+                pixels[i] = convertToColour(config, resources[i], elevation[i], acid[i], radiation[i]);
                 pixels[i] |= 255 << 24;
             }
         }
@@ -92,10 +93,12 @@ public class MapPanel extends JPanel {
      * @param elevation the height of the position
      * @return a colour, in RGB format, representing the status of the position
      */
-    public static int convertToColour(WorldConfiguration config, int resources, int elevation, boolean acid) {
+    public static int convertToColour(WorldConfiguration config, int resources, int elevation,
+            boolean acid, int radiation) {
         return resourceColour(config, resources)
                 | elevationColour(config, elevation)
-                | acidColour(config, acid);
+                | acidColour(config, acid)
+                | radiationColour(config, radiation);
     }
 
     /**
@@ -122,6 +125,10 @@ public class MapPanel extends JPanel {
 
     public static int acidColour(WorldConfiguration config, boolean acid) {
         return acid ? 172 << GREEN_SHIFT | 172 << RED_SHIFT : 0;
+    }
+
+    public static int radiationColour(WorldConfiguration config, int radiation) {
+        return radiation * 64 << RED_SHIFT;
     }
 
     /**

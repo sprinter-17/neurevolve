@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<world name="Nuclear Winter">
+    <description>This world is a post-apocolyptic world, covered in pools of radiation. It is cold and hostile.
+    </description>
+    <at_start>
+        <add_resources amount='200'>
+            <everywhere/>
+        </add_resources>
+        <radiation amount='3'>
+            <pools count='100' radius='50'/>
+        </radiation>
+    </at_start>
+</world>

@@ -72,9 +72,9 @@ public class Recipe {
      * @param initialEnergy the initial energy of the constructed organism
      * @return the constructed organism
      */
-    public Organism make(Environment environment, int initialEnergy) {
+    public Organism make(Environment environment, Replicator replicator, int initialEnergy) {
         Organism organism = new Organism(environment, initialEnergy, colour);
-        environment.copyInstructions(instructions, size, colour).applyTo(organism);
+        replicator.copyInstructions(instructions, size, colour).applyTo(organism);
         return organism;
     }
 

@@ -92,6 +92,9 @@ public class Loader {
             case "wall":
                 type = maker.wall();
                 break;
+            case "radiation":
+                type = maker.radiation(getInt(element, "amount"));
+                break;
             case "add_resources":
                 type = maker.addResources(getInt(element, "amount"));
                 break;

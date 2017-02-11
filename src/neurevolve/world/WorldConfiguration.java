@@ -17,12 +17,13 @@ public class WorldConfiguration {
     private static final Preferences PREFERENCES = Preferences.userNodeForPackage(WorldConfiguration.class);
 
     private enum Key {
-        MUTATION_RATE("Mutation Rate", 1),
+        NORMAL_MUTATION_RATE("Normal Mutation Rate", 10),
+        RADIATION_MUTATION_RATE("Radiation Mutation Rate", 100),
         MIN_TEMP("Min Temp", 100),
         MAX_TEMP("Max Temp", 120),
         RESOURCE_GROWTH_RATE("Growth Rate", 5),
         YEAR_LENGTH("Year Length", 500),
-        TEMP_VARIATION("Temp Variation", -100),
+        TEMP_VARIATION("Temp Variation", 10),
         MAX_RESOURCES("Max Resources", 500),
         SEED_COUNT("Seed Count", 200),
         INITIAL_ENERGY("Initial Energy", 1000),
@@ -54,12 +55,12 @@ public class WorldConfiguration {
     private final EnumMap<WorldActivity, Integer> costs = new EnumMap<>(WorldActivity.class);
 
     public WorldConfiguration() {
-        for (Key key : Key.values()) {
-            values.put(key, PREFERENCES.getInt(key.name, key.defaultValue));
-        }
-        for (WorldActivity activity : WorldActivity.values()) {
-            costs.put(activity, PREFERENCES.getInt(activityKey(activity), Key.ACTIVITY.defaultValue));
-        }
+//        for (Key key : Key.values()) {
+//            values.put(key, PREFERENCES.getInt(key.name, key.defaultValue));
+//        }
+//        for (WorldActivity activity : WorldActivity.values()) {
+//            costs.put(activity, PREFERENCES.getInt(activityKey(activity), Key.ACTIVITY.defaultValue));
+//        }
     }
 
     public void write() {
@@ -71,8 +72,8 @@ public class WorldConfiguration {
         return Key.ACTIVITY.name + activity.name();
     }
 
-    public int getMutationRate() {
-        return Key.MUTATION_RATE.getValue(this);
+    public int getNormalMutationRate() {
+        return Key.NORMAL_MUTATION_RATE.getValue(this);
     }
 
     /**
@@ -80,13 +81,23 @@ public class WorldConfiguration {
      * transcription errors when copying a recipe. A mutation rate of 0 means that no errors occur.
      * A mutation rate of 1000 means that errors occur on every transcription.
      *
-     * @param mutationRate the rate of mutation (range 0-1000)
+     * @param rate the rate of mutation (range 0-1000)
      * @throws IllegalArgumentException if <tt>rate &lt; 0 || rate &gt; 1000</tt>
      */
-    public void setMutationRate(int mutationRate) {
-        if (mutationRate < 0 || mutationRate > 1000)
+    public void setNormalMutationRate(int rate) {
+        if (rate < 0 || rate > 1000)
             throw new IllegalArgumentException("Mutation rate must be in the range 0-1000");
-        Key.MUTATION_RATE.setValue(this, mutationRate);
+        Key.NORMAL_MUTATION_RATE.setValue(this, rate);
+    }
+
+    public int getRadiatedMutationRate() {
+        return Key.RADIATION_MUTATION_RATE.getValue(this);
+    }
+
+    public void setRadiatedMutationRate(int rate) {
+        if (rate < 0 || rate > 1000)
+            throw new IllegalArgumentException("Radiated mutations rate must be in the range 0=1000");
+        Key.RADIATION_MUTATION_RATE.setValue(this, rate);
     }
 
     public int getMinTemp() {

@@ -43,6 +43,10 @@ public class WorldMaker {
         return (world, position, factor) -> world.setAcidic(position, true);
     }
 
+    public Type radiation(int radiation) {
+        return (world, position, factor) -> world.addRadition(position, factor * radiation / 100);
+    }
+
     public Type wall() {
         return (world, position, factor) -> world.setWall(position, true);
     }

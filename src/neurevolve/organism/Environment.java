@@ -35,14 +35,4 @@ public interface Environment {
 
     public String describeActivity(int activity);
 
-    /**
-     * Copy a set of instructions in a {@link Recipe} during organism's division. This is part of
-     * the environment because the transcription errors will be dependent on mutation rate and other
-     * context.
-     *
-     * @param instructions the set of recipe instructions to copy
-     * @param size the number of instructions in the recipe
-     * @return a new copy of the instructions, including possible transcription errors.
-     */
-    public Recipe copyInstructions(int[] instructions, int size, int colour);
 }

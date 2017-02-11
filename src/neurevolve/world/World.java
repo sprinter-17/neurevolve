@@ -3,10 +3,10 @@ package neurevolve.world;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -148,6 +148,16 @@ public class World implements Environment {
         return acid;
     }
 
+    public int[] getRadiationCopy() {
+        int[] radiation = new int[space.size()];
+        forEachPosition(i -> radiation[i] = getData(i, Data.RADIATION));
+        return radiation;
+    }
+
+    private void forEachPosition(IntConsumer action) {
+        IntStream.range(0, space.size()).forEach(action);
+    }
+
     /**
      * Get the total number of organisms in the world
      *
@@ -188,6 +198,15 @@ public class World implements Environment {
 
     public void setAcidic(int position, boolean acidic) {
         setData(position, Data.ACID, acidic);
+    }
+
+    public int getRadiation(int position) {
+        return getData(position, Data.RADIATION);
+    }
+
+    public void addRadition(int position, int radiation) {
+        radiation += getRadiation(position);
+        setData(position, Data.RADIATION, Math.min(radiation, Data.RADIATION.max));
     }
 
     private int getData(int position, Data data) {
@@ -244,11 +263,7 @@ public class World implements Environment {
      */
     public void addElevation(int position, int value) {
         value += getData(position, Data.ELEVATION);
-        if (value < 0)
-            throw new IllegalArgumentException("Elevation out of range");
-        if (value > Data.ELEVATION.max)
-            value = Data.ELEVATION.max;
-        setData(position, Data.ELEVATION, value);
+        setData(position, Data.ELEVATION, Math.min(value, Data.ELEVATION.max));
     }
 
     /**
@@ -367,7 +382,8 @@ public class World implements Environment {
         if (population.size() < config.getSeedCount()) {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position) && !hasWall(position)) {
-                population.addOrganism(recipe.make(this, config.getInitialEnergy()),
+                population.addOrganism(recipe.make(this, new Mutator(0),
+                        config.getInitialEnergy()),
                         position, random.nextInt(4));
             }
         }
@@ -433,8 +449,12 @@ public class World implements Environment {
      */
     public void moveOrganism(Organism organism) {
         int slope = Math.max(0, getSlope(organism, FORWARD));
-        if (!hasWall(population.getPosition(organism, FORWARD)))
+        if (!hasWall(population.getPosition(organism, FORWARD))) {
             population.moveOrganism(organism, slope);
+            if (getRadiation(population.getPosition(organism)) > 0) {
+                splitOrganism(organism);
+            }
+        }
     }
 
     /**
@@ -457,8 +477,18 @@ public class World implements Environment {
      */
     public void splitOrganism(Organism organism) {
         if (organism.canDivide(config.getMinimumSplitTime()))
-            openPositionNextTo(getPosition(organism))
-                    .ifPresent(pos -> addOrganism(organism.divide(), pos, population.getDirection(organism)));
+            openPositionNextTo(getPosition(organism)).ifPresent(pos -> splitTo(organism, pos));
+    }
+
+    private void splitTo(Organism parent, int position) {
+        Organism child = parent.divide(mutator(position));
+        addOrganism(child, position, population.getDirection(parent));
+    }
+
+    private Mutator mutator(int position) {
+        int mutationRate = config.getNormalMutationRate()
+                + getRadiation(position) * config.getRadiatedMutationRate();
+        return new Mutator(mutationRate);
     }
 
     /**
@@ -602,68 +632,6 @@ public class World implements Environment {
             activity.perform(this, organism);
             population.incrementActivityCount(organism, activity);
         }
-    }
-
-    private class Mutator {
-
-        private final Random random = new Random();
-        private int mutationCount = 0;
-
-        private boolean mutate() {
-            boolean mutated = config.getMutationRate() > 0
-                    && random.nextInt(1000 / config.getMutationRate()) == 0;
-            if (mutated)
-                mutationCount++;
-            return mutated;
-        }
-
-        private int advance() {
-            if (mutate())
-                return random.nextInt(7) - 3;
-            else
-                return 1;
-        }
-
-        private int copy(int code) {
-            if (mutate())
-                code += random.nextInt(11) - 5;
-            return code;
-        }
-
-        public int colour(int colour) {
-            for (int i = 0; i < mutationCount; i++) {
-                colour ^= 1 << random.nextInt(24);
-            }
-            return colour;
-        }
-
-    }
-
-    /**
-     * Copy a set of instructions within a recipe. The copy is designed to be imperfect to simulate
-     * transcription errors. Three types of errors can occur:
-     * <ul>
-     * <li>Copy errors, in which an instruction is copied with a random variation from its value
-     * <li>Deletion errors, in which a set of 1-3 codes are skipped
-     * <li>Duplication errors, in which a set of 1-3 codes is repeated
-     * </ul>
-     * The rate at which errors occur is set by {@link WorldConfiguration#setMutationRate(int)}
-     *
-     * @param instructions the instructions to copy
-     * @param size the number of instructions
-     * @return the copied instructions, with errors
-     */
-    @Override
-    public Recipe copyInstructions(int[] instructions, int size, int colour) {
-        Mutator mutator = new Mutator();
-        List<Integer> copy = new LinkedList<>();
-        for (int pos = 0; pos < size; pos += mutator.advance()) {
-            if (pos >= 0)
-                copy.add(mutator.copy(instructions[pos]));
-        }
-        Recipe recipe = new Recipe(mutator.colour(colour));
-        copy.forEach(recipe::add);
-        return recipe;
     }
 
     @Override

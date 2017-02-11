@@ -3,6 +3,7 @@ package neurevolve.organism;
 import java.util.ArrayList;
 import java.util.List;
 import neurevolve.TestEnvironment;
+import neurevolve.TestReplicator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -11,6 +12,7 @@ import org.junit.Test;
 public class SpeciesTest {
 
     private final Environment environment = new TestEnvironment();
+    private final Replicator replicator = new TestReplicator();
     private final List<Species> speciesList = new ArrayList<>();
 
     @Before
@@ -55,7 +57,7 @@ public class SpeciesTest {
     private Organism makeOrganism(int instruction) {
         Recipe recipe = new Recipe(0);
         recipe.add(instruction);
-        return recipe.make(environment, 100);
+        return recipe.make(environment, replicator, 100);
     }
 
 }

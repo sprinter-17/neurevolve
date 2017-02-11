@@ -2,6 +2,7 @@ package neurevolve.organism;
 
 import java.util.Random;
 import neurevolve.TestEnvironment;
+import neurevolve.TestReplicator;
 import neurevolve.network.Neuron;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -11,6 +12,7 @@ import org.junit.Test;
 public class RecipeTest {
 
     private Environment environment = new TestEnvironment();
+    private Replicator replicator = new TestReplicator();
     private Recipe recipe;
 
     @Before
@@ -30,9 +32,9 @@ public class RecipeTest {
 
     @Test
     public void testMakeDefaultOrganism() {
-        assertThat(recipe.make(environment, 100).getEnergy(), is(100));
-        assertThat(recipe.make(environment, 20).getEnergy(), is(20));
-        assertThat(recipe.make(environment, 50).getBrain().size(), is(0));
+        assertThat(recipe.make(environment, replicator, 100).getEnergy(), is(100));
+        assertThat(recipe.make(environment, replicator, 20).getEnergy(), is(20));
+        assertThat(recipe.make(environment, replicator, 50).getBrain().size(), is(0));
     }
 
     @Test
@@ -44,7 +46,7 @@ public class RecipeTest {
     @Test
     public void testSimpleRecipe() {
         recipe.add(Instruction.ADD_NEURON);
-        assertThat(recipe.make(environment, 100).getBrain().size(), is(1));
+        assertThat(recipe.make(environment, replicator, 100).getBrain().size(), is(1));
     }
 
     @Test
@@ -52,7 +54,7 @@ public class RecipeTest {
         recipe.add(Instruction.ADD_NEURON, -18);
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.ADD_LINK, 0, 5 * Neuron.WEIGHT_DIVISOR);
-        Organism organism = recipe.make(environment, 400);
+        Organism organism = recipe.make(environment, replicator, 400);
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(1), is(90));
     }

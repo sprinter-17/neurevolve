@@ -38,8 +38,11 @@ public class ConfigPanel extends JTabbedPane {
         worldPanel.setLayout(panelLayout);
         addTab("World", new JScrollPane(worldPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         layout.gridy = 0;
-        JPanel mutationPanel = addGroupPanel(worldPanel, "Mutation");
-        addValueSlider(mutationPanel, "Rate", 0, 100, config.getMutationRate(), config::setMutationRate);
+        JPanel mutationPanel = addGroupPanel(worldPanel, "Mutation Rate");
+        addValueSlider(mutationPanel, "Normal", 0, 50,
+                config.getNormalMutationRate(), config::setNormalMutationRate);
+        addValueSlider(mutationPanel, "Radiated", 0, 300,
+                config.getRadiatedMutationRate(), config::setRadiatedMutationRate);
 
         JPanel temperaturePanel = addGroupPanel(worldPanel, "Temperature");
         addValueSlider(temperaturePanel, "Growth Rate", 0, 20, config.getGrowthRate(), config::setGrowthRate);
@@ -55,7 +58,7 @@ public class ConfigPanel extends JTabbedPane {
         });
         addValueSlider(temperaturePanel, "Year Length", 1, 3000,
                 config.getYearLength(), (v) -> config.setYear(v, config.getTempVariation()));
-        addValueSlider(temperaturePanel, "Season Variation", 0, 200,
+        addValueSlider(temperaturePanel, "Season Variation", 0, 50,
                 config.getTempVariation(), (v) -> config.setYear(config.getYearLength(), v));
     }
 

@@ -137,11 +137,11 @@ public class Organism {
      *
      * @return the descendent organism
      */
-    public Organism divide() {
+    public Organism divide(Replicator replicator) {
         ageAtSplit = age;
         int childEnergy = energy / 2;
         reduceEnergy(childEnergy);
-        return recipe.make(environment, childEnergy);
+        return recipe.make(environment, replicator, childEnergy);
     }
 
     /**

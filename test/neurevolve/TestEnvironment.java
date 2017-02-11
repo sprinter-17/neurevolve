@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
-import neurevolve.organism.Recipe;
 
 public class TestEnvironment implements Environment {
 
@@ -27,15 +26,6 @@ public class TestEnvironment implements Environment {
 
     public boolean isPerformed(int activity) {
         return activitiesPerformed.contains(activity);
-    }
-
-    @Override
-    public Recipe copyInstructions(int[] instructions, int size, int colour) {
-        Recipe recipe = new Recipe(colour);
-        for (int i = 0; i < size; i++) {
-            recipe.add(instructions[i]);
-        }
-        return recipe;
     }
 
     @Override

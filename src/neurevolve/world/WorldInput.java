@@ -17,7 +17,13 @@ public enum WorldInput {
     LOOK_WALL_FAR_FORWARD("Wall Far Forward", getWall(FORWARD, FORWARD)),
     LOOK_WALL_LEFT("Wall Left", getWall(LEFT)),
     LOOK_WALL_RIGHT("Wall Right", getWall(RIGHT)),
-    LOOK_ACIDE_FORWARD("Acid Forward", getAcid(FORWARD)),
+    LOOK_ACID_HERE("Acid Here", getAcid()),
+    LOOK_ACID_FORWARD("Acid Forward", getAcid(FORWARD)),
+    LOOK_RADIATION_HERE("Radition Here", getRadiation()),
+    LOOK_RADIATION_FORWARD("Radition Forward", getRadiation(FORWARD)),
+    LOOK_RADIATION_FAR_FORWARD("Radition Far Forward", getRadiation(FORWARD, FORWARD)),
+    LOOK_RADIATION_RIGHT("Radition Right", getRadiation(RIGHT)),
+    LOOK_RADIATION_LEFT("Radition Left", getRadiation(LEFT)),
     LOOK_ORGANISM_BACKWARD("Colour Backward", getColourDifference(BACKWARD)),
     LOOK_ORGANISM_FORWARD("Colour Forward", getColourDifference(FORWARD)),
     LOOK_ORGANISM_LEFT("Colour Left", getColourDifference(LEFT)),
@@ -61,39 +67,38 @@ public enum WorldInput {
         return decode(code).name;
     }
 
+    @FunctionalInterface
+    private interface WorldValueGetter {
+
+        int getValue(World world, Organism organism, int position);
+    }
+
     private static ValueGetter getEnergy(Angle... angles) {
-        return (world, organism) -> {
-            int position = world.getPosition(organism, angles);
-            return world.getOrganismEnergy(position);
-        };
+        return getWorldValueGetter((w, o, p) -> w.getOrganismEnergy(p), angles);
     }
 
     private static ValueGetter getResource(Angle... angles) {
-        return (world, organism) -> {
-            int position = world.getPosition(organism, angles);
-            return world.getResource(position);
-        };
+        return getWorldValueGetter((w, o, p) -> w.getResource(p), angles);
     }
 
     private static ValueGetter getColourDifference(Angle... angles) {
-        return (world, organism) -> {
-            int position = world.getPosition(organism, angles);
-            return world.getColourDifference(organism, position);
-        };
+        return getWorldValueGetter((w, o, p) -> w.getColourDifference(o, p));
     }
 
     private static ValueGetter getWall(Angle... angles) {
-        return (world, organism) -> {
-            int position = world.getPosition(organism, angles);
-            return world.hasWall(position) ? 100 : 0;
-        };
+        return getWorldValueGetter((w, o, p) -> w.hasWall(p) ? 100 : 0, angles);
     }
 
     private static ValueGetter getAcid(Angle... angles) {
-        return (world, organism) -> {
-            int position = world.getPosition(organism, angles);
-            return world.isAcidic(position) ? 100 : 0;
-        };
+        return getWorldValueGetter((w, o, p) -> w.isAcidic(p) ? 100 : 0, angles);
+    }
+
+    private static ValueGetter getRadiation(Angle... angles) {
+        return getWorldValueGetter((w, o, p) -> w.getRadiation(p), angles);
+    }
+
+    private static ValueGetter getWorldValueGetter(WorldValueGetter getter, Angle... angles) {
+        return (world, organism) -> getter.getValue(world, organism, world.getPosition(organism, angles));
     }
 
 }

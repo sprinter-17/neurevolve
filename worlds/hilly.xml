@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<world name="Mountain Goats">
+    <description>This world is very hilly. It has many mountains and mountain ranges.
+    </description>
+    <at_start>
+        <add_resources amount='200'>
+            <everywhere/>
+        </add_resources>
+        <elevation amount='40'>
+            <pools count='2000' radius='50'/>
+        </elevation>
+    </at_start>
+</world>

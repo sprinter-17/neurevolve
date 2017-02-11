@@ -1,6 +1,7 @@
 package neurevolve.organism;
 
 import neurevolve.TestEnvironment;
+import neurevolve.TestReplicator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -56,9 +57,10 @@ public class OrganismTest {
         Recipe recipe = mock(Recipe.class);
         organism = new Organism(environment, 30);
         organism.setRecipe(recipe);
-        organism.divide();
+        Replicator replicator = new TestReplicator();
+        organism.divide(replicator);
         assertThat(organism.getEnergy(), is(15));
-        verify(recipe).make(environment, 15);
+        verify(recipe).make(environment, replicator, 15);
     }
 
     @Test

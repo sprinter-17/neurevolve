@@ -41,6 +41,18 @@ public class WorldMakerTest {
     }
 
     @Test
+    public void testRadiationAtVerticalEdges() {
+        maker.add(maker.atStart(), maker.radiation(3), maker.verticalEdges(6));
+        World world = maker.make();
+        assertThat(world.getRadiation(space.position(0, 30)), is(3));
+        assertThat(world.getRadiation(space.position(1, 30)), is(2));
+        assertThat(world.getRadiation(space.position(2, 30)), is(2));
+        assertThat(world.getRadiation(space.position(3, 30)), is(1));
+        assertThat(world.getRadiation(space.position(4, 30)), is(1));
+        assertThat(world.getRadiation(space.position(5, 30)), is(0));
+    }
+
+    @Test
     public void testWallsAtHorizontalEdges() {
         maker.add(maker.atStart(), maker.wall(), maker.horizontalEdges(5));
         World world = maker.make();

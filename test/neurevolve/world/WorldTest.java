@@ -1,6 +1,7 @@
 package neurevolve.world;
 
 import neurevolve.TestConfiguration;
+import neurevolve.TestReplicator;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
@@ -48,6 +49,13 @@ public class WorldTest {
     @Test
     public void testAcid() {
         assertFalse(world.isAcidic(space.position(4, 5)));
+    }
+
+    @Test
+    public void testRadiation() {
+        assertThat(world.getRadiation(space.position(4, 7)), is(0));
+        world.addRadition(space.position(4, 7), 2);
+        assertThat(world.getRadiation(space.position(4, 7)), is(2));
     }
 
     @Test
@@ -171,8 +179,8 @@ public class WorldTest {
         config.setTemperatureRange(0, 500);
         world.tick();
         assertThat(world.getResource(space.position(0, 0)), is(0));
-        assertThat(world.getResource(space.position(7, 3)), is(3));
-        assertThat(world.getResource(space.position(4, 5)), is(5));
+        assertThat(world.getResource(space.position(7, 3)), is(6));
+        assertThat(world.getResource(space.position(4, 5)), is(10));
     }
 
     @Test
@@ -214,6 +222,16 @@ public class WorldTest {
     }
 
     @Test
+    public void testSplitInRadiation() {
+        int position = space.position(5, 5);
+        world.addRadition(space.move(position, NORTH), 3);
+        Organism organism = new Organism(world, 120);
+        world.addOrganism(organism, position, NORTH);
+        world.moveOrganism(organism);
+        assertThat(world.getPopulationSize(), is(2));
+    }
+
+    @Test
     public void testGetElevationAsInput() {
         int position = space.position(4, 7);
         Organism organism = new Organism(world, 100);
@@ -239,7 +257,7 @@ public class WorldTest {
         Recipe recipe = new Recipe(0);
         recipe.add(Instruction.ADD_NEURON, -10);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.ordinal());
-        Organism organism = recipe.make(world, 50);
+        Organism organism = recipe.make(world, new TestReplicator(), 50);
         world.addOrganism(organism, space.position(5, 5), EAST);
         world.tick();
         assertFalse(world.hasOrganism(space.position(5, 5)));

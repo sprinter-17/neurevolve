@@ -27,6 +27,7 @@ import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
+import static java.lang.Math.abs;
 
 public class ZoomWindow {
 

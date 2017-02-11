@@ -10,6 +10,7 @@ public class TestConfiguration extends WorldConfiguration {
         setSeedCount(0);
         setBaseCost(0);
         setMinimumSplitTime(0);
+        setGrowthRate(10);
     }
 
 }
