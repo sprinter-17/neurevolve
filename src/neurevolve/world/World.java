@@ -451,9 +451,8 @@ public class World implements Environment {
         int slope = Math.max(0, getSlope(organism, FORWARD));
         if (!hasWall(population.getPosition(organism, FORWARD))) {
             population.moveOrganism(organism, slope);
-            if (getRadiation(population.getPosition(organism)) > 0) {
-                splitOrganism(organism);
-            }
+            if (getRadiation(population.getPosition(organism)) > 0)
+                splitToAnyOpenPosition(0, organism);
         }
     }
 
@@ -476,8 +475,12 @@ public class World implements Environment {
      * @param organism the organism to split
      */
     public void splitOrganism(Organism organism) {
-        if (organism.canDivide(config.getMinimumSplitTime()))
-            openPositionNextTo(getPosition(organism)).ifPresent(pos -> splitTo(organism, pos));
+        splitToAnyOpenPosition(config.getMinimumSplitTime(), organism);
+    }
+
+    private void splitToAnyOpenPosition(int minTime, Organism parent) {
+        if (parent.canDivide(minTime))
+            openPositionNextTo(getPosition(parent)).ifPresent(pos -> splitTo(parent, pos));
     }
 
     private void splitTo(Organism parent, int position) {

@@ -3,9 +3,18 @@
     <description>This world is a post-apocolyptic world, covered in pools of radiation. It is cold and hostile.
     </description>
     <at_start>
-        <add_resources amount='200'>
+        <add_resources amount='100'>
             <everywhere/>
+            <pools count='200' radius='20'/>
         </add_resources>
+        <elevation amount='200'>
+            <pools count='100' radius='40'/>
+        </elevation>
+        <acid>
+            <vertical_edges width='10'/>
+            <horizontal_edges width='10'/>
+            <pools count='40' radius='60'/>
+        </acid>
         <radiation amount='3'>
             <pools count='100' radius='50'/>
         </radiation>
