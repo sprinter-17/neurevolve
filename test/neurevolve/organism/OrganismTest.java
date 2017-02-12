@@ -4,12 +4,15 @@ import neurevolve.TestEnvironment;
 import neurevolve.TestReplicator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class OrganismTest {
 
@@ -18,7 +21,7 @@ public class OrganismTest {
 
     @Before
     public void setup() {
-        organism = new Organism(environment, 100);
+        organism = makeOrganism();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -53,14 +56,32 @@ public class OrganismTest {
     }
 
     @Test
-    public void divide() {
+    public void testDivide() {
+        organism = makeOrganism();
+        Organism child = organism.divide(new TestReplicator());
+        assertThat(organism.getEnergy(), is(50));
+        assertNotSame(child, organism);
+    }
+
+    @Test
+    public void testDescendents() {
+        organism = makeOrganism();
+        assertThat(organism.getDescendents(), is(0));
+        Organism child = organism.divide(new TestReplicator());
+        assertThat(organism.getDescendents(), is(1));
+        assertThat(child.getDescendents(), is(0));
+        Organism grandchild = child.divide(new TestReplicator());
+        assertThat(organism.getDescendents(), is(2));
+        assertThat(child.getDescendents(), is(1));
+        assertThat(grandchild.getDescendents(), is(0));
+    }
+
+    private Organism makeOrganism() {
+        Organism organism = new Organism(environment, 100);
         Recipe recipe = mock(Recipe.class);
-        organism = new Organism(environment, 30);
+        when(recipe.make(any(), any(), anyInt())).thenAnswer(i -> makeOrganism());
         organism.setRecipe(recipe);
-        Replicator replicator = new TestReplicator();
-        organism.divide(replicator);
-        assertThat(organism.getEnergy(), is(15));
-        verify(recipe).make(environment, replicator, 15);
+        return organism;
     }
 
     @Test

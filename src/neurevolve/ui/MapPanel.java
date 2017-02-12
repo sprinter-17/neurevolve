@@ -89,8 +89,9 @@ public class MapPanel extends JPanel {
      *
      * @param config the configuration for the world
      * @param resources the amount of resources
-     * @param organism the organism, or null if none
      * @param elevation the height of the position
+     * @param acid true if the position is acidic
+     * @param radiation the amount of radiation
      * @return a colour, in RGB format, representing the status of the position
      */
     public static int convertToColour(WorldConfiguration config, int resources, int elevation,

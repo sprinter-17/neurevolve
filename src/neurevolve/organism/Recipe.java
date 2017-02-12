@@ -66,9 +66,11 @@ public class Recipe {
     }
 
     /**
-     * Make a new organism using this recipe.
+     * Make a new organism using a copy of the recipe. The replicator used to copy the recipe may
+     * introduce errors prior to construction.
      *
      * @param environment the environment the organism will exist within
+     * @param replicator the object to use to copy the recipe before constructing the organism
      * @param initialEnergy the initial energy of the constructed organism
      * @return the constructed organism
      */

@@ -10,6 +10,9 @@ import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
 
+/**
+ * This class is used to construct a new world
+ */
 public class WorldMaker {
 
     private final Space space;
@@ -126,11 +129,11 @@ public class WorldMaker {
             Maze maze = new Maze(mazeWidth, mazeHeight);
             for (int mx = 0; mx <= mazeWidth; mx++) {
                 for (int my = 0; my <= mazeHeight; my++) {
-                    if (mx < mazeWidth && maze.hasWallSouth(mx, my)) {
+                    if (mx < mazeWidth && maze.hasWall(mx, my, Maze.Direction.SOUTH)) {
                         horizontalWall(gapY + my * cellSize + wallWidth / 2, gapX + mx * cellSize,
                                 gapX + (mx + 1) * cellSize + wallWidth, wallWidth, action);
                     }
-                    if (my < mazeHeight && maze.hasWallWest(mx, my)) {
+                    if (my < mazeHeight && maze.hasWall(mx, my, Maze.Direction.WEST)) {
                         verticalWall(gapX + mx * cellSize + wallWidth / 2, gapY + my * cellSize,
                                 gapY + (my + 1) * cellSize + wallWidth, wallWidth, action);
                     }

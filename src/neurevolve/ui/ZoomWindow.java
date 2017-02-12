@@ -27,7 +27,6 @@ import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
-import static java.lang.Math.abs;
 
 public class ZoomWindow {
 
@@ -81,6 +80,7 @@ public class ZoomWindow {
         private final int age;
         private final int direction;
         private final int energy;
+        private final int descendents;
         private final int[] values;
 
         public NetworkSnapShot(Organism organism) {
@@ -88,6 +88,7 @@ public class ZoomWindow {
             age = organism.getAge();
             direction = world.getOrganismDirection(organism);
             energy = organism.getEnergy();
+            descendents = organism.getDescendents();
             values = organism.copyValues();
         }
     }
@@ -173,6 +174,7 @@ public class ZoomWindow {
                 line++;
                 drawLine(g, "Age", Color.BLACK, network.age);
                 drawLine(g, "Energy", Color.BLACK, network.energy);
+                drawLine(g, "Descendents", Color.BLACK, network.descendents);
                 line++;
                 toolTips.clear();
                 describer.getNeuronDescriptions()

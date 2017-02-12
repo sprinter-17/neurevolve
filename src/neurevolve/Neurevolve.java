@@ -10,14 +10,14 @@ import neurevolve.ui.NewWorldDialog;
  *
  * The user interface for Neurevolve consists of four windows:
  * <ul>
- * <li>The {@link NewWorldDialog} allows the user to select values for the creation of the
- * world.</li>
- * <li>The {@link MainWindow} displays a map of the world as the organisms develop and allows the
- * user to change the configuration of the world.</li>
- * <li>The {@link ZoomWindow} allows the user to view an expanded view of a section of the
- * world.</li>
- * <li>The {@link AnalysisWindow} performs a statistical sampling of the population to help
- * understand the behaviour of individual organisms.</li>
+ * <li>The {@link neurevolve.ui.NewWorldDialog} allows the user to select values for the creation of
+ * the world.</li>
+ * <li>The {@link neurevolve.ui.MainWindow} displays a map of the world as the organisms develop and
+ * allows the user to change the configuration of the world.</li>
+ * <li>The {@link neurevolve.ui.ZoomWindow} allows the user to view an expanded view of a section of
+ * the world.</li>
+ * <li>The {@link neurevolve.ui.AnalysisWindow} performs a statistical sampling of the population to
+ * help understand the behaviour of individual organisms.</li>
  * </ul>
  *
  *

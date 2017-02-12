@@ -1,5 +1,6 @@
 package neurevolve.organism;
 
+import java.util.Optional;
 import neurevolve.network.Activity;
 import neurevolve.network.Input;
 import neurevolve.network.Network;
@@ -9,21 +10,25 @@ import neurevolve.network.Network;
  */
 public class Organism {
 
+    private static final int MAX_ENERGY = 10000;
     private static long lastID = 0;
 
     private final long id = lastID++;
     private final Environment environment;
     private final Network brain;
     private Recipe recipe = null;
+    private Optional<Organism> parent = Optional.empty();
     private int age;
     private int ageAtSplit = 0;
     private int energy;
+    private int descendents = 0;
 
     /**
      * Construct an organism.
      *
      * @param environment the environment the organism exists within
      * @param initialEnergy the initial energy to assign
+     * @param colour the colour of the organism
      * @throws IllegalArgumentException if <tt>initialHealth @lt; 0</tt>
      */
     public Organism(Environment environment, int initialEnergy, int colour) {
@@ -64,6 +69,10 @@ public class Organism {
 
     public int getColour() {
         return recipe.getColour();
+    }
+
+    public int getDescendents() {
+        return descendents;
     }
 
     /**
@@ -135,23 +144,38 @@ public class Organism {
      * Divide the current organism in two, creating a new descendent from the recipe used to create
      * this organism. The energy of this organism is split evenly between itself and its descendent.
      *
+     * @param replicator the replicator to use in copying the recipe
      * @return the descendent organism
      */
     public Organism divide(Replicator replicator) {
         ageAtSplit = age;
         int childEnergy = energy / 2;
+        incrementDescendents();
         reduceEnergy(childEnergy);
-        return recipe.make(environment, replicator, childEnergy);
+        Organism child = recipe.make(environment, replicator, childEnergy);
+        child.parent = Optional.of(this);
+        return child;
+    }
+
+    private void incrementDescendents() {
+        descendents++;
+        if (parent.isPresent()) {
+            if (parent.get().isDead())
+                parent = Optional.empty();
+            else
+                parent.get().incrementDescendents();
+        }
     }
 
     /**
-     * Test if the organism is able to divide. It requires 1 activation for each 10 instructions in
-     * its recipe.
+     * Test if the organism is able to divide. It requires 1 activation for each 50 instructions in
+     * its recipe plus the minimum division time passed to the method.
      *
+     * @param minDivisionTime the minimum amount of time between divisions
      * @return true if the organism can divide
      */
     public boolean canDivide(int minDivisionTime) {
-        return (age - ageAtSplit) >= minDivisionTime + recipe.size() / 10;
+        return (age - ageAtSplit) >= minDivisionTime + recipe.size() / 50;
     }
 
     /**
@@ -190,7 +214,7 @@ public class Organism {
      */
     public void increaseEnergy(int addition) {
         assert addition >= 0;
-        energy += addition;
+        energy = Math.min(MAX_ENERGY, energy + addition);
     }
 
     /**

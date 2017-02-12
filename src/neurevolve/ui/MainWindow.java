@@ -39,8 +39,9 @@ public class MainWindow {
     private int delay = 1;
 
     /**
-     * Construct a frame for displaying a world
+     * Construct a frame for displaying a world.
      *
+     * @param title the text to put in the frame's title bar
      * @param world the world to display
      * @param space the frame for the world
      * @param config the configuration for this world
