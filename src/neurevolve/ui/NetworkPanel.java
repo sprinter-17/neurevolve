@@ -5,6 +5,7 @@ import static java.awt.BasicStroke.CAP_BUTT;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputAdapter;
 import neurevolve.organism.RecipeDescriber.NeuronDescription;
+import static neurevolve.world.WorldInput.AGE;
 
 public class NetworkPanel extends JPanel {
 
@@ -25,7 +27,11 @@ public class NetworkPanel extends JPanel {
     private static final int NEURON_WIDTH = 100;
     private static final int NEURON_HEIGHT = 35;
 
-    private BufferedImage image;
+    private BufferedImage networkImage;
+    private BufferedImage inputImage;
+
+    private Map<Integer, Point> inputPositions = new HashMap<>();
+
     private Species species = null;
     private List<NeuronDescription> neurons;
     private int[] ranges;
@@ -70,6 +76,57 @@ public class NetworkPanel extends JPanel {
         Dragger dragger = new Dragger();
         addMouseListener(dragger);
         addMouseMotionListener(dragger);
+        drawInputImage();
+    }
+
+    private void drawInputImage() {
+        inputImage = new BufferedImage(140, 1000, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = inputImage.createGraphics();
+        g.setColor(new Color(242, 217, 230));
+        g.fillRect(0, 0, 140, 1000);
+        g.setColor(Color.pink.darker());
+        int y = -15;
+        int height = 40;
+        drawNonPositionalInput(g, "Own Age", y += height);
+        inputPositions.put(AGE.ordinal(), here(y));
+        drawNonPositionalInput(g, "Own Energy", y += height);
+        drawNonPositionalInput(g, "Temperature", y += height);
+        drawPositionalInput(g, "Resource", y += height);
+        drawPositionalInput(g, "Slope", y += height);
+        drawPositionalInput(g, "Wall", y += height);
+        drawPositionalInput(g, "Radiation", y += height);
+        drawPositionalInput(g, "Other Colour", y += height);
+        drawPositionalInput(g, "Other Energy", y += height);
+    }
+
+    private void drawNonPositionalInput(Graphics2D g, String name, int y) {
+        drawInputName(g, name, y);
+        drawDot(g, here(y));
+    }
+
+    private Point here(int y) {
+        return new Point(84, y - 4);
+    }
+
+    private void drawDot(Graphics2D g, Point p) {
+        g.fillOval(p.x - 4, p.y - 4, 8, 8);
+    }
+
+    private void drawPositionalInput(Graphics2D g, String name, int y) {
+        drawInputName(g, name, y);
+        g.fillOval(82, y - 8, 8, 8);
+        g.drawLine(86, y - 4, 103, y - 4);
+        g.fillOval(99, y - 8, 8, 8);
+        g.drawLine(86, y - 4, 120, y - 4);
+        g.fillOval(116, y - 8, 8, 8);
+        g.drawLine(86, y - 8, 86, y - 16);
+        g.fillOval(82, y - 20, 8, 8);
+        g.drawLine(86, y - 4, 86, y + 8);
+        g.fillOval(82, y + 4, 8, 8);
+    }
+
+    private void drawInputName(Graphics2D g, String name, int y) {
+        g.drawString(name, 80 - g.getFontMetrics().stringWidth(name), y);
     }
 
     public void showSpecies(Species species) {
@@ -78,10 +135,10 @@ public class NetworkPanel extends JPanel {
                 .getNeuronDescriptions()
                 .collect(Collectors.toList());
         ranges = species.getRanges();
-        image = new BufferedImage(500, 1000, BufferedImage.TYPE_INT_RGB);
+        networkImage = new BufferedImage(500, 1000, BufferedImage.TYPE_INT_RGB);
         offsetX = 0;
         offsetY = 0;
-        paintNetwork(image.createGraphics());
+        paintNetwork(networkImage.createGraphics());
         repaint();
     }
 
@@ -107,7 +164,8 @@ public class NetworkPanel extends JPanel {
     public void paint(Graphics g) {
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, getWidth(), getHeight());
-        g.drawImage(image, offsetX + dragX, offsetY + dragY, this);
+        g.drawImage(networkImage, 140 + offsetX + dragX, offsetY + dragY, this);
+        g.drawImage(inputImage, 0, 0, this);
     }
 
     public void paintNetwork(Graphics2D g) {
@@ -141,10 +199,11 @@ public class NetworkPanel extends JPanel {
     private void paintLink(Graphics2D g, int fromX, int toX, int fromY, int toY, int weight) {
         g.setColor(Color.BLACK);
         g.drawLine(fromX, fromY, fromX, toY);
-        if (weight < 0)
+        if (weight < 0) {
             g.setColor(NEGATIVE_COLOUR);
-        else if (weight > 0)
+        } else if (weight > 0) {
             g.setColor(POSITIVE_COLOUR);
+        }
         g.setStroke(new BasicStroke(Math.min(5, Math.abs(weight)), CAP_BUTT, CAP_BUTT));
         g.drawLine(fromX, toY, toX, toY);
         g.setStroke(new BasicStroke(1));

@@ -100,6 +100,7 @@ public class NewWorldDialog extends JDialog {
                     MainWindow window = new MainWindow(loader.getName(), maker.make(), space,
                             config, NewWorldDialog.this);
                     window.show();
+                    setVisible(false);
                 } catch (FileNotFoundException | SAXException ex) {
                     description.setText(ex.getMessage());
                 }
