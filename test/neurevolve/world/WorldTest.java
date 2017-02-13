@@ -179,8 +179,8 @@ public class WorldTest {
         config.setTemperatureRange(0, 500);
         world.tick();
         assertThat(world.getResource(space.position(0, 0)), is(0));
-        assertThat(world.getResource(space.position(7, 3)), is(6));
-        assertThat(world.getResource(space.position(4, 5)), is(10));
+        assertThat(world.getResource(space.position(7, 3)), is(3));
+        assertThat(world.getResource(space.position(4, 5)), is(5));
     }
 
     @Test
