@@ -44,7 +44,7 @@ import org.xml.sax.SAXException;
  * The supported configuration elements are:</p>
  * <table style='border:1px solid black'>
  * <caption>Configuration Elements</caption>
- * <tr><th align='left'>Element</th><th align='left'>Description</th></tr>
+ * <tr><th align='left' style='width:50%'>Element</th><th align='left'>Description</th></tr>
  * <tr><td>{@code <temperature_range min='n' max='x'/>}</td><td>Sets the range of temperatures from
  * the horizontal edges (min) to the centre (max)</td></tr>
  * <tr><td>{@code <mutation_rate normal='n' [radiation='r']/>}</td><td>Sets the mutation rate for
@@ -71,84 +71,49 @@ import org.xml.sax.SAXException;
  * <p>
  * The supported timing, type and shape elements are:</p>
  *
- * <table style='border:1px solid black'>
- * <caption>Timing, Type and Shape Elements</caption>
- * <tr>
- * <th align='left'>Category</th><th align='left'>Element</th><th align='left'>Description</th>
- * </tr>
- * <tr>
- * <td>Timing</td>
- * <td>{@code <at_start>}</td>
- * <td>specifies an element to be placed when the world is created</td>
- * </tr>
- * <tr>
- * <td>Timing</td>
- * <td>{@code <with_period period='n'>}</td>
- * <td>specifies an element to be placed every {@code n} ticks</td>
- * </tr>
- * <tr>
- * <td>Type</td>
- * <td>{@code <acid>}</td>
- * <td>places acid</td>
- * </tr>
- * <tr>
- * <td>Type</td>
- * <td>{@code <wall>}</td>
- * <td>place a wall</td>
- * </tr>
- * <tr>
- * <td>Type</td>
- * <td>{@code <radiation amount='n'>}</td>
- * <td>add radiation of strength {@code n} (up to 3)</td>
- * </tr>
- * <tr>
- * <td>Type</td>
- * <td>{@code <add_resources amount='n'}</td>
- * <td>add {@code n} resources (up to 255)</td>
- * </tr>
- * <tr>
- * <td>Type</td>
- * <td>{@code <elevation amount='n'>}</td>
- * <td>add {@code n} elevation (up to 255)</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <everywhere>}</td>
- * <td>place at every position in the space</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <horizontal_edges width='w'>}</td>
- * <td>place bands of width {@code w} along the top and bottom edges</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <vertical_edges width='w'>}</td>
- * <td>place bands of width {@code w} along the left and right edges</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <horizontal_dividers count='n' width='w' gap='g'>}</td>
- * <td>place {@code n} horizontal bands of width {@code w} with gaps of {@code g} on the left and
- * right ends</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <vertical_dividers count='n' width='w' gap='g'>}</td>
- * <td>place {@code n} vertical bands of width {@code w} with gaps of {@code g} on the top and
- * bottom ends</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <pools count='n' radius='r'>}</td>
- * <td>randomly place {@code n} circles of radius {@code r}</td>
- * </tr>
- * <tr>
- * <td>Shape</td>
- * <td>{@code <maze cell='c' edge='e'>}</td>
- * <td>place walls of thickness {@code e} to form a randomly generated maze in which each cell in
- * the maze has a width and height of {@code c}</td>
- * </tr>
+ * <table style='border:1px solid black;width:100%'>
+ * <caption>Timing Elements</caption>
+ * <tr><th align='left' style='width:50%'>Element</th><th align='left'>Description</th></tr>
+ * <tr><td>{@code <at_start>}</td><td>specifies an element to be placed when the world is
+ * created</td></tr>
+ * <tr><td>{@code <with_period period='n'>}</td><td>specifies an element to be placed every
+ * {@code n} ticks</td></tr>
+ * </table>
+ *
+ * <p>
+ * </p>
+ *
+ * <table style='border:1px solid black;width:100%'>
+ * <caption>Type Elements</caption>
+ * <tr><th align='left' style='width:50%'>Element</th><th align='left'>Description</th></tr>
+ * <tr><td>{@code <acid>}</td><td>places acid</td></tr>
+ * <tr><td>{@code <wall>}</td><td>place a wall</td></tr>
+ * <tr><td>{@code <radiation amount='n'>}</td><td>add radiation of strength {@code n} (up to
+ * 3)</td></tr>
+ * <tr><td>{@code <add_resources amount='n'}</td><td>add {@code n} resources (up to 255)</td></tr>
+ * <tr><td>{@code <elevation amount='n'>}</td><td>add {@code n} elevation (up to 255)</td></tr>
+ * </table>
+ *
+ * <p>
+ * </p>
+ *
+ * <table style='border:1px solid black;width:100%'>
+ * <caption>Shape Elements</caption>
+ * <tr><th align='left' style='width:50%'>Element</th><th align='left'>Description</th></tr>
+ * <tr><td>{@code <everywhere>}</td><td>place at every position in the space</td></tr>
+ * <tr><td>{@code <horizontal_edges width='w'>}</td><td>place bands of width {@code w} along the top
+ * and bottom edges</td></tr>
+ * <tr><td>{@code <vertical_edges width='w'>}</td><td>place bands of width {@code w} along the left
+ * and right edges</td></tr>
+ * <tr><td>{@code <horizontal_dividers count='n' width='w' gap='g'>}</td><td>place {@code n}
+ * horizontal bands of width {@code w} with gaps of {@code g} on the left and right ends</td></tr>
+ * <tr><td>{@code <vertical_dividers count='n' width='w' gap='g'>}</td><td>place {@code n} vertical
+ * bands of width {@code w} with gaps of {@code g} on the top and bottom ends</td></tr>
+ * <tr><td>{@code <pools count='n' radius='r'>}</td><td>randomly place {@code n} circles of radius
+ * {@code r}</td></tr>
+ * <tr><td>{@code <maze cell='c' edge='e'>}</td><td>place walls of thickness {@code e} to form a
+ * randomly generated maze in which each cell in the maze has a width and height of
+ * {@code c}</td></tr>
  * </table>
  */
 public class Loader {
