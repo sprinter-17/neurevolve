@@ -51,9 +51,15 @@ public class Time {
 
     /**
      * Get the time within the current year
+     *
+     * @return the tick within the year
      */
-    private int timeOfYear() {
+    public int timeOfYear() {
         return tickCount % config.getYearLength();
+    }
+
+    public int getYear() {
+        return tickCount / config.getYearLength();
     }
 
     /**

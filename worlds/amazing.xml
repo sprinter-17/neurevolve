@@ -2,6 +2,12 @@
 <world name="Amazing">
     <description>This world is absolutely amazing. It has acidic edges, pools of resources and a walled maze!
     </description>
+    <configuration>
+        <temperature_range min='80' max='95'/>
+        <minimum_split_time period='5'/>
+        <year length='500' variation='15'/>
+        <activity_cost activity='split' cost='5' factor='150'/>
+    </configuration>
     <at_start>
         <add_resources amount='60'>
             <everywhere/>

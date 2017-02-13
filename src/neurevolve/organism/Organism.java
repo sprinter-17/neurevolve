@@ -58,6 +58,10 @@ public class Organism {
         return brain.copyValues();
     }
 
+    public int[] copyRanges() {
+        return brain.copyRanges();
+    }
+
     /**
      * Set the recipe used to create the organism.
      *
@@ -65,6 +69,14 @@ public class Organism {
      */
     public final void setRecipe(Recipe recipe) {
         this.recipe = recipe;
+    }
+
+    public Recipe getRecipe() {
+        return recipe;
+    }
+
+    public Environment getEnvironment() {
+        return environment;
     }
 
     public int getColour() {
@@ -132,12 +144,8 @@ public class Organism {
      *
      * @return the total number of activity switches of the associated network per ticks.
      */
-    public float complexity() {
-        if (age == 0) {
-            return 0;
-        } else {
-            return (float) brain.getTotalActivitySwitches() / age;
-        }
+    public int complexity() {
+        return brain.getTotalActivitySwitches();
     }
 
     /**

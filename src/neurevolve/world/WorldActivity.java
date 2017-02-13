@@ -1,5 +1,7 @@
 package neurevolve.world;
 
+import java.util.Arrays;
+import java.util.Optional;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Angle.LEFT;
@@ -29,6 +31,12 @@ public enum WorldActivity {
 
     public void perform(World world, Organism organism) {
         performer.perform(world, organism);
+    }
+
+    public static Optional<WorldActivity> withName(String name) {
+        return Arrays.stream(values())
+                .filter(a -> a.name.equalsIgnoreCase(name))
+                .findAny();
     }
 
     public static WorldActivity decode(int code) {

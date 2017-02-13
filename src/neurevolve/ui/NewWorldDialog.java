@@ -75,7 +75,7 @@ public class NewWorldDialog extends JDialog {
                     Space space = new Space(width.get(), height.get());
                     WorldConfiguration config = new WorldConfiguration();
                     WorldMaker maker = new WorldMaker(space, config);
-                    loader.load(maker, fileName, source);
+                    loader.load(maker, config, fileName, source);
                     description.setText(loader.getDescription().orElse(" "));
                 } catch (FileNotFoundException | SAXException ex) {
                     description.setText(ex.getMessage());
@@ -96,9 +96,9 @@ public class NewWorldDialog extends JDialog {
                     Space space = new Space(width.get(), height.get());
                     WorldConfiguration config = new WorldConfiguration();
                     WorldMaker maker = new WorldMaker(space, config);
-                    loader.load(maker, fileName, source);
-                    MainWindow window = new MainWindow(loader.getName(), maker.make(), space, config,
-                            NewWorldDialog.this);
+                    loader.load(maker, config, fileName, source);
+                    MainWindow window = new MainWindow(loader.getName(), maker.make(), space,
+                            config, NewWorldDialog.this);
                     window.show();
                 } catch (FileNotFoundException | SAXException ex) {
                     description.setText(ex.getMessage());

@@ -2,10 +2,13 @@ package neurevolve.organism;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Queue;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,17 +33,37 @@ public class RecipeDescriber {
     public class NeuronDescription {
 
         private final int id;
+        private final int threshold;
+        private Optional<String> activity = Optional.empty();
+        private final Map<Integer, Integer> synapses = new HashMap<>();
         private final StringBuilder neuron = new StringBuilder();
         private final List<StringBuilder> inputs = new ArrayList<>();
         private final List<StringBuilder> outputs = new ArrayList<>();
         private boolean hasActivity = false;
 
-        public NeuronDescription(int id) {
+        public NeuronDescription(int id, int threshold) {
             this.id = id;
+            this.threshold = threshold;
         }
 
         public int getId() {
             return id;
+        }
+
+        public int getThreshold() {
+            return threshold;
+        }
+
+        public void setActivity(String activity) {
+            this.activity = Optional.of(activity);
+        }
+
+        public Optional<String> getActivity() {
+            return activity;
+        }
+
+        public void forEachSynapse(BiConsumer<Integer, Integer> process) {
+            synapses.forEach(process);
         }
 
         public String getNeuronDescription() {
@@ -91,13 +114,14 @@ public class RecipeDescriber {
         }
 
         public void describe() {
-            NeuronDescription description = new NeuronDescription(id);
+            NeuronDescription description = new NeuronDescription(id, threshold);
             description.neuron.append("N").append(id);
             describeWeight(description.neuron, threshold);
             if (delay > 0)
                 description.neuron.append("d").append(delay);
             if (activity.isPresent()) {
                 description.hasActivity = true;
+                description.setActivity(environment.describeActivity(activity.getAsInt()));
                 description.neuron
                         .append(" ")
                         .append(environment.describeActivity(activity.getAsInt()));
@@ -106,6 +130,7 @@ public class RecipeDescriber {
             synapses.stream()
                     .sorted(Comparator.comparingInt(s -> s.from))
                     .forEach(s -> s.describe(description.getInput()));
+            synapses.forEach(s -> description.synapses.put(s.from, s.weight));
             descriptions.add(description);
         }
     }

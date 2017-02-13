@@ -4,6 +4,8 @@ import java.io.StringReader;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.WorldActivity;
+import neurevolve.world.WorldConfiguration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -20,6 +22,7 @@ import org.xml.sax.SAXException;
 public class LoaderTest {
 
     private WorldMaker maker;
+    private WorldConfiguration config;
     private Loader loader;
     private Timing atStart;
     private Type acid;
@@ -43,6 +46,8 @@ public class LoaderTest {
         when(maker.everywhere()).thenReturn(everywhere);
         when(maker.horizontalEdges(anyInt())).thenReturn(horizontalEdges);
         when(maker.verticalDividers(anyInt(), anyInt(), anyInt())).thenReturn(verticalDivider);
+
+        config = mock(WorldConfiguration.class);
         loader = new Loader();
     }
 
@@ -90,6 +95,68 @@ public class LoaderTest {
     public void testIgnoreWhitespace() throws SAXException {
         loadWorld(" \t\n");
         verify(maker, never()).add(any(), any(), any());
+    }
+
+    @Test(expected = SAXException.class)
+    public void testIllegalConfigElement() throws SAXException {
+        loadConfig("<fred/>");
+    }
+
+    @Test
+    public void testTemperatureRange() throws SAXException {
+        loadConfig("<temperature_range min='80' max='100'/>");
+        verify(config).setTemperatureRange(80, 100);
+    }
+
+    @Test
+    public void testMutationRate() throws SAXException {
+        loadConfig("<mutation_rate normal='20' radiation='40'/>");
+        verify(config).setNormalMutationRate(20);
+        verify(config).setRadiatedMutationRate(40);
+    }
+
+    @Test
+    public void testYear() throws SAXException {
+        loadConfig("<year length='800' variation='10'/>");
+        verify(config).setYear(800, 10);
+    }
+
+    @Test
+    public void testSeed() throws SAXException {
+        loadConfig("<seed count='100' energy='400'/>");
+        verify(config).setSeed(100, 400);
+    }
+
+    @Test(expected = SAXException.class)
+    public void testIllegalActivityCost() throws SAXException {
+        loadConfig("<activity_cost activity='fred' cost='234'/>");
+    }
+
+    @Test
+    public void testActivityCost() throws SAXException {
+        loadConfig("<activity_cost activity='eat here' cost='6' factor='75'/>");
+        verify(config).setActivityCost(WorldActivity.EAT_HERE, 6);
+        verify(config).setActivityFactor(WorldActivity.EAT_HERE, 75);
+    }
+
+    @Test
+    public void testActivationCost() throws SAXException {
+        loadConfig("<activation_cost base='5' size='7' age='4'/>");
+        verify(config).setBaseCost(5);
+        verify(config).setSizeCost(7);
+        verify(config).setAgeCost(4);
+    }
+
+    @Test
+    public void testMinimumSplitTime() throws SAXException {
+        loadConfig("<minimum_split_time period='7'/>");
+        verify(config).setMinimumSplitTime(7);
+    }
+
+    @Test
+    public void testConsumptionRate() throws SAXException {
+        loadConfig("<consumption_rate rate='80'/>");
+        verify(config).setConsumptionRate(80);
     }
 
     @Test
@@ -148,8 +215,12 @@ public class LoaderTest {
         load("<world>" + xml + "</world>");
     }
 
+    private void loadConfig(String xml) throws SAXException {
+        load("<world><configuration>" + xml + "</configuration></world>");
+    }
+
     private void load(String xml) throws SAXException {
-        loader.load(maker, "Fred", new InputSource(new StringReader(xml)));
+        loader.load(maker, config, "Fred", new InputSource(new StringReader(xml)));
     }
 
 }

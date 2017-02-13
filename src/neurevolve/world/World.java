@@ -42,12 +42,10 @@ public class World implements Environment {
     private final List<Runnable> tickListeners = new ArrayList<>();
 
     private final Time time;
+    private int totalComplexity;
     private final Population population;
 
     private final ActivationFunction function;
-
-    private Organism mostComplexOrganism;
-    private float totalComplexity;
 
     protected static enum Data {
         ACID(1),
@@ -371,6 +369,11 @@ public class World implements Environment {
         growResources();
         processPopulation();
         tickListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
+        if (time.timeOfYear() == 0) {
+            System.out.println("Year " + time.getYear()
+                    + " population = " + population.size()
+                    + " complexity = " + String.format("%.2f", getAverageComplexity()));
+        }
     }
 
     private void seedOrganisms() {
@@ -383,7 +386,7 @@ public class World implements Environment {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position) && !hasWall(position)) {
                 population.addOrganism(recipe.make(this, new Mutator(0),
-                        config.getInitialEnergy()),
+                        config.getSeedInitialEnergy()),
                         position, random.nextInt(4));
             }
         }
@@ -397,7 +400,7 @@ public class World implements Environment {
         for (int i = 0; i < space.size(); i++) {
             int temp = getTemperature(i);
             if (temp > 0) {
-                int growthPeriod = 500 / config.getGrowthRate();
+                int growthPeriod = 100;
                 while (temp >= growthPeriod) {
                     addResources(i, 1);
                     temp -= growthPeriod;
@@ -415,15 +418,11 @@ public class World implements Environment {
         setData(position, Data.RESOURCES, resources);
     }
 
-    public Organism getMostComplexOrganism() {
-        return mostComplexOrganism;
-    }
-
     public float getAverageComplexity() {
         if (population.size() == 0)
             return 0f;
         else
-            return totalComplexity / population.size();
+            return (float) totalComplexity / population.size();
     }
 
     /**
@@ -512,7 +511,6 @@ public class World implements Environment {
      * during processing do not interfere with the current state.
      */
     public void processPopulation() {
-        mostComplexOrganism = null;
         totalComplexity = 0;
         Population copy = population.copy();
         IntStream.range(0, space.size())
@@ -526,15 +524,13 @@ public class World implements Environment {
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
         organism.reduceEnergy(config.getBaseCost());
-        organism.reduceEnergy(organism.size() * config.getSizeRate() / 10);
-        organism.reduceEnergy(organism.getAge() * config.getAgingRate() / 100);
+        organism.reduceEnergy(organism.size() * config.getSizeCost() / 10);
+        organism.reduceEnergy(organism.getAge() * config.getAgeCost() / 100);
         population.resetActivityCount(organism);
         organism.activate();
         totalComplexity += organism.complexity();
         if (organism.isDead())
             removeOrganism(organism);
-        else if (mostComplexOrganism == null || organism.complexity() > mostComplexOrganism.complexity())
-            mostComplexOrganism = organism;
     }
 
     /**
@@ -629,8 +625,10 @@ public class World implements Environment {
     @Override
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
-        int activityCount = population.getActivityCount(organism, activity);
-        int cost = config.getActivityCost(activity) * activityCount;
+        int cost = config.getActivityCost(activity);
+        for (int i = 0; i < population.getActivityCount(organism, activity); i++) {
+            cost = cost * (100 + config.getActivityFactor(activity)) / 100;
+        }
         if (organism.consume(cost)) {
             activity.perform(this, organism);
             population.incrementActivityCount(organism, activity);

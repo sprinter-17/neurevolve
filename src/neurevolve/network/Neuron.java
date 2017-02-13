@@ -17,11 +17,14 @@ public class Neuron {
     private final ActivationFunction function;
 
     private int threshold = 0;
-    private int switches = 0;
     private final List<Synapse> inputs = new ArrayList<>();
     private Optional<Activity> activity = Optional.empty();
     private int[] values = new int[1];
     private int valueIndex = 0;
+
+    private int activationCount = 0;
+    private int minVal = Integer.MAX_VALUE;
+    private int maxVal = Integer.MIN_VALUE;
 
     /**
      * A <code>Synapse</code> represents a weighted input to the neuron
@@ -66,8 +69,8 @@ public class Neuron {
      * @return the number of times the neuron has switched from inactivity to performing an
      * activity.
      */
-    public int getActivationCount() {
-        return switches;
+    public int getValueRange() {
+        return activationCount == 0 ? 0 : maxVal - minVal;
     }
 
     /**
@@ -120,10 +123,10 @@ public class Neuron {
      * activity is fired.
      */
     public void activate() {
-        int previous = getValue();
+        activationCount++;
         int value = calculateValue();
         storeValue(value);
-        performActivity(previous);
+        performActivity();
     }
 
     private int calculateValue() {
@@ -133,14 +136,14 @@ public class Neuron {
     }
 
     private void storeValue(int value) {
+        minVal = Math.min(minVal, value);
+        maxVal = Math.max(maxVal, value);
         values[valueIndex] = value;
         valueIndex = (valueIndex + 1) % values.length;
     }
 
-    private void performActivity(int previous) {
+    private void performActivity() {
         if (getValue() >= 0 && activity.isPresent()) {
-            if (previous < 0)
-                switches++;
             activity.get().perform();
         }
     }

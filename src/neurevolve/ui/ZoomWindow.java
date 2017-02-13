@@ -27,6 +27,7 @@ import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
+import static java.lang.Math.abs;
 
 public class ZoomWindow {
 
@@ -82,6 +83,7 @@ public class ZoomWindow {
         private final int energy;
         private final int descendents;
         private final int[] values;
+        private final int[] ranges;
 
         public NetworkSnapShot(Organism organism) {
             this.organism = organism;
@@ -90,6 +92,7 @@ public class ZoomWindow {
             energy = organism.getEnergy();
             descendents = organism.getDescendents();
             values = organism.copyValues();
+            ranges = organism.copyRanges();
         }
     }
 
@@ -181,9 +184,10 @@ public class ZoomWindow {
                         .filter(RecipeDescriber.NeuronDescription::isNotJunk)
                         .forEach(desc -> {
                             int value = network.values[desc.getId() - 1];
+                            int range = network.ranges[desc.getId() - 1];
                             toolTips.put(line, getInputOutputs(desc));
                             Color valueColour = value >= 0 ? POSITIVE : NEGATIVE;
-                            drawLine(g, desc.getNeuronDescription(), valueColour, abs(value));
+                            drawLine(g, desc.getNeuronDescription(), valueColour, abs(range));
                         });
             }
         }

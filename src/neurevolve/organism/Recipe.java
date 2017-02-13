@@ -100,6 +100,12 @@ public class Recipe {
         return values;
     }
 
+    public boolean matches(Recipe other) {
+        return this.colour == other.colour
+                && this.size == other.size
+                && IntStream.range(0, size).allMatch(i -> this.instructions[i] == other.instructions[i]);
+    }
+
     /**
      * Calculate the distance between this recipe and another. The distance is defined as the
      * minimum total changes required to go from one recipe to the other. A change is increasing or

@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A <code>Species</code> is a collection of similar organisms. It is defined by a maximum distance
- * for the recipes of all members of the species to the first member.
- *
- * Species cannot be created directly. Rather they are created by calling {@link #addToSpecies} for
+ * A <code>DistanceSpecies</code> is a collection of similar organisms. It is defined by a maximum distance
+ for the recipes of all members of the species to the first member.
+
+ DistanceSpecies cannot be created directly. Rather they are created by calling {@link #addToSpecies} for
  * each organism in a population.
  */
-public class Species {
+public class DistanceSpecies {
 
     private final int maxDistance;
     private final List<Organism> organisms = new ArrayList<>();
@@ -24,7 +24,7 @@ public class Species {
      * @param maxDistance the maximum distance between all members
      * @param organism an organism to add to the species
      */
-    private Species(int maxDistance, Organism organism) {
+    private DistanceSpecies(int maxDistance, Organism organism) {
         this.maxDistance = maxDistance;
         recipeDescriber = organism.describeRecipe();
         add(organism);
@@ -40,14 +40,14 @@ public class Species {
      * @param maxDistance the maximum distance between organisms in species
      * @return the species the organism belongs within
      */
-    public static Species addToSpecies(Organism organism, List<Species> speciesList, int maxDistance) {
-        for (Species species : speciesList) {
+    public static DistanceSpecies addToSpecies(Organism organism, List<DistanceSpecies> speciesList, int maxDistance) {
+        for (DistanceSpecies species : speciesList) {
             assert species.maxDistance == maxDistance;
             if (species.includes(organism)) {
                 return species;
             }
         }
-        Species species = new Species(maxDistance, organism);
+        DistanceSpecies species = new DistanceSpecies(maxDistance, organism);
         speciesList.add(species);
         return species;
     }

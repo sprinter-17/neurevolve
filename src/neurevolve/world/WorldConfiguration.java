@@ -1,7 +1,6 @@
 package neurevolve.world;
 
 import java.util.EnumMap;
-import java.util.prefs.Preferences;
 
 /**
  * Contains all the variables that can be changed through the simulation to adjust the behaviour of
@@ -14,31 +13,26 @@ import java.util.prefs.Preferences;
  */
 public class WorldConfiguration {
 
-    private static final Preferences PREFERENCES = Preferences.userNodeForPackage(WorldConfiguration.class);
-
     private enum Key {
-        NORMAL_MUTATION_RATE("Normal Mutation Rate", 10),
-        RADIATION_MUTATION_RATE("Radiation Mutation Rate", 100),
-        MIN_TEMP("Min Temp", 100),
-        MAX_TEMP("Max Temp", 120),
-        RESOURCE_GROWTH_RATE("Growth Rate", 5),
-        YEAR_LENGTH("Year Length", 500),
-        TEMP_VARIATION("Temp Variation", 10),
-        MAX_RESOURCES("Max Resources", 500),
-        SEED_COUNT("Seed Count", 200),
-        INITIAL_ENERGY("Initial Energy", 1000),
-        MIN_SPLIT_TIME("Minimum Split Time", 8),
-        BASE_COST("Base Cost", 1),
-        AGING_RATE("Aging Rate", 10),
-        CONSUMPTION_RATE("Consumption Rate", 50),
-        SIZE_RATE("Size Rate", 5),
-        ACTIVITY("Activity", 1);
+        NORMAL_MUTATION_RATE(10),
+        RADIATION_MUTATION_RATE(100),
+        MIN_TEMP(100),
+        MAX_TEMP(120),
+        YEAR_LENGTH(500),
+        TEMP_VARIATION(10),
+        SEED_COUNT(200),
+        INITIAL_ENERGY(1000),
+        MIN_SPLIT_TIME(10),
+        BASE_COST(1),
+        AGING_RATE(10),
+        CONSUMPTION_RATE(50),
+        SIZE_RATE(5),
+        ACTIVITY_COST(1),
+        ACTIVITY_FACTOR(50);
 
-        private final String name;
         private final int defaultValue;
 
-        private Key(String name, int defaultValue) {
-            this.name = name;
+        private Key(int defaultValue) {
             this.defaultValue = defaultValue;
         }
 
@@ -53,24 +47,7 @@ public class WorldConfiguration {
 
     private final EnumMap<Key, Integer> values = new EnumMap<>(Key.class);
     private final EnumMap<WorldActivity, Integer> costs = new EnumMap<>(WorldActivity.class);
-
-    public WorldConfiguration() {
-//        for (Key key : Key.values()) {
-//            values.put(key, PREFERENCES.getInt(key.name, key.defaultValue));
-//        }
-//        for (WorldActivity activity : WorldActivity.values()) {
-//            costs.put(activity, PREFERENCES.getInt(activityKey(activity), Key.ACTIVITY.defaultValue));
-//        }
-    }
-
-    public void write() {
-        values.forEach((key, value) -> PREFERENCES.putInt(key.name, value));
-        costs.forEach((act, value) -> PREFERENCES.putInt(activityKey(act), value));
-    }
-
-    private String activityKey(WorldActivity activity) {
-        return Key.ACTIVITY.name + activity.name();
-    }
+    private final EnumMap<WorldActivity, Integer> factors = new EnumMap<>(WorldActivity.class);
 
     public int getNormalMutationRate() {
         return Key.NORMAL_MUTATION_RATE.getValue(this);
@@ -124,14 +101,6 @@ public class WorldConfiguration {
         Key.MAX_TEMP.setValue(this, maxTemp);
     }
 
-    public int getGrowthRate() {
-        return Key.RESOURCE_GROWTH_RATE.getValue(this);
-    }
-
-    public void setGrowthRate(int rate) {
-        Key.RESOURCE_GROWTH_RATE.setValue(this, rate);
-    }
-
     public int getYearLength() {
         return Key.YEAR_LENGTH.getValue(this);
     }
@@ -162,15 +131,12 @@ public class WorldConfiguration {
         return Key.SEED_COUNT.getValue(this);
     }
 
-    public void setSeedCount(int count) {
-        Key.SEED_COUNT.setValue(this, count);
-    }
-
-    public int getInitialEnergy() {
+    public int getSeedInitialEnergy() {
         return Key.INITIAL_ENERGY.getValue(this);
     }
 
-    public void setInitialEnergy(int energy) {
+    public void setSeed(int count, int energy) {
+        Key.SEED_COUNT.setValue(this, count);
         Key.INITIAL_ENERGY.setValue(this, energy);
     }
 
@@ -178,8 +144,8 @@ public class WorldConfiguration {
         return Key.MIN_SPLIT_TIME.getValue(this);
     }
 
-    public void setMinimumSplitTime(int delay) {
-        Key.MIN_SPLIT_TIME.setValue(this, delay);
+    public void setMinimumSplitTime(int time) {
+        Key.MIN_SPLIT_TIME.setValue(this, time);
     }
 
     public int getConsumptionRate() {
@@ -208,37 +174,35 @@ public class WorldConfiguration {
         Key.BASE_COST.setValue(this, cost);
     }
 
-    public int getMaxResources() {
-        return Key.MAX_RESOURCES.getValue(this);
-    }
-
-    public void setMaxResources(int resources) {
-        if (resources < 1)
-            throw new IllegalArgumentException("Max resources must be greater than 0");
-        Key.MAX_RESOURCES.setValue(this, resources);
-    }
-
     public int getActivityCost(WorldActivity activity) {
-        return costs.getOrDefault(activity, Key.ACTIVITY.defaultValue);
+        return costs.getOrDefault(activity, Key.ACTIVITY_COST.defaultValue);
     }
 
     public void setActivityCost(WorldActivity activity, int cost) {
         costs.put(activity, cost);
     }
 
-    public int getAgingRate() {
+    public int getActivityFactor(WorldActivity activity) {
+        return factors.getOrDefault(activity, Key.ACTIVITY_FACTOR.defaultValue);
+    }
+
+    public void setActivityFactor(WorldActivity activity, int factor) {
+        factors.put(activity, factor);
+    }
+
+    public int getAgeCost() {
         return Key.AGING_RATE.getValue(this);
     }
 
-    public void setAgingRate(int rate) {
-        Key.AGING_RATE.setValue(this, rate);
+    public void setAgeCost(int cost) {
+        Key.AGING_RATE.setValue(this, cost);
     }
 
-    public int getSizeRate() {
+    public int getSizeCost() {
         return Key.SIZE_RATE.getValue(this);
     }
 
-    public void setSizeRate(int rate) {
-        Key.SIZE_RATE.setValue(this, rate);
+    public void setSizeCost(int cost) {
+        Key.SIZE_RATE.setValue(this, cost);
     }
 }

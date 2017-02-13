@@ -262,4 +262,18 @@ public class WorldTest {
         world.tick();
         assertFalse(world.hasOrganism(space.position(5, 5)));
     }
+
+    @Test
+    public void testActivityCost() {
+        Organism organism = new Organism(world, 1000);
+        world.addOrganism(organism, space.position(5, 5), NORTH);
+        config.setActivityCost(WorldActivity.TURN_LEFT, 10);
+        config.setActivityFactor(WorldActivity.TURN_LEFT, 150);
+        world.performActivity(organism, WorldActivity.TURN_LEFT.ordinal());
+        assertThat(organism.getEnergy(), is(990));
+        world.performActivity(organism, WorldActivity.TURN_LEFT.ordinal());
+        assertThat(organism.getEnergy(), is(965));
+        world.performActivity(organism, WorldActivity.TURN_LEFT.ordinal());
+        assertThat(organism.getEnergy(), is(903));
+    }
 }

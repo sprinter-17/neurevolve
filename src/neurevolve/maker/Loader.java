@@ -10,6 +10,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.WorldActivity;
+import neurevolve.world.WorldConfiguration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -23,8 +25,11 @@ import org.xml.sax.SAXException;
  *
  * The structure of the file is as follows:
  * <pre>
- * {@code <world>}
+ * {@code <world [name='name']>}
  * {@code    <description>Here is a description</description>}
+ * {@code    <configuration>}
+ * {@code        <config-element>...}
+ * {@code    </configuration>}
  * {@code    <timing-element>...}
  * {@code        <type-element>...}
  * {@code            <shape-element/>...}
@@ -35,7 +40,39 @@ import org.xml.sax.SAXException;
  *
  * All elements, including description, are optional.
  *
+ * <p>
+ * The supported configuration elements are:</p>
  * <table style='border:1px solid black'>
+ * <caption>Configuration Elements</caption>
+ * <tr><th align='left'>Element</th><th align='left'>Description</th></tr>
+ * <tr><td>{@code <temperature_range min='n' max='x'/>}</td><td>Sets the range of temperatures from
+ * the horizontal edges (min) to the centre (max)</td></tr>
+ * <tr><td>{@code <mutation_rate normal='n' [radiation='r']/>}</td><td>Sets the mutation rate for
+ * non-radiated (normal) and, optionally, radiated (radiation) positions.</td></tr>
+ * <tr><td>{@code <year length='l' variation='v'/>}</td><td>Set the year for the world with a length
+ * of {@code l} and a temperature variation from {@code -v} (in winter) to {@code +v} (in
+ * summer).</td></tr>
+ * <tr><td>{@code <seed count='c' energy='e'/>}</td><td>Set the population level below which
+ * organisms are generated to {@code c}. When creating seed organisms, set their initial energy
+ * level to {@code e}</td></tr>
+ * <tr><td>{@code <activity_cost activity='name' cost='c'/ [factor='f']>}</td><td>Set the cost of
+ * performing activity with name {@code "name"} (ignoring case) once to {@code c}. Each time the
+ * activity is performed subsequently within a single activation, the cost increases by a factor of
+ * {@code f/100}. The default for {@code f} is {@code 50} if it is not supplied.</td></tr>
+ * <tr><td>{@code <time_costs base='b' age='a' size='s'/>}</td><td>Set the amount of energy used by
+ * organisms in each tick to be the sum of the base amount, the age amount for each 100 activations
+ * and the size amount for each 10 instructions in the recipe.</td></tr>
+ * <tr><td>{@code <minimum_split_time period='p'/>}</td><td>Set the minimum number of activations
+ * between divisions to {@code p}</td></tr>
+ * <tr><td>{@code <consumption_rate rate='r'/>}</td><td>Set the maximum amount of resource an
+ * organism can convert to energy in a single eat activity.</td></tr>
+ * </table>
+ *
+ * <p>
+ * The supported timing, type and shape elements are:</p>
+ *
+ * <table style='border:1px solid black'>
+ * <caption>Timing, Type and Shape Elements</caption>
  * <tr>
  * <th align='left'>Category</th><th align='left'>Element</th><th align='left'>Description</th>
  * </tr>
@@ -118,6 +155,7 @@ public class Loader {
 
     private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
     private WorldMaker maker;
+    private WorldConfiguration config;
     private String name;
     private Optional<String> description = Optional.empty();
 
@@ -139,15 +177,18 @@ public class Loader {
      * Load a world from a XML input source.
      *
      * @param maker the world maker to configures from the source
+     * @param config the configuration for the world
      * @param name the name of the world to construct
      * @param input the XML input source
      * @throws SAXException if there are errors parsing the input source
      */
-    public void load(WorldMaker maker, String name, InputSource input) throws SAXException {
+    public void load(WorldMaker maker, WorldConfiguration config,
+            String name, InputSource input) throws SAXException {
         try {
             DocumentBuilder builder = FACTORY.newDocumentBuilder();
             Document doc = builder.parse(input);
             this.maker = maker;
+            this.config = config;
             this.name = name;
             processDocument((Element) doc.getFirstChild());
         } catch (ParserConfigurationException | IOException ex) {
@@ -163,10 +204,7 @@ public class Loader {
             throw new SAXException("XML document node must be <world>");
         if (element.hasAttribute("name"))
             name = element.getAttribute("name");
-        for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
-            if (child.getNodeType() == Node.ELEMENT_NODE)
-                processWorldElement((Element) child);
-        }
+        processChildren(element, this::processWorldElement);
     }
 
     /**
@@ -177,9 +215,55 @@ public class Loader {
             case "description":
                 description = Optional.of(element.getTextContent());
                 break;
+            case "configuration":
+                processChildren(element, this::processConfiguration);
+                break;
             default:
                 processTiming(element);
                 break;
+        }
+    }
+
+    private void processConfiguration(Element element) throws SAXException {
+        switch (element.getNodeName()) {
+            case "temperature_range":
+                config.setTemperatureRange(getInt(element, "min"), getInt(element, "max"));
+                break;
+            case "mutation_rate":
+                config.setNormalMutationRate(getInt(element, "normal"));
+                if (element.hasAttribute("radiation"))
+                    config.setRadiatedMutationRate(getInt(element, "radiation"));
+                break;
+            case "year":
+                config.setYear(getInt(element, "length"), getInt(element, "variation"));
+                break;
+            case "seed":
+                config.setSeed(getInt(element, "count"), getInt(element, "energy"));
+                break;
+            case "activity_cost":
+                String activityName = element.getAttribute("activity");
+                WorldActivity activity = WorldActivity.withName(activityName)
+                        .orElseThrow(() -> new SAXException("Illegal activity " + activityName));
+                config.setActivityCost(activity, getInt(element, "cost"));
+                if (element.hasAttribute("factor"))
+                    config.setActivityFactor(activity, getInt(element, "factor"));
+                break;
+            case "activation_cost":
+                config.setBaseCost(getInt(element, "base"));
+                config.setAgeCost(getInt(element, "age"));
+                config.setSizeCost(getInt(element, "size"));
+                break;
+            case "minimum_split_time":
+                config.setMinimumSplitTime(getInt(element, "period"));
+                break;
+            case "consumption_rate":
+                config.setConsumptionRate(getInt(element, "rate"));
+                break;
+            default:
+                throw new SAXException("Illegal configuration: " + element.getNodeName());
+            /*
+        CONSUMPTION_RATE("Consumption Rate", 50),
+             */
         }
     }
 
@@ -198,10 +282,7 @@ public class Loader {
             default:
                 throw new SAXException("Illegal timing: " + element.getNodeName());
         }
-        for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
-            if (child.getNodeType() == Node.ELEMENT_NODE)
-                processType(timing, (Element) child);
-        }
+        processChildren(element, el -> processType(timing, el));
     }
 
     /**
@@ -228,10 +309,7 @@ public class Loader {
             default:
                 throw new SAXException("Illegal type " + element.getNodeName());
         }
-        for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
-            if (child.getNodeType() == Node.ELEMENT_NODE)
-                processShape(timing, type, (Element) child);
-        }
+        processChildren(element, el -> processShape(timing, type, el));
     }
 
     /**
@@ -270,11 +348,31 @@ public class Loader {
     }
 
     /**
+     * Simple functional interface to define a process to use with children of an element
+     */
+    @FunctionalInterface
+    private interface ChildProcessor {
+
+        void processChild(Element child) throws SAXException;
+    }
+
+    /**
+     * process all child elements of an element
+     */
+    private void processChildren(Element parent, ChildProcessor process) throws SAXException {
+        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (child.getNodeType() == Node.ELEMENT_NODE)
+                process.processChild((Element) child);
+        }
+    }
+
+    /**
      * Get a mandatory integer attribute from an element
      */
     private int getInt(Element element, String attribute) throws SAXException {
         if (!element.hasAttribute(attribute))
-            throw new SAXException("Element " + element.getNodeName() + " must have attribute " + attribute);
+            throw new SAXException("Element " + element.getNodeName()
+                    + " must have attribute " + attribute);
         try {
             return Integer.valueOf(element.getAttribute(attribute));
         } catch (NumberFormatException ex) {

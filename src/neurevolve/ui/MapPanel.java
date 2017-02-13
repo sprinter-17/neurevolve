@@ -121,7 +121,7 @@ public class MapPanel extends JPanel {
      * @return a colour, in RGB format, representing the number of resources
      */
     public static int resourceColour(WorldConfiguration config, int resource) {
-        return (resource * 128 / config.getMaxResources()) << GREEN_SHIFT;
+        return resource << GREEN_SHIFT;
     }
 
     public static int acidColour(WorldConfiguration config, boolean acid) {

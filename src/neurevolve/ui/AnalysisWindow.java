@@ -1,13 +1,15 @@
 package neurevolve.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -15,21 +17,24 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import static javax.swing.SwingWorker.StateValue.DONE;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import neurevolve.organism.Organism;
-import neurevolve.organism.Species;
 import neurevolve.world.World;
 
 /**
  * The <code>AnalysisWindow</code> is used to analyse the world's current population. It groups the
- * organisms into {@link neurevolve.organism.Species} by comparing the distances between their
- * recipes. The user can set the maximum distance that defines the boundaries of a species.
+ * organisms into Species by comparing the distances between their recipes. The user can set the
+ * maximum distance that defines the boundaries of a species.
  *
  * The window displays a table of the species with columns for the size (number of members), max
  * (maximum distance between any member and the first) and a textual description of the recipe of
@@ -38,10 +43,12 @@ import neurevolve.world.World;
 public class AnalysisWindow extends JFrame {
 
     private final World world;
-    private final SpeciesTableModel speciesTable = new SpeciesTableModel();
+    private final SpeciesTableModel speciesModel = new SpeciesTableModel();
     private Optional<AnalysisWorker> worker = Optional.empty();
+    private NetworkPanel networkPanel;
     private JProgressBar progressBar;
     private JLabel statusLabel;
+    private JTable speciesTable;
 
     /**
      * A table model that displays a list of species
@@ -51,11 +58,11 @@ public class AnalysisWindow extends JFrame {
         private final List<Species> speciesList = new ArrayList<>();
 
         private enum Column {
-            SIZE("Size", Integer.class, Species::size),
-            DISTANCE("Distance", Integer.class, Species::getLargestDistance),
-            RECIPE_LENGTH("Length", Integer.class, s -> s.getRecipeDescriber().getLength()),
-            RECIPE_JUNK("Junk", Integer.class, s -> s.getRecipeDescriber().getJunk()),
-            RECIPE("Recipe", String.class, s -> s.getRecipeDescriber().describe());
+            COLOUR("Colour", Integer.class, Species::getColour),
+            SIZE("Size", Integer.class, Species::getSize),
+            OLDEST("Oldest", Integer.class, Species::getMaxAge),
+            AVERAGE_AGE("Average Age", Float.class, Species::getAverageAge),
+            COMPLEXITY("Complexity", Integer.class, Species::getComplexity);
 
             private final String columnName;
             private final Class columnClass;
@@ -75,15 +82,27 @@ public class AnalysisWindow extends JFrame {
             fireTableDataChanged();
         }
 
+        public Species getSpecies(int index) {
+            return speciesList.get(index);
+        }
+
         public void clear() {
             speciesList.clear();
             fireTableDataChanged();
         }
 
-        public void setColumnSizes(TableColumnModel columns) {
-            IntStream.range(0, Column.values().length)
-                    .filter(i -> Column.values()[i].columnClass.equals(Integer.class))
-                    .forEach(i -> columns.getColumn(i).setMaxWidth(50));
+        public void setColumns(TableColumnModel columns) {
+            getColumn(columns, Column.COLOUR).setCellRenderer(getColourCellRenderer());
+            getColumn(columns, Column.COLOUR).setMaxWidth(50);
+            getColumn(columns, Column.SIZE).setMaxWidth(100);
+            getColumn(columns, Column.OLDEST).setMaxWidth(100);
+            getColumn(columns, Column.AVERAGE_AGE).setMaxWidth(100);
+            getColumn(columns, Column.AVERAGE_AGE).setCellRenderer(getAgeCellRenderer());
+            getColumn(columns, Column.COMPLEXITY).setMaxWidth(100);
+        }
+
+        private TableColumn getColumn(TableColumnModel model, Column column) {
+            return model.getColumn(column.ordinal());
         }
 
         @Override
@@ -110,6 +129,37 @@ public class AnalysisWindow extends JFrame {
         public Class<?> getColumnClass(int column) {
             return Column.values()[column].columnClass;
         }
+
+        public TableCellRenderer getColourCellRenderer() {
+            return new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value,
+                        boolean isSelected, boolean hasFocus, int row, int column) {
+                    JLabel label = (JLabel) super.getTableCellRendererComponent(table, value,
+                            isSelected, hasFocus, row, column);
+                    label.setText("");
+                    label.setBackground(new Color(speciesList.get(row).getColour()));
+                    return label;
+                }
+            };
+        }
+
+        public TableCellRenderer getAgeCellRenderer() {
+            DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+                @Override
+                protected void setValue(Object value) {
+                    if (value != null && value instanceof Number) {
+                        NumberFormat format = NumberFormat.getNumberInstance();
+                        format.setMaximumFractionDigits(1);
+                        format.setMinimumFractionDigits(1);
+                        value = format.format(value);
+                    }
+                    super.setValue(value);
+                }
+            };
+            renderer.setHorizontalAlignment(SwingConstants.RIGHT);
+            return renderer;
+        }
     }
 
     /**
@@ -118,14 +168,9 @@ public class AnalysisWindow extends JFrame {
      */
     private class AnalysisWorker extends SwingWorker<Integer, Species> {
 
-        private final int maxDistance;
         private final List<Species> speciesList = new ArrayList<>();
         private int populationSize;
         private int processed = 0;
-
-        public AnalysisWorker(int maxDistance) {
-            this.maxDistance = maxDistance;
-        }
 
         @Override
         protected Integer doInBackground() {
@@ -135,13 +180,13 @@ public class AnalysisWindow extends JFrame {
         }
 
         private void analyseOrganism(Organism organism) {
-            publish(Species.addToSpecies(organism, speciesList, maxDistance));
+            publish(Species.addToSpecies(organism, speciesList));
             processed++;
         }
 
         @Override
         protected void process(List<Species> chunks) {
-            speciesTable.add(chunks);
+            speciesModel.add(chunks);
             progressBar.setValue(100 * processed / populationSize);
         }
 
@@ -161,6 +206,7 @@ public class AnalysisWindow extends JFrame {
         this.world = world;
         makeToolBar();
         makePopulationTable();
+        makeNetworkPanel();
         makeStatusBar();
         pack();
     }
@@ -171,16 +217,13 @@ public class AnalysisWindow extends JFrame {
     private void makeToolBar() {
         JToolBar toolBar = new JToolBar();
         toolBar.setBorder(BorderFactory.createEtchedBorder());
-        toolBar.add(new JLabel("Species Definer"));
-        JSlider distanceSlider = new JSlider(1, 100, 20);
-        toolBar.add(distanceSlider);
         toolBar.add(new AbstractAction("Update") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!worker.isPresent() || worker.get().getState() == DONE) {
                     statusLabel.setText("Processing");
-                    speciesTable.clear();
-                    worker = Optional.of(new AnalysisWorker(distanceSlider.getValue()));
+                    speciesModel.clear();
+                    worker = Optional.of(new AnalysisWorker());
                     worker.get().execute();
                 }
             }
@@ -198,11 +241,30 @@ public class AnalysisWindow extends JFrame {
      * Construct the table to display species
      */
     private void makePopulationTable() {
-        JTable table = new JTable(speciesTable);
-        table.setAutoCreateRowSorter(true);
-        speciesTable.setColumnSizes(table.getColumnModel());
-        table.setPreferredSize(new Dimension(600, 600));
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        speciesTable = new JTable(speciesModel);
+        speciesTable.setAutoCreateRowSorter(true);
+        speciesModel.setColumns(speciesTable.getColumnModel());
+        speciesTable.getSelectionModel().addListSelectionListener(this::selectSpecies);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JScrollPane(speciesTable), BorderLayout.CENTER);
+        add(panel, BorderLayout.CENTER);
+    }
+
+    private void selectSpecies(ListSelectionEvent ev) {
+        int row = speciesTable.getSelectedRow();
+        if (row >= 0) {
+            int index = speciesTable.convertRowIndexToModel(row);
+            Species species = speciesModel.getSpecies(index);
+            networkPanel.showSpecies(species);
+        } else {
+            networkPanel.clear();
+        }
+    }
+
+    private void makeNetworkPanel() {
+        networkPanel = new NetworkPanel();
+        networkPanel.setPreferredSize(new Dimension(400, 400));
+        add(networkPanel, BorderLayout.EAST);
     }
 
     /**

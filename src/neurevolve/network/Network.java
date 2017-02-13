@@ -25,6 +25,10 @@ public class Network {
         return neurons.stream().mapToInt(Neuron::getValue).toArray();
     }
 
+    public int[] copyRanges() {
+        return neurons.stream().mapToInt(Neuron::getValueRange).toArray();
+    }
+
     /**
      * Get the size of network.
      *
@@ -145,6 +149,6 @@ public class Network {
      * firing.
      */
     public int getTotalActivitySwitches() {
-        return neurons.stream().mapToInt(Neuron::getActivationCount).sum();
+        return (int) neurons.stream().filter(n -> n.getValueRange() > 0).count();
     }
 }

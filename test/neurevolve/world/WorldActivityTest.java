@@ -1,5 +1,6 @@
 package neurevolve.world;
 
+import java.util.Optional;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Space.EAST;
@@ -49,5 +50,12 @@ public class WorldActivityTest {
         WorldActivity.DIVIDE.perform(world, organism);
         assertThat(organism.getEnergy(), is(50));
         assertThat(world.getPopulationSize(), is(2));
+    }
+
+    @Test
+    public void testWithName() {
+        assertThat(WorldActivity.withName("Fred"), is(Optional.empty()));
+        assertThat(WorldActivity.withName("split"), is(Optional.of(WorldActivity.DIVIDE)));
+        assertThat(WorldActivity.withName("SPLIT"), is(Optional.of(WorldActivity.DIVIDE)));
     }
 }

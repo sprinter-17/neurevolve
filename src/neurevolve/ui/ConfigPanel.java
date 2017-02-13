@@ -45,7 +45,7 @@ public class ConfigPanel extends JTabbedPane {
                 config.getRadiatedMutationRate(), config::setRadiatedMutationRate);
 
         JPanel temperaturePanel = addGroupPanel(worldPanel, "Temperature");
-        addValueSlider(temperaturePanel, "Growth Rate", 0, 20, config.getGrowthRate(), config::setGrowthRate);
+
         JSlider minTemp = addValueSlider(temperaturePanel, "At Pole", -200, 400, config.getMinTemp(), (v) -> config.setTemperatureRange(v, config.getMaxTemp()));
         JSlider maxTemp = addValueSlider(temperaturePanel, "At Equator", -200, 400, config.getMaxTemp(), (v) -> config.setTemperatureRange(config.getMinTemp(), v));
         minTemp.addChangeListener(e -> {
@@ -57,9 +57,9 @@ public class ConfigPanel extends JTabbedPane {
                 minTemp.setValue(maxTemp.getValue());
         });
         addValueSlider(temperaturePanel, "Year Length", 1, 3000,
-                config.getYearLength(), (v) -> config.setYear(v, config.getTempVariation()));
+                config.getYearLength(), v -> config.setYear(v, config.getTempVariation()));
         addValueSlider(temperaturePanel, "Season Variation", 0, 50,
-                config.getTempVariation(), (v) -> config.setYear(config.getYearLength(), v));
+                config.getTempVariation(), v -> config.setYear(config.getYearLength(), v));
     }
 
     private void addOrganismPanel() {
@@ -69,9 +69,9 @@ public class ConfigPanel extends JTabbedPane {
         addTab("Organism", new JScrollPane(organismPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         JPanel seedPanel = addGroupPanel(organismPanel, "Seed Values");
         addValueSlider(seedPanel, "Count", 1, 1000,
-                config.getSeedCount(), config::setSeedCount);
+                config.getSeedCount(), v -> config.setSeed(v, config.getSeedInitialEnergy()));
         addValueSlider(seedPanel, "Initial Energy", 100, 1000,
-                config.getInitialEnergy(), config::setInitialEnergy);
+                config.getSeedInitialEnergy(), v -> config.setSeed(config.getSeedCount(), v));
         JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
         addValueSlider(ratePanel, "Minimum Split Time", 0, 20,
                 config.getMinimumSplitTime(), config::setMinimumSplitTime);
@@ -80,9 +80,9 @@ public class ConfigPanel extends JTabbedPane {
         addValueSlider(ratePanel, "Base Cost", 0, 20,
                 config.getBaseCost(), config::setBaseCost);
         addValueSlider(ratePanel, "Aging Cost", 0, 20,
-                config.getAgingRate(), config::setAgingRate);
+                config.getAgeCost(), config::setAgeCost);
         addValueSlider(ratePanel, "Size Cost", 0, 20,
-                config.getSizeRate(), config::setSizeRate);
+                config.getSizeCost(), config::setSizeCost);
 
         JPanel costPanel = addGroupPanel(organismPanel, "Costs");
         for (WorldActivity activity : WorldActivity.values()) {

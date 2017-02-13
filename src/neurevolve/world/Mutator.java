@@ -8,11 +8,12 @@ import neurevolve.organism.Replicator;
 
 class Mutator implements Replicator {
 
-    private static final int MAX_RATE = 1000;
+    private static final int MAX_RATE = 300;
 
     private final Random random = new Random();
     private final int mutationRate;
     private int mutationCount = 0;
+    private int size = 0;
 
     Mutator(final int mutationRate) {
         this.mutationRate = Math.min(MAX_RATE, mutationRate);
@@ -20,6 +21,8 @@ class Mutator implements Replicator {
 
     @Override
     public Recipe copyInstructions(int[] instructions, int size, int colour) {
+        this.mutationCount = 0;
+        this.size = size;
         List<Integer> copy = new LinkedList<>();
         for (int pos = 0; pos < size; pos += advance()) {
             if (pos >= 0)
@@ -31,7 +34,7 @@ class Mutator implements Replicator {
     }
 
     private boolean mutate() {
-        boolean mutated = mutationRate > 0 && random.nextInt(MAX_RATE / mutationRate) == 0;
+        boolean mutated = mutationRate > 0 && random.nextInt(MAX_RATE * size / mutationRate) == 0;
         if (mutated)
             mutationCount++;
         return mutated;

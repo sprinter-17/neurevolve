@@ -77,7 +77,6 @@ public class MainWindow {
         tools.add(new JButton(new AbstractAction("Exit") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                config.write();
                 executor.shutdown();
                 System.exit(0);
             }
