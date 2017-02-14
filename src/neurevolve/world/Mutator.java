@@ -25,8 +25,9 @@ class Mutator implements Replicator {
         this.size = size;
         List<Integer> copy = new LinkedList<>();
         for (int pos = 0; pos < size; pos += advance()) {
-            if (pos >= 0)
+            if (pos >= 0) {
                 copy.add(copy(instructions[pos]));
+            }
         }
         Recipe recipe = new Recipe(colour(colour));
         copy.forEach(recipe::add);
@@ -35,21 +36,24 @@ class Mutator implements Replicator {
 
     private boolean mutate() {
         boolean mutated = mutationRate > 0 && random.nextInt(MAX_RATE * size / mutationRate) == 0;
-        if (mutated)
+        if (mutated) {
             mutationCount++;
+        }
         return mutated;
     }
 
     private int advance() {
-        if (mutate())
-            return random.nextInt(7) - 3;
-        else
+        if (mutate()) {
+            return random.nextInt(9) - 4;
+        } else {
             return 1;
+        }
     }
 
     private int copy(int code) {
-        if (mutate())
-            code += random.nextInt(11) - 5;
+        if (mutate()) {
+            code += random.nextInt(17) - 8;
+        }
         return code;
     }
 

@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class NetworkPanel extends JPanel {
     private BufferedImage networkImage;
     private BufferedImage inputImage;
 
-    private Map<Integer, Point> inputPositions = new HashMap<>();
+    private EnumMap<WorldInput, Point> inputPositions = new EnumMap<>(WorldInput.class);
 
     private Species species = null;
     private List<NeuronDescription> neurons;
@@ -165,7 +166,7 @@ public class NetworkPanel extends JPanel {
 
     private void drawDot(Graphics2D g, Point p, WorldInput input) {
         g.fillOval(p.x - 4, p.y - 4, 8, 8);
-        inputPositions.put(input.ordinal(), p);
+        inputPositions.put(input, p);
     }
 
     private void drawLine(Graphics2D g, int y, Point to, WorldInput input) {
@@ -223,20 +224,22 @@ public class NetworkPanel extends JPanel {
         Indenter indenter = new Indenter();
         neurons.stream().forEach((neuron) -> {
             neuron.forEachInput((i, w) -> {
-                if (inputPositions.containsKey(i)) {
-                    if (w < 0)
+                WorldInput input = WorldInput.decode(i);
+                if (inputPositions.containsKey(input)) {
+                    Point start = inputPositions.get(input);
+                    if (w < 0) {
                         g.setColor(NEGATIVE_COLOUR);
-                    else if (w > 0)
+                    } else if (w > 0) {
                         g.setColor(POSITIVE_COLOUR);
-                    else
+                    } else {
                         g.setColor(Color.DARK_GRAY);
+                    }
                     g.setStroke(new BasicStroke(Math.min(5, Math.abs(w) / 2)));
-                    Point start = inputPositions.get(i);
                     g.drawLine(start.x, start.y, 140 + offsetX + dragX + indenter.x,
                             offsetY + dragY + indenter.y + NEURON_HEIGHT / 2);
-                    indenter.next();
                 }
             });
+            indenter.next();
         });
     }
 
@@ -247,13 +250,12 @@ public class NetworkPanel extends JPanel {
             g.setColor(Color.BLACK);
             Indenter indenter = new Indenter();
             for (NeuronDescription neuron : neurons) {
+                Color colour = ranges != null && ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY;
                 if (neuron.getActivity().isPresent()) {
-                    paintBox(g, ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY,
-                            indenter.x, indenter.y, NEURON_WIDTH);
+                    paintBox(g, colour, indenter.x, indenter.y, NEURON_WIDTH);
                     paintString(g, neuron.getActivity().get(), indenter.x + 10, indenter.y + NEURON_HEIGHT - 10);
                 } else {
-                    paintBox(g, ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY,
-                            indenter.x, indenter.y, INDENT);
+                    paintBox(g, colour, indenter.x, indenter.y, INDENT);
                 }
                 Map<Integer, Integer> synapses = new HashMap<>();
                 neuron.forEachSynapse(synapses::put);

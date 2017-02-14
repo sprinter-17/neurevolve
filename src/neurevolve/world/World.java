@@ -22,14 +22,17 @@ import static neurevolve.world.Space.SOUTH;
 import static neurevolve.world.Space.WEST;
 
 /**
- * A <code>World</code> represents the two dimensional environment that a set of organisms exist
- * within. Each position in the world has:
+ * A <code>World</code> represents the two dimensional environment that a set of
+ * organisms exist within. Each position in the world has:
  * <ul>
  * <li>Zero or one organisms</li>
- * <li>A fixed elevation, representing the amount of energy required to move to that position</li>
- * <li>A variable temperature, representing the amount of energy deducted for organisms at that
- * position. The temperature depends on the position, elevation and time</li>
- * <li>A variable value that represents the amount of resources available for organisms</li>
+ * <li>A fixed elevation, representing the amount of energy required to move to
+ * that position</li>
+ * <li>A variable temperature, representing the amount of energy deducted for
+ * organisms at that position. The temperature depends on the position,
+ * elevation and time</li>
+ * <li>A variable value that represents the amount of resources available for
+ * organisms</li>
  * </ul>
  */
 public class World implements Environment {
@@ -79,8 +82,9 @@ public class World implements Environment {
         }
 
         public int set(int input, int data) {
-            if (data > max || data < 0)
+            if (data > max || data < 0) {
                 throw new IllegalArgumentException("Data out of range");
+            }
             return (input & ~mask) | (data << shift) & mask;
         }
 
@@ -89,7 +93,8 @@ public class World implements Environment {
     /**
      * Construct a world within a frame with a configuration
      *
-     * @param function the activation function to use for all organisms in the world
+     * @param function the activation function to use for all organisms in the
+     * world
      * @param frame the frame that defines the size of the world
      * @param configuration the configuration of the world
      */
@@ -171,7 +176,8 @@ public class World implements Environment {
     }
 
     /**
-     * Set the amount of resource at a position. This method is primarily for testing purposes
+     * Set the amount of resource at a position. This method is primarily for
+     * testing purposes
      *
      * @param position the position
      * @param amount the amount of resource to set
@@ -220,10 +226,10 @@ public class World implements Environment {
     }
 
     /**
-     * Add a hill at a given position, radius and slope. Changes the elevations in an area of the
-     * frame. The position is set by the centre and radius and the elevation is set by the slope,
-     * with the highest elevation at the centre. The entire area is additionally raised by the cliff
-     * amount.
+     * Add a hill at a given position, radius and slope. Changes the elevations
+     * in an area of the frame. The position is set by the centre and radius and
+     * the elevation is set by the slope, with the highest elevation at the
+     * centre. The entire area is additionally raised by the cliff amount.
      *
      * @param centre the position of highest elevation
      * @param radius the distance of the bottom of the hill from the centre
@@ -243,18 +249,21 @@ public class World implements Environment {
     }
 
     /**
-     * Get the difference in elevation between an organism's position and an adjacent position
+     * Get the difference in elevation between an organism's position and an
+     * adjacent position
      *
      * @param organism the organism that the slope is relative to
      * @param angle the angle to the position for the slope
-     * @return the difference in elevation between the adjacent position and the organism's position
+     * @return the difference in elevation between the adjacent position and the
+     * organism's position
      */
     public int getSlope(Organism organism, Angle angle) {
         return getElevation(getPosition(organism, angle)) - getElevation(getPosition(organism));
     }
 
     /**
-     * Set the elevation of a position. This method is primarily for testing purposes.
+     * Set the elevation of a position. This method is primarily for testing
+     * purposes.
      *
      * @param position the position whose elevation will be set
      * @param value the elevation to set the position to
@@ -283,8 +292,9 @@ public class World implements Environment {
     }
 
     /**
-     * Calculate a position relative to an organism. Given one or more angles, calculates a position
-     * by moving from an organism's position according to the angles.
+     * Calculate a position relative to an organism. Given one or more angles,
+     * calculates a position by moving from an organism's position according to
+     * the angles.
      *
      * @param organism the organism whose position is used
      * @param angles the angles to follow from the organism's position
@@ -308,17 +318,19 @@ public class World implements Environment {
      * Get the energy of the organism at a position.
      *
      * @param position the position of the organism
-     * @return the organism's energy, or 0 if there is no organism in the given position
+     * @return the organism's energy, or 0 if there is no organism in the given
+     * position
      */
     public int getOrganismEnergy(int position) {
         return hasOrganism(position) ? population.getOrganism(position).getEnergy() : 0;
     }
 
     public int getColourDifference(Organism organism, int position) {
-        if (!hasOrganism(position))
+        if (!hasOrganism(position)) {
             return -100;
-        else
+        } else {
             return organism.getColour() ^ population.getOrganism(position).getColour();
+        }
     }
 
     /**
@@ -330,11 +342,13 @@ public class World implements Environment {
      * @throws IllegalArgumentException if the position already has an organism
      */
     public void addOrganism(Organism organism, int position, int direction) {
-        if (hasWall(position))
+        if (hasWall(position)) {
             throw new IllegalArgumentException("Attempt to add organism in wall");
+        }
         population.addOrganism(organism, position, direction);
-        if (isAcidic(position))
+        if (isAcidic(position)) {
             organism.reduceEnergy(50);
+        }
     }
 
     /**
@@ -360,8 +374,8 @@ public class World implements Environment {
     }
 
     /**
-     * Advance the world 1 time unit. Add resources at all positions based on the temperature.
-     * Process all organisms.
+     * Advance the world 1 time unit. Add resources at all positions based on
+     * the temperature. Process all organisms.
      */
     public void tick() {
         time.tick();
@@ -393,8 +407,9 @@ public class World implements Environment {
     }
 
     /**
-     * Grow all resources in the world according to their temperature. The resources are increased
-     * by temp / 100 and a further one each temp % 100 ticks.
+     * Grow all resources in the world according to their temperature. The
+     * resources are increased by temp / 100 and a further one each temp % 100
+     * ticks.
      */
     private void growResources() {
         for (int i = 0; i < space.size(); i++) {
@@ -405,8 +420,9 @@ public class World implements Environment {
                     addResources(i, 1);
                     temp -= growthPeriod;
                 }
-                if (getTime() % (growthPeriod - temp) == 0)
+                if (getTime() % (growthPeriod - temp) == 0) {
                     addResources(i, 1);
+                }
             }
         }
     }
@@ -419,30 +435,34 @@ public class World implements Environment {
     }
 
     public float getAverageComplexity() {
-        if (population.size() == 0)
+        if (population.size() == 0) {
             return 0f;
-        else
+        } else {
             return (float) totalComplexity / population.size();
+        }
     }
 
     /**
-     * Feed an organism by consuming resources at a position relative to the organism. The amount is
-     * added to the organism's energy and taken from the world's resources at that position.
+     * Feed an organism by consuming resources at a position relative to the
+     * organism. The amount is added to the organism's energy and taken from the
+     * world's resources at that position.
      *
      * @param organism the organism
-     * @param angles zero or more angles defining the path to the position from which to consume
-     * resources
+     * @param angles zero or more angles defining the path to the position from
+     * which to consume resources
      */
     public void feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
-        int amount = Math.min(getResource(position), config.getConsumptionRate());
-        organism.increaseEnergy(amount);
-        addResources(position, -amount);
+        if (!hasWall(position)) {
+            int amount = Math.min(getResource(position), config.getConsumptionRate());
+            organism.increaseEnergy(amount);
+            addResources(position, -amount);
+        }
     }
 
     /**
-     * Move an organism forward, if it has sufficient energy to climb the slope and there is not
-     * organism in front.
+     * Move an organism forward, if it has sufficient energy to climb the slope
+     * and there is not organism in front.
      *
      * @param organism the organism to move
      */
@@ -450,8 +470,9 @@ public class World implements Environment {
         int slope = Math.max(0, getSlope(organism, FORWARD));
         if (!hasWall(population.getPosition(organism, FORWARD))) {
             population.moveOrganism(organism, slope);
-            if (getRadiation(population.getPosition(organism)) > 0)
+            if (getRadiation(population.getPosition(organism)) > 0) {
                 splitToAnyOpenPosition(0, organism);
+            }
         }
     }
 
@@ -466,10 +487,11 @@ public class World implements Environment {
     }
 
     /**
-     * Split and organism. The child organism is placed at a random position next to this organism
-     * facing in the same direction. The split consumes as much energy as the size of the recipe
-     * being replicated. If it does not have enough energy then it does not split. It also does not
-     * split if there are no free positions adjacent to the organism.
+     * Split and organism. The child organism is placed at a random position
+     * next to this organism facing in the same direction. The split consumes as
+     * much energy as the size of the recipe being replicated. If it does not
+     * have enough energy then it does not split. It also does not split if
+     * there are no free positions adjacent to the organism.
      *
      * @param organism the organism to split
      */
@@ -478,8 +500,9 @@ public class World implements Environment {
     }
 
     private void splitToAnyOpenPosition(int minTime, Organism parent) {
-        if (parent.canDivide(minTime))
+        if (parent.canDivide(minTime)) {
             openPositionNextTo(getPosition(parent)).ifPresent(pos -> splitTo(parent, pos));
+        }
     }
 
     private void splitTo(Organism parent, int position) {
@@ -494,8 +517,8 @@ public class World implements Environment {
     }
 
     /**
-     * Get an adjacent position that does not have an organism, or OptionalInt.empty() if all
-     * adjacent positions have an organism.
+     * Get an adjacent position that does not have an organism, or
+     * OptionalInt.empty() if all adjacent positions have an organism.
      */
     private OptionalInt openPositionNextTo(int position) {
         final List<Integer> directions = Arrays.asList(EAST, WEST, NORTH, SOUTH);
@@ -507,8 +530,9 @@ public class World implements Environment {
     }
 
     /**
-     * Process the population. This uses a copy of the population array so that changes that occur
-     * during processing do not interfere with the current state.
+     * Process the population. This uses a copy of the population array so that
+     * changes that occur during processing do not interfere with the current
+     * state.
      */
     public void processPopulation() {
         totalComplexity = 0;
@@ -519,7 +543,8 @@ public class World implements Environment {
     }
 
     /**
-     * Process the organism at a given position. Reduce its energy according to temperature
+     * Process the organism at a given position. Reduce its energy according to
+     * temperature
      */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
@@ -529,22 +554,26 @@ public class World implements Environment {
         population.resetActivityCount(organism);
         organism.activate();
         totalComplexity += organism.complexity();
-        if (organism.isDead())
+        if (organism.isDead()) {
             removeOrganism(organism);
+        }
     }
 
     /**
-     * Reduce the energy of an organism by the temperature at its position only if it is negative
+     * Reduce the energy of an organism by the temperature at its position only
+     * if it is negative
      */
     private void reduceEnergyByTemperature(int position, Organism organism) {
         int temp = getTemperature(position);
-        if (temp < 0)
+        if (temp < 0) {
             organism.reduceEnergy(-temp);
+        }
     }
 
     /**
-     * Attack an organism at a given angle. This activity costs 20 energy. The organism with less
-     * current energy dies. The energy of that organism becomes resources at their current position.
+     * Attack an organism at a given angle. This activity costs 20 energy. The
+     * organism with less current energy dies. The energy of that organism
+     * becomes resources at their current position.
      *
      * @param attacker the organism that is the source of the attack
      * @param angle the angle to the target organism
@@ -580,7 +609,8 @@ public class World implements Environment {
     }
 
     /**
-     * Get the temperature of a position. Calculated based on latitude, elevation and season.
+     * Get the temperature of a position. Calculated based on latitude,
+     * elevation and season.
      *
      * @param position the position to retrieve the temperature for
      * @return the temperature
@@ -608,7 +638,8 @@ public class World implements Environment {
      * Get an input for an organism
      *
      * @param organism the organism to get input for
-     * @param input the code for the input value, as defined by {@link WorldInput#decode}
+     * @param input the code for the input value, as defined by
+     * {@link WorldInput#decode}
      * @return the value for the code
      */
     @Override
@@ -620,7 +651,8 @@ public class World implements Environment {
      * Perform an activity by an organism
      *
      * @param organism the organism to perform the activity
-     * @param code the code for the activity to perform, as defined by {@link WorldActivity#decode}.
+     * @param code the code for the activity to perform, as defined by
+     * {@link WorldActivity#decode}.
      */
     @Override
     public void performActivity(Organism organism, int code) {

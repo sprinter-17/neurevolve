@@ -7,13 +7,9 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import static java.lang.Math.abs;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.IntSupplier;
-import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,12 +18,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
-import neurevolve.organism.RecipeDescriber;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
-import static java.lang.Math.abs;
 
 public class ZoomWindow {
 
@@ -97,8 +91,9 @@ public class ZoomWindow {
     }
 
     private NetworkSnapShot getNetwork(Organism organism) {
-        if (organism == null || snapShots.isEmpty())
+        if (organism == null || snapShots.isEmpty()) {
             return null;
+        }
         return snapShots.get(currentSnapShot).networks.stream()
                 .filter(n -> n.organism == organism)
                 .findAny().orElse(null);
@@ -156,66 +151,6 @@ public class ZoomWindow {
         }
     }
 
-    private class NetworkPanel extends JPanel {
-
-        private int line = 1;
-        private RecipeDescriber describer = null;
-        private final Map<Integer, String> toolTips = new HashMap<>();
-
-        @Override
-        public void paint(Graphics g) {
-            super.paint(g);
-            NetworkSnapShot network = getNetwork(currentOrganism);
-            if (network == null) {
-                g.setColor(Color.GRAY);
-                g.fillRect(0, 0, NETWORK_PANEL_WIDTH, SIDE);
-            } else {
-                line = 1;
-                describer = network.organism.describeRecipe();
-                drawLine(g, "Length of recipe", Color.BLACK, describer.getLength());
-                drawLine(g, "Amount of junk", Color.BLACK, describer.getJunk());
-                line++;
-                drawLine(g, "Age", Color.BLACK, network.age);
-                drawLine(g, "Energy", Color.BLACK, network.energy);
-                drawLine(g, "Descendents", Color.BLACK, network.descendents);
-                line++;
-                toolTips.clear();
-                describer.getNeuronDescriptions()
-                        .filter(RecipeDescriber.NeuronDescription::isNotJunk)
-                        .forEach(desc -> {
-                            int value = network.values[desc.getId() - 1];
-                            int range = network.ranges[desc.getId() - 1];
-                            toolTips.put(line, getInputOutputs(desc));
-                            Color valueColour = value >= 0 ? POSITIVE : NEGATIVE;
-                            drawLine(g, desc.getNeuronDescription(), valueColour, abs(range));
-                        });
-            }
-        }
-
-        private void drawLine(Graphics g, String label, Color valueColour, int value) {
-            g.setColor(Color.BLACK);
-            g.drawString(label, 10, line * TEXT_HEIGHT);
-            g.setColor(valueColour);
-            g.drawString(String.valueOf(value), NETWORK_PANEL_VALUE, line * TEXT_HEIGHT);
-            line++;
-        }
-
-        private String getInputOutputs(RecipeDescriber.NeuronDescription neuronDescriber) {
-            if (neuronDescriber.getInputDescriptions().count() == 0 && neuronDescriber.getOutputDescriptions().count() == 0)
-                return "None";
-            else
-                return neuronDescriber.getInputDescriptions().collect(Collectors.joining(" "))
-                        + neuronDescriber.getOutputDescriptions().collect(Collectors.joining(" "));
-        }
-
-        @Override
-        public String getToolTipText(MouseEvent event) {
-            int mouseLine = 1 + event.getY() / TEXT_HEIGHT;
-            return toolTips.getOrDefault(mouseLine, "None");
-        }
-
-    }
-
     public ZoomWindow(World world, Space space, WorldConfiguration config, int centreX, int centreY) {
         this.world = world;
         this.space = space;
@@ -260,15 +195,14 @@ public class ZoomWindow {
                     int y = e.getY() / PIXEL_SIZE;
                     if (x < SIDE && y < SIDE) {
                         currentOrganism = snapShot.organisms[x][y];
+                        networkDisplay.showSpecies(new Species(currentOrganism));
                     }
-                    networkDisplay.repaint();
                     zoomPanel.repaint();
                 }
             }
         });
 
         frame.add(networkDisplay, BorderLayout.EAST);
-        networkDisplay.setToolTipText("Network information");
         frame.setLocationRelativeTo(null);
         frame.pack();
     }
@@ -284,10 +218,12 @@ public class ZoomWindow {
 
     private void moveTo(int snapShot) {
         currentSnapShot = snapShot;
-        if (currentSnapShot < 0)
+        if (currentSnapShot < 0) {
             currentSnapShot = 0;
-        if (currentSnapShot >= snapShots.size())
+        }
+        if (currentSnapShot >= snapShots.size()) {
             currentSnapShot = snapShots.size() - 1;
+        }
         updatePositionLabel();
         frame.repaint();
     }
