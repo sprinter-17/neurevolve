@@ -220,12 +220,7 @@ public class AnalysisWindow extends JFrame {
         toolBar.add(new AbstractAction("Update") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!worker.isPresent() || worker.get().getState() == DONE) {
-                    statusLabel.setText("Processing");
-                    speciesModel.clear();
-                    worker = Optional.of(new AnalysisWorker());
-                    worker.get().execute();
-                }
+                update();
             }
         });
         toolBar.add(new AbstractAction("Close") {
@@ -235,6 +230,22 @@ public class AnalysisWindow extends JFrame {
             }
         });
         add(toolBar, BorderLayout.NORTH);
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        super.setVisible(b);
+        if (b)
+            update();
+    }
+
+    private void update() {
+        if (!worker.isPresent() || worker.get().getState() == DONE) {
+            speciesModel.clear();
+            statusLabel.setText("Processing");
+            worker = Optional.of(new AnalysisWorker());
+            worker.get().execute();
+        }
     }
 
     /**
@@ -247,7 +258,7 @@ public class AnalysisWindow extends JFrame {
         speciesTable.getSelectionModel().addListSelectionListener(this::selectSpecies);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(speciesTable), BorderLayout.CENTER);
-        add(panel, BorderLayout.CENTER);
+        add(panel, BorderLayout.WEST);
     }
 
     private void selectSpecies(ListSelectionEvent ev) {
@@ -264,7 +275,7 @@ public class AnalysisWindow extends JFrame {
     private void makeNetworkPanel() {
         networkPanel = new NetworkPanel();
         networkPanel.setPreferredSize(new Dimension(400, 400));
-        add(networkPanel, BorderLayout.EAST);
+        add(networkPanel, BorderLayout.CENTER);
     }
 
     /**

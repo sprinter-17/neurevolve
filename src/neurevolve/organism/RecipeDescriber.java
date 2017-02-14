@@ -36,6 +36,7 @@ public class RecipeDescriber {
         private final int threshold;
         private Optional<String> activity = Optional.empty();
         private final Map<Integer, Integer> synapses = new HashMap<>();
+        private final Map<Integer, Integer> inputWeights = new HashMap<>();
         private final StringBuilder neuron = new StringBuilder();
         private final List<StringBuilder> inputs = new ArrayList<>();
         private final List<StringBuilder> outputs = new ArrayList<>();
@@ -64,6 +65,10 @@ public class RecipeDescriber {
 
         public void forEachSynapse(BiConsumer<Integer, Integer> process) {
             synapses.forEach(process);
+        }
+
+        public void forEachInput(BiConsumer<Integer, Integer> process) {
+            inputWeights.forEach(process);
         }
 
         public String getNeuronDescription() {
@@ -127,6 +132,7 @@ public class RecipeDescriber {
                         .append(environment.describeActivity(activity.getAsInt()));
             }
             inputs.forEach(i -> i.describe(description.getInput()));
+            inputs.forEach(i -> description.inputWeights.put(i.input, i.weight));
             synapses.stream()
                     .sorted(Comparator.comparingInt(s -> s.from))
                     .forEach(s -> s.describe(description.getInput()));

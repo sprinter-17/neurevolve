@@ -51,6 +51,11 @@ public class Species {
         return complexityRanges;
     }
 
+    public boolean matches(Species other) {
+        return this.colour == other.colour
+                && this.recipe.matches(other.recipe);
+    }
+
     public static Species addToSpecies(Organism organism, List<Species> speciesList) {
         Species species = speciesList.stream().filter(s -> s.recipe.matches(organism.getRecipe()))
                 .findAny().orElseGet(() -> {

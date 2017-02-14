@@ -15,15 +15,18 @@ import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputAdapter;
 import neurevolve.organism.RecipeDescriber.NeuronDescription;
+import neurevolve.world.WorldInput;
 import static neurevolve.world.WorldInput.AGE;
+import static neurevolve.world.WorldInput.OWN_ENERGY;
+import static neurevolve.world.WorldInput.TEMPERATURE;
 
 public class NetworkPanel extends JPanel {
 
     private static final Color POSITIVE_COLOUR = Color.GREEN.darker();
     private static final Color NEGATIVE_COLOUR = Color.RED.darker();
 
-    private static final int INDENT = 30;
-    private static final int GAP = 10;
+    private static final int INDENT = 18;
+    private static final int GAP = 5;
     private static final int NEURON_WIDTH = 100;
     private static final int NEURON_HEIGHT = 35;
 
@@ -85,44 +88,89 @@ public class NetworkPanel extends JPanel {
         g.setColor(new Color(242, 217, 230));
         g.fillRect(0, 0, 140, 1000);
         g.setColor(Color.pink.darker());
-        int y = -15;
+        int y = 25;
         int height = 40;
-        drawNonPositionalInput(g, "Own Age", y += height);
-        inputPositions.put(AGE.ordinal(), here(y));
-        drawNonPositionalInput(g, "Own Energy", y += height);
-        drawNonPositionalInput(g, "Temperature", y += height);
-        drawPositionalInput(g, "Resource", y += height);
-        drawPositionalInput(g, "Slope", y += height);
-        drawPositionalInput(g, "Wall", y += height);
-        drawPositionalInput(g, "Radiation", y += height);
-        drawPositionalInput(g, "Other Colour", y += height);
-        drawPositionalInput(g, "Other Energy", y += height);
-    }
+        drawInputName(g, "Own Age", y);
+        drawDot(g, here(y), AGE);
 
-    private void drawNonPositionalInput(Graphics2D g, String name, int y) {
-        drawInputName(g, name, y);
-        drawDot(g, here(y));
+        y += height;
+        drawInputName(g, "Own Energy", y);
+        drawDot(g, here(y), OWN_ENERGY);
+
+        y += height;
+        drawInputName(g, "Temperature", y);
+        drawDot(g, here(y), TEMPERATURE);
+
+        y += height;
+        drawInputName(g, "Resource", y);
+        drawDot(g, here(y), WorldInput.LOOK_RESOURCE_HERE);
+        drawLine(g, y, forward(y), WorldInput.LOOK_RESOURCE_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_RESOURCE_FAR_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_RESOURCE_LEFT);
+        drawLine(g, y, right(y), WorldInput.LOOK_RESOURCE_RIGHT);
+
+        y += height;
+        drawInputName(g, "Slope", y);
+        drawLine(g, y, forward(y), WorldInput.LOOK_SLOPE_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_SLOPE_LEFT);
+        drawLine(g, y, right(y), WorldInput.LOOK_SLOPE_RIGHT);
+
+        y += height;
+        drawInputName(g, "Wall", y);
+        drawLine(g, y, forward(y), WorldInput.LOOK_WALL_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_WALL_FAR_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_WALL_FORWARD);
+        drawLine(g, y, right(y), WorldInput.LOOK_WALL_RIGHT);
+
+        y += height;
+        drawInputName(g, "Radiation", y);
+        drawDot(g, here(y), WorldInput.LOOK_RADIATION_HERE);
+        drawLine(g, y, forward(y), WorldInput.LOOK_RADIATION_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_RADIATION_FAR_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_RADIATION_LEFT);
+        drawLine(g, y, right(y), WorldInput.LOOK_RADIATION_RIGHT);
+
+        y += height;
+        drawInputName(g, "Other Colour", y);
+        drawLine(g, y, forward(y), WorldInput.LOOK_ORGANISM_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_ORGANISM_FAR_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_ORGANISM_LEFT);
+        drawLine(g, y, right(y), WorldInput.LOOK_ORGANISM_RIGHT);
+
+        y += height;
+        drawInputName(g, "Other Energy", y);
+        drawLine(g, y, forward(y), WorldInput.LOOK_ORGANISM_ENERGY_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_ORGANISM_ENERGY_FAR_FORWARD);
     }
 
     private Point here(int y) {
-        return new Point(84, y - 4);
+        return new Point(86, y - 4);
     }
 
-    private void drawDot(Graphics2D g, Point p) {
+    private Point forward(int y) {
+        return new Point(here(y).x + 16, here(y).y);
+    }
+
+    private Point farForward(int y) {
+        return new Point(here(y).x + 32, here(y).y);
+    }
+
+    private Point left(int y) {
+        return new Point(here(y).x, here(y).y - 12);
+    }
+
+    private Point right(int y) {
+        return new Point(here(y).x, here(y).y + 12);
+    }
+
+    private void drawDot(Graphics2D g, Point p, WorldInput input) {
         g.fillOval(p.x - 4, p.y - 4, 8, 8);
+        inputPositions.put(input.ordinal(), p);
     }
 
-    private void drawPositionalInput(Graphics2D g, String name, int y) {
-        drawInputName(g, name, y);
-        g.fillOval(82, y - 8, 8, 8);
-        g.drawLine(86, y - 4, 103, y - 4);
-        g.fillOval(99, y - 8, 8, 8);
-        g.drawLine(86, y - 4, 120, y - 4);
-        g.fillOval(116, y - 8, 8, 8);
-        g.drawLine(86, y - 8, 86, y - 16);
-        g.fillOval(82, y - 20, 8, 8);
-        g.drawLine(86, y - 4, 86, y + 8);
-        g.fillOval(82, y + 4, 8, 8);
+    private void drawLine(Graphics2D g, int y, Point to, WorldInput input) {
+        g.drawLine(here(y).x, here(y).y, to.x, to.y);
+        drawDot(g, to, input);
     }
 
     private void drawInputName(Graphics2D g, String name, int y) {
@@ -164,8 +212,32 @@ public class NetworkPanel extends JPanel {
     public void paint(Graphics g) {
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, getWidth(), getHeight());
-        g.drawImage(networkImage, 140 + offsetX + dragX, offsetY + dragY, this);
-        g.drawImage(inputImage, 0, 0, this);
+        if (species != null) {
+            g.drawImage(networkImage, 140 + offsetX + dragX, offsetY + dragY, this);
+            g.drawImage(inputImage, 0, 0, this);
+            paintInputs((Graphics2D) g);
+        }
+    }
+
+    private void paintInputs(Graphics2D g) {
+        Indenter indenter = new Indenter();
+        neurons.stream().forEach((neuron) -> {
+            neuron.forEachInput((i, w) -> {
+                if (inputPositions.containsKey(i)) {
+                    if (w < 0)
+                        g.setColor(NEGATIVE_COLOUR);
+                    else if (w > 0)
+                        g.setColor(POSITIVE_COLOUR);
+                    else
+                        g.setColor(Color.DARK_GRAY);
+                    g.setStroke(new BasicStroke(Math.min(5, Math.abs(w) / 2)));
+                    Point start = inputPositions.get(i);
+                    g.drawLine(start.x, start.y, 140 + offsetX + dragX + indenter.x,
+                            offsetY + dragY + indenter.y + NEURON_HEIGHT / 2);
+                    indenter.next();
+                }
+            });
+        });
     }
 
     public void paintNetwork(Graphics2D g) {
@@ -176,10 +248,12 @@ public class NetworkPanel extends JPanel {
             Indenter indenter = new Indenter();
             for (NeuronDescription neuron : neurons) {
                 if (neuron.getActivity().isPresent()) {
-                    paintBox(g, indenter.x, indenter.y, NEURON_WIDTH);
+                    paintBox(g, ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY,
+                            indenter.x, indenter.y, NEURON_WIDTH);
                     paintString(g, neuron.getActivity().get(), indenter.x + 10, indenter.y + NEURON_HEIGHT - 10);
                 } else {
-                    paintBox(g, indenter.x, indenter.y, INDENT);
+                    paintBox(g, ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY,
+                            indenter.x, indenter.y, INDENT);
                 }
                 Map<Integer, Integer> synapses = new HashMap<>();
                 neuron.forEachSynapse(synapses::put);
@@ -221,8 +295,8 @@ public class NetworkPanel extends JPanel {
         }
     }
 
-    private void paintBox(Graphics2D g, int x, int y, int width) {
-        g.setColor(Color.LIGHT_GRAY);
+    private void paintBox(Graphics2D g, Color color, int x, int y, int width) {
+        g.setColor(color);
         g.fillRect(x, y, width, NEURON_HEIGHT);
         g.setColor(Color.LIGHT_GRAY.darker());
         g.drawRect(x, y, width, NEURON_HEIGHT);

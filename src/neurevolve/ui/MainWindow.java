@@ -97,8 +97,6 @@ public class MainWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 analysisWindow.setVisible(true);
-                pauseButton.setSelected(true);
-                paused = true;
             }
         });
         tools.add(analysisButton);
