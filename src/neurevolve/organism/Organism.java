@@ -75,10 +75,6 @@ public class Organism {
         return recipe;
     }
 
-    public Environment getEnvironment() {
-        return environment;
-    }
-
     public int getColour() {
         return recipe.getColour();
     }

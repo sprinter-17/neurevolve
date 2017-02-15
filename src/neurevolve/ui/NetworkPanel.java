@@ -1,5 +1,6 @@
 package neurevolve.ui;
 
+import neurevolve.organism.Species;
 import java.awt.BasicStroke;
 import static java.awt.BasicStroke.CAP_BUTT;
 import java.awt.Color;
@@ -21,11 +22,16 @@ import static neurevolve.world.WorldInput.AGE;
 import static neurevolve.world.WorldInput.OWN_ENERGY;
 import static neurevolve.world.WorldInput.TEMPERATURE;
 
+/**
+ * A {@code NetworkPanel} is used to visually display an organism's or species's network. It can be
+ * used within another frame to allow a selected species or organism to be shown.
+ */
 public class NetworkPanel extends JPanel {
 
     private static final Color POSITIVE_COLOUR = Color.GREEN.darker();
     private static final Color NEGATIVE_COLOUR = Color.RED.darker();
 
+    private static final int INPUT_IMAGE_WIDTH = 140;
     private static final int INDENT = 18;
     private static final int GAP = 5;
     private static final int NEURON_WIDTH = 100;
@@ -75,6 +81,9 @@ public class NetworkPanel extends JPanel {
 
     }
 
+    /**
+     * Construct a network panel
+     */
     public NetworkPanel() {
         super(null);
         Dragger dragger = new Dragger();
@@ -83,13 +92,17 @@ public class NetworkPanel extends JPanel {
         drawInputImage();
     }
 
+    /**
+     * Draw a fixed image representing the various inputs to neurons
+     */
     private void drawInputImage() {
-        inputImage = new BufferedImage(140, 1000, BufferedImage.TYPE_INT_RGB);
+        inputImage = new BufferedImage(INPUT_IMAGE_WIDTH, 1000, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = inputImage.createGraphics();
         g.setColor(new Color(242, 217, 230));
-        g.fillRect(0, 0, 140, 1000);
+        g.fillRect(0, 0, INPUT_IMAGE_WIDTH, 1000);
         g.setColor(Color.pink.darker());
         int y = 25;
+
         int height = 40;
         drawInputName(g, "Own Age", y);
         drawDot(g, here(y), AGE);
@@ -144,40 +157,69 @@ public class NetworkPanel extends JPanel {
         drawLine(g, y, farForward(y), WorldInput.LOOK_ORGANISM_ENERGY_FAR_FORWARD);
     }
 
+    /**
+     * Calculate the point representing input from the current position
+     */
     private Point here(int y) {
         return new Point(86, y - 4);
     }
 
+    /**
+     * Calculate the point representing input from the forward position
+     */
     private Point forward(int y) {
         return new Point(here(y).x + 16, here(y).y);
     }
 
+    /**
+     * Calculate the point representing input from the far forward position
+     */
     private Point farForward(int y) {
         return new Point(here(y).x + 32, here(y).y);
     }
 
+    /**
+     * Calculate the point representing input from the left position
+     */
     private Point left(int y) {
         return new Point(here(y).x, here(y).y - 12);
     }
 
+    /**
+     * Calculate the point representing input from the right position
+     */
     private Point right(int y) {
         return new Point(here(y).x, here(y).y + 12);
     }
 
-    private void drawDot(Graphics2D g, Point p, WorldInput input) {
-        g.fillOval(p.x - 4, p.y - 4, 8, 8);
-        inputPositions.put(input, p);
-    }
-
+    /**
+     * Draw a line and dot representing an input
+     */
     private void drawLine(Graphics2D g, int y, Point to, WorldInput input) {
         g.drawLine(here(y).x, here(y).y, to.x, to.y);
         drawDot(g, to, input);
     }
 
+    /**
+     * Draw a dot representing an input
+     */
+    private void drawDot(Graphics2D g, Point p, WorldInput input) {
+        g.fillOval(p.x - 4, p.y - 4, 8, 8);
+        inputPositions.put(input, p);
+    }
+
+    /**
+     * Draw a string for the name of the input
+     */
     private void drawInputName(Graphics2D g, String name, int y) {
         g.drawString(name, 80 - g.getFontMetrics().stringWidth(name), y);
     }
 
+    /**
+     * Display a species in the network panel.
+     *
+     * @param species the species to display
+     */
     public void showSpecies(Species species) {
         this.species = species;
         neurons = species.describeRecipe()
@@ -191,11 +233,17 @@ public class NetworkPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Clear the network panel
+     */
     public void clear() {
         species = null;
         repaint();
     }
 
+    /**
+     * An {@code Indenter} is used to locate each Neuron by moving a consistent distance
+     */
     private class Indenter {
 
         private int x = INDENT;
@@ -209,17 +257,25 @@ public class NetworkPanel extends JPanel {
         }
     }
 
+    /**
+     * Paint the input, network and links
+     *
+     * @param g the {@code Graphics} to paint within
+     */
     @Override
     public void paint(Graphics g) {
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, getWidth(), getHeight());
         if (species != null) {
-            g.drawImage(networkImage, 140 + offsetX + dragX, offsetY + dragY, this);
+            g.drawImage(networkImage, INPUT_IMAGE_WIDTH + offsetX + dragX, offsetY + dragY, this);
             g.drawImage(inputImage, 0, 0, this);
             paintInputs((Graphics2D) g);
         }
     }
 
+    /**
+     * Paint the links from the input image to the network image
+     */
     private void paintInputs(Graphics2D g) {
         Indenter indenter = new Indenter();
         neurons.stream().forEach((neuron) -> {
@@ -235,7 +291,7 @@ public class NetworkPanel extends JPanel {
                         g.setColor(Color.DARK_GRAY);
                     }
                     g.setStroke(new BasicStroke(Math.min(5, Math.abs(w) / 2)));
-                    g.drawLine(start.x, start.y, 140 + offsetX + dragX + indenter.x,
+                    g.drawLine(start.x, start.y, INPUT_IMAGE_WIDTH + offsetX + dragX + indenter.x,
                             offsetY + dragY + indenter.y + NEURON_HEIGHT / 2);
                 }
             });
@@ -243,7 +299,10 @@ public class NetworkPanel extends JPanel {
         });
     }
 
-    public void paintNetwork(Graphics2D g) {
+    /**
+     * Paint the network into a graphics
+     */
+    private void paintNetwork(Graphics2D g) {
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, 500, 1000);
         if (species != null) {
@@ -253,7 +312,7 @@ public class NetworkPanel extends JPanel {
                 Color colour = ranges != null && ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY;
                 if (neuron.getActivity().isPresent()) {
                     paintBox(g, colour, indenter.x, indenter.y, NEURON_WIDTH);
-                    paintString(g, neuron.getActivity().get(), indenter.x + 10, indenter.y + NEURON_HEIGHT - 10);
+                    paintActivity(g, neuron.getActivity().get(), indenter.x + 10, indenter.y + NEURON_HEIGHT - 10);
                 } else {
                     paintBox(g, colour, indenter.x, indenter.y, INDENT);
                 }
@@ -272,6 +331,29 @@ public class NetworkPanel extends JPanel {
         }
     }
 
+    /**
+     * Paint a box representing a neuron
+     */
+    private void paintBox(Graphics2D g, Color color, int x, int y, int width) {
+        g.setColor(color);
+        g.fillRect(x, y, width, NEURON_HEIGHT);
+        g.setColor(Color.LIGHT_GRAY.darker());
+        g.drawRect(x, y, width, NEURON_HEIGHT);
+        g.setColor(Color.LIGHT_GRAY.brighter());
+        g.drawRect(x + 1, y + 1, width - 2, NEURON_HEIGHT - 2);
+    }
+
+    /**
+     * Paint a string for a Neuron's activity
+     */
+    private void paintActivity(Graphics2D g, String text, int x, int y) {
+        g.setColor(Color.BLACK);
+        g.drawString(text, x, y);
+    }
+
+    /**
+     * Paint a link from one neuron to another
+     */
     private void paintLink(Graphics2D g, int fromX, int toX, int fromY, int toY, int weight) {
         g.setColor(Color.BLACK);
         g.drawLine(fromX, fromY, fromX, toY);
@@ -285,6 +367,9 @@ public class NetworkPanel extends JPanel {
         g.setStroke(new BasicStroke(1));
     }
 
+    /**
+     * Paint a visual display of a neuron's threshold
+     */
     private void paintThreshold(Graphics2D g, int threshold, int x, int y) {
         if (threshold < 0) {
             threshold = Math.min(10, -threshold);
@@ -297,17 +382,4 @@ public class NetworkPanel extends JPanel {
         }
     }
 
-    private void paintBox(Graphics2D g, Color color, int x, int y, int width) {
-        g.setColor(color);
-        g.fillRect(x, y, width, NEURON_HEIGHT);
-        g.setColor(Color.LIGHT_GRAY.darker());
-        g.drawRect(x, y, width, NEURON_HEIGHT);
-        g.setColor(Color.LIGHT_GRAY.brighter());
-        g.drawRect(x + 1, y + 1, width - 2, NEURON_HEIGHT - 2);
-    }
-
-    private void paintString(Graphics2D g, String text, int x, int y) {
-        g.setColor(Color.BLACK);
-        g.drawString(text, x, y);
-    }
 }

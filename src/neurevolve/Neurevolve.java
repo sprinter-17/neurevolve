@@ -11,7 +11,7 @@ import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import neurevolve.ui.NetworkPanel;
 import neurevolve.ui.NewWorldDialog;
-import neurevolve.ui.Species;
+import neurevolve.organism.Species;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;

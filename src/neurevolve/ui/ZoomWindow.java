@@ -1,5 +1,6 @@
 package neurevolve.ui;
 
+import neurevolve.organism.Species;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
