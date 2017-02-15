@@ -2,7 +2,9 @@ package neurevolve.organism;
 
 import neurevolve.TestEnvironment;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -99,9 +101,24 @@ public class RecipeDescriberTest {
         assertThat(describe(), is("N1+0 >N2 >N3 | N2+0 <N1+0 >N3 | N3+0 <N1-17 <N2+4"));
     }
 
-    private String describe() {
-        RecipeDescriber describer = new RecipeDescriber(recipe, new TestEnvironment());
-        return describer.toString();
+    @Test
+    public void testUseless() {
+        recipe.add(Instruction.ADD_NEURON, 0);
+        assertTrue(describer().getNeuron(0).isUseless());
+        recipe.add(Instruction.ADD_NEURON, 0);
+        assertTrue(describer().getNeuron(1).isUseless());
+        recipe.add(Instruction.SET_ACTIVITY, 5);
+        assertTrue(describer().getNeuron(0).isUseless());
+        assertFalse(describer().getNeuron(1).isUseless());
+        recipe.add(Instruction.ADD_LINK, 0, 5);
+        assertFalse(describer().getNeuron(0).isUseless());
     }
 
+    private String describe() {
+        return describer().toString();
+    }
+
+    private RecipeDescriber describer() {
+        return new RecipeDescriber(recipe, new TestEnvironment());
+    }
 }
