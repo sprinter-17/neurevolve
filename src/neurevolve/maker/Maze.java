@@ -109,7 +109,8 @@ public class Maze {
     }
 
     /**
-     * Construct a maze
+     * Construct a maze. The maze allows a single path between any two cells. Once constructed, the
+     * structure of the maze can be determined by calling {@link #hasWall}
      *
      * @param width the number of cells horizontally
      * @param height the number of cells vertically

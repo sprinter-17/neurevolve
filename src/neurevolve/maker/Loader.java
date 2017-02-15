@@ -80,8 +80,7 @@ import org.xml.sax.SAXException;
  * {@code n} ticks</td></tr>
  * </table>
  *
- * <p>
- * </p>
+ * <br>
  *
  * <table style='border:1px solid black;width:100%'>
  * <caption>Type Elements</caption>
@@ -94,8 +93,7 @@ import org.xml.sax.SAXException;
  * <tr><td>{@code <elevation amount='n'>}</td><td>add {@code n} elevation (up to 255)</td></tr>
  * </table>
  *
- * <p>
- * </p>
+ * <br>
  *
  * <table style='border:1px solid black;width:100%'>
  * <caption>Shape Elements</caption>
