@@ -30,7 +30,7 @@ public class RecipeDescriber {
         private int delay = 0;
 
         public Neuron(int threshold) {
-            this.id = neurons.size() + 1;
+            this.id = neurons.size();
             this.threshold = threshold;
         }
 
@@ -61,7 +61,7 @@ public class RecipeDescriber {
         @Override
         public String toString() {
             StringBuilder description = new StringBuilder();
-            description.append("N").append(id).append(weight(threshold));
+            description.append("N").append(id + 1).append(weight(threshold));
             if (delay > 0)
                 description.append("d").append(delay);
             if (hasActivity())
@@ -69,7 +69,7 @@ public class RecipeDescriber {
             links.forEach((l, w) -> description.append(" <N").append(l + 1).append(weight(w)));
             inputs.forEach((i, w) -> description.append(" ").append(environment.describeInput(i))
                     .append(weight(w)));
-            outputs.forEach(o -> description.append(" >N").append(o));
+            outputs.forEach(o -> description.append(" >N").append(o + 1));
             return description.toString();
         }
 
