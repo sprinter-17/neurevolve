@@ -111,10 +111,7 @@ public class Organism {
         RecipeDescriber describer = describeRecipe();
         StringBuilder description = new StringBuilder();
         description.append("Len ").append(recipe.size());
-        if (describer.getJunk() > 0) {
-            description.append(" Junk").append(describer.getJunk());
-        }
-        description.append(" ").append(describer.describe());
+        description.append(" ").append(describer);
         return description.toString();
     }
 

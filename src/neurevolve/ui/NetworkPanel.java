@@ -1,6 +1,5 @@
 package neurevolve.ui;
 
-import neurevolve.organism.Species;
 import java.awt.BasicStroke;
 import static java.awt.BasicStroke.CAP_BUTT;
 import java.awt.Color;
@@ -9,14 +8,15 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputAdapter;
-import neurevolve.organism.RecipeDescriber.NeuronDescription;
+import neurevolve.organism.RecipeDescriber;
+import neurevolve.organism.Species;
 import neurevolve.world.WorldInput;
 import static neurevolve.world.WorldInput.AGE;
 import static neurevolve.world.WorldInput.OWN_ENERGY;
@@ -43,7 +43,7 @@ public class NetworkPanel extends JPanel {
     private EnumMap<WorldInput, Point> inputPositions = new EnumMap<>(WorldInput.class);
 
     private Species species = null;
-    private List<NeuronDescription> neurons;
+    private final List<RecipeDescriber.Neuron> neurons = new ArrayList<>();
     private int[] ranges;
 
     private int offsetX = 0;
@@ -222,9 +222,11 @@ public class NetworkPanel extends JPanel {
      */
     public void showSpecies(Species species) {
         this.species = species;
-        neurons = species.describeRecipe()
-                .getNeuronDescriptions()
-                .collect(Collectors.toList());
+        neurons.clear();
+        RecipeDescriber describer = species.describeRecipe();
+        for (int i = 0; i < describer.getSize(); i++) {
+            neurons.add(describer.getNeuron(i));
+        }
         ranges = species.getRanges();
         networkImage = new BufferedImage(500, 1000, BufferedImage.TYPE_INT_RGB);
         offsetX = 0;
@@ -308,17 +310,18 @@ public class NetworkPanel extends JPanel {
         if (species != null) {
             g.setColor(Color.BLACK);
             Indenter indenter = new Indenter();
-            for (NeuronDescription neuron : neurons) {
+            for (RecipeDescriber.Neuron neuron : neurons) {
                 Color colour = ranges != null && ranges[indenter.i] > 0 ? Color.CYAN : Color.LIGHT_GRAY;
-                if (neuron.getActivity().isPresent()) {
+                if (neuron.hasActivity()) {
                     paintBox(g, colour, indenter.x, indenter.y, NEURON_WIDTH);
-                    paintActivity(g, neuron.getActivity().get(), indenter.x + 10, indenter.y + NEURON_HEIGHT - 10);
+                    paintActivity(g, neuron.getActivityName(), indenter.x + 10, indenter.y + NEURON_HEIGHT - 10);
                 } else {
                     paintBox(g, colour, indenter.x, indenter.y, INDENT);
                 }
                 Map<Integer, Integer> synapses = new HashMap<>();
-                neuron.forEachSynapse(synapses::put);
-                int height = synapses.values().stream().mapToInt(n -> Math.min(5, Math.abs(n)) + 1).sum();
+                neuron.forEachLink(synapses::put);
+                int height = synapses.values().stream()
+                        .mapToInt(n -> Math.min(5, Math.abs(n)) + 1).sum();
                 int link = NEURON_HEIGHT / 2 + height / 2;
                 for (int n : synapses.keySet()) {
                     paintLink(g, n * INDENT + 5, indenter.x - 1, n * (NEURON_HEIGHT + GAP) + 1,

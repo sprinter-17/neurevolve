@@ -1,182 +1,89 @@
 package neurevolve.organism;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.Queue;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 /**
  * The function of a <code>RecipeDescriber</code> is to turn a {@link Recipe} into information about
  * the recipe that can be displayed to the user. It is designed to ignore all instructions in the
- * recipe that have no effect on the constructed network.
+ * recipe that have no effect on the constructed network. It also allows neurons that
  */
 public class RecipeDescriber {
 
     private final Environment environment;
-    private final Queue<Integer> instructions;
-    private final int length;
-    private int junk = 0;
-    private final List<NeuronDescription> descriptions = new ArrayList<>();
-    private int neuronCount = 0;
-    private Optional<NeuronDescriber> neuron = Optional.empty();
+    private final List<Neuron> neurons = new ArrayList<>();
 
-    /**
-     * A <code>NeuronDescription</code> contains information about an individual neuron.
-     */
-    public class NeuronDescription {
+    public class Neuron {
 
         private final int id;
         private final int threshold;
-        private Optional<String> activity = Optional.empty();
-        private final Map<Integer, Integer> synapses = new HashMap<>();
-        private final Map<Integer, Integer> inputWeights = new HashMap<>();
-        private final StringBuilder neuron = new StringBuilder();
-        private final List<StringBuilder> inputs = new ArrayList<>();
-        private final List<StringBuilder> outputs = new ArrayList<>();
-        private boolean hasActivity = false;
+        private final Map<Integer, Integer> links = new HashMap<>();
+        private final Map<Integer, Integer> inputs = new HashMap<>();
+        private final List<Integer> outputs = new ArrayList<>();
+        private Optional<Integer> activity = Optional.empty();
+        private int delay = 0;
 
-        public NeuronDescription(int id, int threshold) {
-            this.id = id;
+        public Neuron(int threshold) {
+            this.id = neurons.size() + 1;
             this.threshold = threshold;
-        }
-
-        public int getId() {
-            return id;
         }
 
         public int getThreshold() {
             return threshold;
         }
 
-        public void setActivity(String activity) {
-            this.activity = Optional.of(activity);
+        public int getDelay() {
+            return delay;
         }
 
-        public Optional<String> getActivity() {
-            return activity;
+        public void forEachLink(BiConsumer<Integer, Integer> action) {
+            links.forEach(action);
         }
 
-        public void forEachSynapse(BiConsumer<Integer, Integer> process) {
-            synapses.forEach(process);
+        public void forEachInput(BiConsumer<Integer, Integer> action) {
+            inputs.forEach(action);
         }
 
-        public void forEachInput(BiConsumer<Integer, Integer> process) {
-            inputWeights.forEach(process);
+        public boolean hasActivity() {
+            return activity.isPresent();
         }
 
-        public String getNeuronDescription() {
-            return neuron.toString();
+        public String getActivityName() {
+            return environment.describeActivity(activity.get());
         }
 
-        public boolean isNotJunk() {
-            return hasActivity || !outputs.isEmpty();
-        }
-
-        public StringBuilder getInput() {
-            StringBuilder input = new StringBuilder();
-            inputs.add(input);
-            return input;
-        }
-
-        public Stream<String> getInputDescriptions() {
-            return inputs.stream().map(StringBuilder::toString);
-        }
-
-        public StringBuilder getOutput() {
-            StringBuilder output = new StringBuilder();
-            outputs.add(output);
-            return output;
-        }
-
-        public Stream<String> getOutputDescriptions() {
-            return outputs.stream().map(StringBuilder::toString);
-        }
-
-    }
-
-    /**
-     * Collect information about the current Neuron
-     */
-    private class NeuronDescriber {
-
-        private final int id;
-        private final int threshold;
-        private int delay = 0;
-        private OptionalInt activity = OptionalInt.empty();
-        private final List<SynapseDescriber> synapses = new ArrayList<>();
-        private final List<InputDescriber> inputs = new ArrayList<>();
-
-        public NeuronDescriber(int threshold) {
-            id = ++neuronCount;
-            this.threshold = threshold;
-        }
-
-        public void describe() {
-            NeuronDescription description = new NeuronDescription(id, threshold);
-            description.neuron.append("N").append(id);
-            describeWeight(description.neuron, threshold);
+        @Override
+        public String toString() {
+            StringBuilder description = new StringBuilder();
+            description.append("N").append(id).append(weight(threshold));
             if (delay > 0)
-                description.neuron.append("d").append(delay);
-            if (activity.isPresent()) {
-                description.hasActivity = true;
-                description.setActivity(environment.describeActivity(activity.getAsInt()));
-                description.neuron
-                        .append(" ")
-                        .append(environment.describeActivity(activity.getAsInt()));
-            }
-            inputs.forEach(i -> i.describe(description.getInput()));
-            inputs.forEach(i -> description.inputWeights.put(i.input, i.weight));
-            synapses.stream()
-                    .sorted(Comparator.comparingInt(s -> s.from))
-                    .forEach(s -> s.describe(description.getInput()));
-            synapses.forEach(s -> description.synapses.put(s.from, s.weight));
-            descriptions.add(description);
+                description.append("d").append(delay);
+            if (hasActivity())
+                description.append(" ").append(getActivityName());
+            links.forEach((l, w) -> description.append(" <N").append(l + 1).append(weight(w)));
+            inputs.forEach((i, w) -> description.append(" ").append(environment.describeInput(i))
+                    .append(weight(w)));
+            outputs.forEach(o -> description.append(" >N").append(o));
+            return description.toString();
+        }
+
+        private String weight(int weight) {
+            return String.format("%+d", weight);
         }
     }
 
-    /**
-     * Collect information about the current link
-     */
-    private class SynapseDescriber {
-
-        private final int from;
-        private final int weight;
-
-        public SynapseDescriber(int from, int weight) {
-            this.from = from;
-            this.weight = weight;
-        }
-
-        public void describe(StringBuilder description) {
-            description.append(" <N").append(from);
-            describeWeight(description, weight);
-        }
+    public int getSize() {
+        return neurons.size();
     }
 
-    /**
-     * Collect information about the current input
-     */
-    private class InputDescriber {
-
-        private final int input;
-        private final int weight;
-
-        public InputDescriber(int input, int weight) {
-            this.input = input;
-            this.weight = weight;
-        }
-
-        public void describe(StringBuilder description) {
-            description.append(" ").append(environment.describeInput(input));
-            describeWeight(description, weight);
-        }
+    public Neuron getNeuron(int index) {
+        return neurons.get(index);
     }
 
     /**
@@ -186,122 +93,46 @@ public class RecipeDescriber {
      * @param environment the environment to use to describe inputs and activities
      */
     public RecipeDescriber(Recipe recipe, Environment environment) {
-        this.instructions = recipe.instructionInQueue();
         this.environment = environment;
-        this.length = recipe.size();
-        describeInstructions();
+        recipe.forEachInstruction(this::process);
     }
 
-    private void describeInstructions() {
-        while (!instructions.isEmpty()) {
-            switch (Instruction.decode(instructions.remove())) {
-                case ADD_NEURON:
-                    addNeuron();
-                    break;
-                case ADD_LINK:
-                    ifNeuron(this::addLink);
-                    break;
-                case ADD_INPUT:
-                    ifNeuron(this::addInput);
-                    break;
-                case ADD_DELAY:
-                    ifNeuron(this::addDelay);
-                    break;
-                case SET_ACTIVITY:
-                    ifNeuron(this::setActivity);
-                    break;
-            }
+    private void process(Instruction instruction, int... values) {
+        switch (instruction) {
+            case ADD_NEURON:
+                neurons.add(new Neuron(values[0]));
+                break;
+            case ADD_LINK:
+                last().ifPresent(n -> n.links.put(values[0], values[1]));
+                last().ifPresent(n -> neurons.get(values[0]).outputs.add(n.id));
+                break;
+            case ADD_INPUT:
+                last().ifPresent(n -> n.inputs.put(values[0], values[1]));
+                break;
+            case ADD_DELAY:
+                last().ifPresent(n -> n.delay = values[0]);
+                break;
+            case SET_ACTIVITY:
+                last().ifPresent(n -> n.activity = Optional.of(values[0]));
+                break;
+            default:
+                throw new AssertionError(instruction.name());
         }
-        neuron.ifPresent(NeuronDescriber::describe);
     }
 
-    private void ifNeuron(Runnable runnable) {
-        if (neuron.isPresent())
-            runnable.run();
+    private Optional<Neuron> last() {
+        if (neurons.isEmpty())
+            return Optional.empty();
         else
-            junk++;
+            return Optional.of(neurons.get(neurons.size() - 1));
     }
 
-    private void addNeuron() {
-        neuron.ifPresent(NeuronDescriber::describe);
-        int weight = value();
-        neuron = Optional.of(new NeuronDescriber(weight));
+    @Override
+    public String toString() {
+        StringBuilder description = new StringBuilder();
+        description.append(IntStream.range(0, neurons.size())
+                .mapToObj(i -> neurons.get(i).toString())
+                .collect(Collectors.joining(" | ")));
+        return description.toString();
     }
-
-    private void addLink() {
-        int from = value();
-        if (from >= 0 && from < neuronCount - 1) {
-            neuron.get().synapses.add(new SynapseDescriber(from + 1, value()));
-            descriptions.get(from).getOutput().append(" >N").append(neuron.get().id);
-        } else
-            junk++;
-    }
-
-    private void addInput() {
-        neuron.get().inputs.add(new InputDescriber(value(), value()));
-    }
-
-    private void addDelay() {
-        int delay = value();
-        if (delay > 0)
-            neuron.get().delay += delay;
-        else
-            junk++;
-    }
-
-    private void setActivity() {
-        if (neuron.get().activity.isPresent())
-            junk++;
-        neuron.get().activity = OptionalInt.of(value());
-    }
-
-    /**
-     * describe a weight
-     */
-    private void describeWeight(StringBuilder description, int weight) {
-        description.append(String.format("%+d", weight));
-    }
-
-    /**
-     * get a value from the queue of instructions
-     */
-    private int value() {
-        if (instructions.isEmpty())
-            return 0;
-        else
-            return instructions.remove();
-    }
-
-    /**
-     * Get the description of the recipe.
-     *
-     * @return the description
-     */
-    public Stream<NeuronDescription> getNeuronDescriptions() {
-        return descriptions.stream();
-    }
-
-    public String describe() {
-        return describe(descriptions.stream().filter(NeuronDescription::isNotJunk));
-    }
-
-    public String describeAll() {
-        return describe(descriptions.stream());
-    }
-
-    private String describe(Stream<NeuronDescription> descriptions) {
-        return descriptions.map(nd -> nd.getNeuronDescription()
-                + nd.getInputDescriptions().collect(Collectors.joining())
-                + nd.getOutputDescriptions().collect(Collectors.joining()))
-                .collect(Collectors.joining(" | "));
-    }
-
-    public int getLength() {
-        return length;
-    }
-
-    public int getJunk() {
-        return junk;
-    }
-
 }

@@ -99,23 +99,9 @@ public class RecipeDescriberTest {
         assertThat(describe(), is("N1+0 >N2 >N3 | N2+0 <N1+0 >N3 | N3+0 <N1-17 <N2+4"));
     }
 
-    @Test
-    public void testShort() {
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.SET_ACTIVITY, 4);
-        recipe.add(Instruction.ADD_NEURON, 1);
-        assertThat(describeShort(), is("N2+0 Activity4"));
-    }
-
     private String describe() {
         RecipeDescriber describer = new RecipeDescriber(recipe, new TestEnvironment());
-        return describer.describeAll();
-    }
-
-    private String describeShort() {
-        RecipeDescriber describer = new RecipeDescriber(recipe, new TestEnvironment());
-        return describer.describe();
+        return describer.toString();
     }
 
 }
