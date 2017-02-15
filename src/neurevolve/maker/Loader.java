@@ -55,10 +55,12 @@ import org.xml.sax.SAXException;
  * <tr><td>{@code <seed count='c' energy='e'/>}</td><td>Set the population level below which
  * organisms are generated to {@code c}. When creating seed organisms, set their initial energy
  * level to {@code e}</td></tr>
- * <tr><td>{@code <activity_cost activity='name' cost='c'/ [factor='f']>}</td><td>Set the cost of
+ * <tr><td>{@code <activity_cost [activity='name'] cost='c'/ [factor='f']>}</td><td>Set the cost of
  * performing activity with name {@code "name"} (ignoring case) once to {@code c}. Each time the
  * activity is performed subsequently within a single activation, the cost increases by a factor of
- * {@code f/100}. The default for {@code f} is {@code 50} if it is not supplied.</td></tr>
+ * {@code f/100}. If an activity is not supplied then the cost and factor become the default for
+ * activities that do not have an explicit cost and factor supplied. If no default is supplied then
+ * the default cost is 1 and the default factor is 50.</td></tr>
  * <tr><td>{@code <time_costs base='b' age='a' size='s'/>}</td><td>Set the amount of energy used by
  * organisms in each tick to be the sum of the base amount, the age amount for each 100 activations
  * and the size amount for each 10 instructions in the recipe.</td></tr>
@@ -204,12 +206,18 @@ public class Loader {
                 config.setSeed(getInt(element, "count"), getInt(element, "energy"));
                 break;
             case "activity_cost":
-                String activityName = element.getAttribute("activity");
-                WorldActivity activity = WorldActivity.withName(activityName)
-                        .orElseThrow(() -> new SAXException("Illegal activity " + activityName));
-                config.setActivityCost(activity, getInt(element, "cost"));
-                if (element.hasAttribute("factor"))
-                    config.setActivityFactor(activity, getInt(element, "factor"));
+                if (element.hasAttribute("activity")) {
+                    String activityName = element.getAttribute("activity");
+                    WorldActivity activity = WorldActivity.withName(activityName)
+                            .orElseThrow(() -> new SAXException("Illegal activity " + activityName));
+                    config.setActivityCost(activity, getInt(element, "cost"));
+                    if (element.hasAttribute("factor"))
+                        config.setActivityFactor(activity, getInt(element, "factor"));
+                } else {
+                    config.setDefaultActivityCost(getInt(element, "cost"));
+                    if (element.hasAttribute("factor"))
+                        config.setDefaultActivityFactor(getInt(element, "factor"));
+                }
                 break;
             case "activation_cost":
                 config.setBaseCost(getInt(element, "base"));

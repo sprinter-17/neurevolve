@@ -148,6 +148,13 @@ public class LoaderTest {
     }
 
     @Test
+    public void testDefaultActivityCost() throws SAXException {
+        loadConfig("<activity_cost cost='7' factor='0'/>");
+        verify(config).setDefaultActivityCost(7);
+        verify(config).setDefaultActivityFactor(0);
+    }
+
+    @Test
     public void testMinimumSplitTime() throws SAXException {
         loadConfig("<minimum_split_time period='7'/>");
         verify(config).setMinimumSplitTime(7);

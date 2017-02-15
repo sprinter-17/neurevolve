@@ -174,8 +174,24 @@ public class WorldConfiguration {
         Key.BASE_COST.setValue(this, cost);
     }
 
+    public int getDefaultActivityCost() {
+        return Key.ACTIVITY_COST.getValue(this);
+    }
+
+    public void setDefaultActivityCost(int cost) {
+        Key.ACTIVITY_COST.setValue(this, cost);
+    }
+
+    public int getDefaultActivityFactor() {
+        return Key.ACTIVITY_FACTOR.getValue(this);
+    }
+
+    public void setDefaultActivityFactor(int factor) {
+        Key.ACTIVITY_FACTOR.setValue(this, factor);
+    }
+
     public int getActivityCost(WorldActivity activity) {
-        return costs.getOrDefault(activity, Key.ACTIVITY_COST.defaultValue);
+        return costs.getOrDefault(activity, getDefaultActivityCost());
     }
 
     public void setActivityCost(WorldActivity activity, int cost) {
@@ -183,7 +199,7 @@ public class WorldConfiguration {
     }
 
     public int getActivityFactor(WorldActivity activity) {
-        return factors.getOrDefault(activity, Key.ACTIVITY_FACTOR.defaultValue);
+        return factors.getOrDefault(activity, getDefaultActivityFactor());
     }
 
     public void setActivityFactor(WorldActivity activity, int factor) {
