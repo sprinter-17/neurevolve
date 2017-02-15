@@ -39,6 +39,12 @@ public class Organism {
         this(environment, initialEnergy, 0);
     }
 
+    public Organism(Environment environment, int initialEnergy, Recipe recipe) {
+        this(environment, new Network(environment::applyActivationFunction),
+                initialEnergy, recipe);
+        recipe.forEachInstruction((i, v) -> i.complete(this, v));
+    }
+
     private Organism(Environment environment, Network brain, int initialEnergy, Recipe recipe) {
         if (initialEnergy < 0) {
             throw new IllegalArgumentException("Negative initial energy");
@@ -49,6 +55,19 @@ public class Organism {
         this.recipe = recipe;
     }
 
+//        Organism organism = new Organism(environment, initialEnergy, colour);
+//        replicator.copyInstructions(instructions, size, colour).applyTo(organism);
+//        return organism;
+//    }
+//
+//    private void applyTo(Organism organism) {
+//        Queue<Integer> values = instructionInQueue();
+//        while (!values.isEmpty()) {
+//            int code = values.remove();
+//            Instruction.decode(code).complete(organism, values);
+//        }
+//        organism.setRecipe(this);
+//    }
     /**
      * Copy the current values for the neurons in the organism's brain
      *
@@ -156,7 +175,7 @@ public class Organism {
         int childEnergy = energy / 2;
         incrementDescendents();
         reduceEnergy(childEnergy);
-        Organism child = recipe.make(environment, replicator, childEnergy);
+        Organism child = new Organism(environment, childEnergy, recipe.replicate(replicator));
         child.parent = Optional.of(this);
         return child;
     }

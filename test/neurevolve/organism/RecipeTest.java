@@ -1,19 +1,27 @@
 package neurevolve.organism;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import neurevolve.TestEnvironment;
-import neurevolve.TestReplicator;
 import neurevolve.network.Neuron;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
 public class RecipeTest {
 
-    private Environment environment = new TestEnvironment();
-    private Replicator replicator = new TestReplicator();
+    private final Environment environment = new TestEnvironment();
     private Recipe recipe;
+    private final List<Gene> genes = new ArrayList<>();
+
+    private class Gene {
+
+        private Instruction instruction;
+        private int[] values;
+    }
 
     @Before
     public void setup() {
@@ -32,9 +40,9 @@ public class RecipeTest {
 
     @Test
     public void testMakeDefaultOrganism() {
-        assertThat(recipe.make(environment, replicator, 100).getEnergy(), is(100));
-        assertThat(recipe.make(environment, replicator, 20).getEnergy(), is(20));
-        assertThat(recipe.make(environment, replicator, 50).getBrain().size(), is(0));
+        assertThat(new Organism(environment, 100, recipe).getEnergy(), is(100));
+        assertThat(new Organism(environment, 20, recipe).getEnergy(), is(20));
+        assertThat(new Organism(environment, 20, recipe).getBrain().size(), is(0));
     }
 
     @Test
@@ -45,8 +53,40 @@ public class RecipeTest {
 
     @Test
     public void testSimpleRecipe() {
+        recipe.add(Instruction.ADD_NEURON, 5);
+        assertThat(new Organism(environment, 100, recipe).getBrain().size(), is(1));
+    }
+
+    @Test
+    public void testGetZeroGenes() {
+        getGenes();
+        assertTrue(genes.isEmpty());
+    }
+
+    @Test
+    public void testGetZeroGenesWhenInstructionMissingValues() {
         recipe.add(Instruction.ADD_NEURON);
-        assertThat(recipe.make(environment, replicator, 100).getBrain().size(), is(1));
+        getGenes();
+        assertTrue(genes.isEmpty());
+    }
+
+    @Test
+    public void testGetGene() {
+        recipe.add(Instruction.ADD_NEURON, 7);
+        getGenes();
+        assertThat(genes.get(0).instruction, is(Instruction.ADD_NEURON));
+        assertThat(genes.get(0).values[0], is(7));
+        assertThat(genes.get(0).values.length, is(1));
+    }
+
+    @Test
+    public void testGetTwoGenes() {
+        recipe.add(Instruction.ADD_LINK, 5, 7);
+        recipe.add(Instruction.ADD_DELAY, 4);
+        getGenes();
+        assertThat(genes.size(), is(2));
+        assertThat(genes.get(0).instruction, is(Instruction.ADD_LINK));
+        assertThat(genes.get(1).instruction, is(Instruction.ADD_DELAY));
     }
 
     @Test
@@ -54,9 +94,16 @@ public class RecipeTest {
         recipe.add(Instruction.ADD_NEURON, -18);
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.ADD_LINK, 0, 5 * Neuron.WEIGHT_DIVISOR);
-        Organism organism = recipe.make(environment, replicator, 400);
+        Organism organism = new Organism(environment, 400, recipe);
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(1), is(90));
+    }
+
+    @Test
+    public void testJunkRecipe() {
+        recipe.add(9);
+        Organism organism = new Organism(environment, 100, recipe);
+        assertThat(organism.getBrain().size(), is(0));
     }
 
     @Test
@@ -123,6 +170,16 @@ public class RecipeTest {
         recipe.add(5);
         other.add(-5);
         assertThat(recipe.distanceTo(other), is(10));
+    }
+
+    private void getGenes() {
+        genes.clear();
+        recipe.forEachInstruction((i, v) -> {
+            Gene gene = new Gene();
+            gene.instruction = i;
+            gene.values = v;
+            genes.add(gene);
+        });
     }
 
 }

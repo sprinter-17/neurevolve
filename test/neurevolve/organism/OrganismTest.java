@@ -10,7 +10,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,11 +76,10 @@ public class OrganismTest {
     }
 
     private Organism makeOrganism() {
-        Organism organism = new Organism(environment, 100);
         Recipe recipe = mock(Recipe.class);
-        when(recipe.make(any(), any(), anyInt())).thenAnswer(i -> makeOrganism());
-        organism.setRecipe(recipe);
-        return organism;
+        when(recipe.replicate(any())).thenReturn(recipe);
+        Organism child = new Organism(environment, 100, recipe);
+        return child;
     }
 
     @Test

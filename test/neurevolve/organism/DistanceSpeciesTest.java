@@ -8,8 +8,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 public class DistanceSpeciesTest {
 
@@ -59,7 +57,7 @@ public class DistanceSpeciesTest {
     private Organism makeOrganism(int instruction) {
         Recipe recipe = new Recipe(0);
         recipe.add(instruction);
-        return recipe.make(environment, replicator, 100);
+        return new Organism(environment, 100, recipe);
     }
 
 }

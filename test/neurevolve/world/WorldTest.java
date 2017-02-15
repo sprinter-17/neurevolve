@@ -1,7 +1,6 @@
 package neurevolve.world;
 
 import neurevolve.TestConfiguration;
-import neurevolve.TestReplicator;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
@@ -257,7 +256,7 @@ public class WorldTest {
         Recipe recipe = new Recipe(0);
         recipe.add(Instruction.ADD_NEURON, -10);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.ordinal());
-        Organism organism = recipe.make(world, new TestReplicator(), 50);
+        Organism organism = new Organism(world, 50, recipe);
         world.addOrganism(organism, space.position(5, 5), EAST);
         world.tick();
         assertFalse(world.hasOrganism(space.position(5, 5)));

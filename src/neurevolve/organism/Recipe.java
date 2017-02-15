@@ -65,28 +65,18 @@ public class Recipe {
             instructions = Arrays.copyOf(instructions, size * EXPANSION_FACTOR);
     }
 
-    /**
-     * Make a new organism using a copy of the recipe. The replicator used to copy the recipe may
-     * introduce errors prior to construction.
-     *
-     * @param environment the environment the organism will exist within
-     * @param replicator the object to use to copy the recipe before constructing the organism
-     * @param initialEnergy the initial energy of the constructed organism
-     * @return the constructed organism
-     */
-    public Organism make(Environment environment, Replicator replicator, int initialEnergy) {
-        Organism organism = new Organism(environment, initialEnergy, colour);
-        replicator.copyInstructions(instructions, size, colour).applyTo(organism);
-        return organism;
+    public void forEachInstruction(Instruction.Processor processor) {
+        int i = 0;
+        while (i < size) {
+            Instruction instruction = Instruction.decode(instructions[i++]);
+            int valueCount = instruction.getValueCount();
+            if (i + valueCount <= size)
+                processor.process(instruction, Arrays.copyOfRange(instructions, i, i += valueCount));
+        }
     }
 
-    private void applyTo(Organism organism) {
-        Queue<Integer> values = instructionInQueue();
-        while (!values.isEmpty()) {
-            int code = values.remove();
-            Instruction.decode(code).complete(organism, values);
-        }
-        organism.setRecipe(this);
+    public Recipe replicate(Replicator replicator) {
+        return replicator.copyInstructions(instructions, size, colour);
     }
 
     /**
@@ -103,7 +93,8 @@ public class Recipe {
     public boolean matches(Recipe other) {
         return this.colour == other.colour
                 && this.size == other.size
-                && IntStream.range(0, size).allMatch(i -> this.instructions[i] == other.instructions[i]);
+                && IntStream.range(0, size)
+                .allMatch(i -> this.instructions[i] == other.instructions[i]);
     }
 
     /**
