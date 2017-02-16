@@ -5,6 +5,7 @@ import neurevolve.TestConfiguration;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Type;
 import neurevolve.world.Space;
+import neurevolve.world.Time.Season;
 import neurevolve.world.World;
 import neurevolve.world.WorldConfiguration;
 import static org.hamcrest.CoreMatchers.is;
@@ -106,6 +107,36 @@ public class WorldMakerTest {
         assertThat(resourceCount(world), is(200000));
         world.tick();
         assertThat(resourceCount(world), is(300000));
+    }
+
+    @Test
+    public void testSeasonalElements() {
+        config.setYear(8, 0);
+        maker.add(maker.duringSeason(Season.SUMMER), maker.addResources(1), maker.everywhere());
+        World world = maker.make();
+        assertThat(resourceCount(world), is(0));
+        world.tick();
+        assertThat(resourceCount(world), is(0));
+        world.tick();
+        assertThat(resourceCount(world), is(0));
+        world.tick();
+        assertThat(resourceCount(world), is(10000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(20000));
+        world.tick();
+        assertThat(resourceCount(world), is(30000));
     }
 
     private IntStream allPositions() {

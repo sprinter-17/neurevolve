@@ -91,12 +91,12 @@ public class RecipeDescriber {
             return environment.describeActivity(activity.get());
         }
 
-        public boolean isUseless() {
+        public boolean isInactive() {
             return !hasActivity() && outputsAreUseless();
         }
 
         private boolean outputsAreUseless() {
-            return outputs.stream().map(neurons::get).allMatch(Neuron::isUseless);
+            return outputs.stream().map(neurons::get).allMatch(Neuron::isInactive);
         }
 
         /**

@@ -1,6 +1,7 @@
 package neurevolve.maker;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +11,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.Time.Season;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 import org.w3c.dom.Document;
@@ -249,6 +251,16 @@ public class Loader {
                 break;
             case "with_period":
                 timing = maker.withPeriod(getInt(element, "period"));
+                break;
+            case "in_season":
+                if (!element.hasAttribute("season"))
+                    throw new SAXException("No season attribute for timing in_season");
+                String seasonName = element.getAttribute("season");
+                Season season = Arrays.stream(Season.values())
+                        .filter(s -> s.getName().equalsIgnoreCase(seasonName))
+                        .findAny()
+                        .orElseThrow(() -> new SAXException("No season " + seasonName));
+                timing = maker.duringSeason(season);
                 break;
             default:
                 throw new SAXException("Illegal timing: " + element.getNodeName());

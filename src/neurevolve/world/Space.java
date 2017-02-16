@@ -81,11 +81,11 @@ public class Space {
             case EAST:
                 return position((x + 1) % width, y);
             case NORTH:
-                return position(x, (y + 1) % height);
+                return position(x, (y - 1 + height) % height);
             case WEST:
                 return position((x - 1 + width) % width, y);
             case SOUTH:
-                return position(x, (y - 1 + height) % height);
+                return position(x, (y + 1) % height);
             default:
                 throw new IllegalArgumentException("Illegal direction for move");
         }

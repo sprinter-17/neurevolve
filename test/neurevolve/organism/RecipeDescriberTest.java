@@ -104,14 +104,14 @@ public class RecipeDescriberTest {
     @Test
     public void testUseless() {
         recipe.add(Instruction.ADD_NEURON, 0);
-        assertTrue(describer().getNeuron(0).isUseless());
+        assertTrue(describer().getNeuron(0).isInactive());
         recipe.add(Instruction.ADD_NEURON, 0);
-        assertTrue(describer().getNeuron(1).isUseless());
+        assertTrue(describer().getNeuron(1).isInactive());
         recipe.add(Instruction.SET_ACTIVITY, 5);
-        assertTrue(describer().getNeuron(0).isUseless());
-        assertFalse(describer().getNeuron(1).isUseless());
+        assertTrue(describer().getNeuron(0).isInactive());
+        assertFalse(describer().getNeuron(1).isInactive());
         recipe.add(Instruction.ADD_LINK, 0, 5);
-        assertFalse(describer().getNeuron(0).isUseless());
+        assertFalse(describer().getNeuron(0).isInactive());
     }
 
     private String describe() {

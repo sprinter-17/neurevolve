@@ -4,6 +4,7 @@ import java.io.StringReader;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.Time;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 import static org.hamcrest.CoreMatchers.is;
@@ -212,6 +213,14 @@ public class LoaderTest {
         when(maker.maze(17, 21)).thenReturn(maze);
         loadStartElement("<wall><maze cell='17' edge='21'/></wall>");
         verify(maker).add(atStart, wall, maze);
+    }
+
+    @Test
+    public void testSeasonal() throws SAXException {
+        Timing winter = mock(Timing.class);
+        when(maker.duringSeason(Time.Season.WINTER)).thenReturn(winter);
+        loadWorld("<in_season season='winter'><acid><everywhere/></acid></in_season>");
+        verify(maker).add(winter, acid, everywhere);
     }
 
     private void loadStartElement(String xml) throws SAXException {
