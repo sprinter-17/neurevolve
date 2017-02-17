@@ -55,6 +55,13 @@ public class MainWindow {
         frame.setTitle(title);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         analysisWindow = new AnalysisWindow(world);
+        world.addTickListener(() -> {
+            if (world.getTime() % config.getYearLength() == 0) {
+                System.out.println("Year " + (1 + world.getTime() / config.getYearLength())
+                        + " population = " + world.getPopulationSize()
+                        + " complexity = " + String.format("%.2f", world.getAverageComplexity()));
+            }
+        });
         addTools(world, config);
         addMapPanel(world, space, config);
         addConfigPanel(space, config);

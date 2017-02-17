@@ -1,10 +1,13 @@
 package neurevolve.world;
 
+import java.util.stream.IntStream;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
+import static neurevolve.world.GroundElement.ACID;
+import static neurevolve.world.GroundElement.RADIATION;
 import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.WEST;
@@ -274,5 +277,32 @@ public class WorldTest {
         assertThat(organism.getEnergy(), is(965));
         world.performActivity(organism, WorldActivity.TURN_LEFT.ordinal());
         assertThat(organism.getEnergy(), is(903));
+    }
+
+    @Test
+    public void testAcidHalfLife() {
+        int position = space.position(4, 7);
+        world.setAcidic(position, true);
+        world.tick();
+        assertTrue(world.isAcidic(position));
+        config.setHalfLife(ACID, 1);
+        world.tick();
+        assertFalse(world.isAcidic(position));
+    }
+
+    @Test
+    public void testRadiationHalfLife() {
+        IntStream.range(0, space.size()).forEach(p -> world.addRadition(p, 3));
+        config.setHalfLife(RADIATION, 10);
+        assertThat(totalRadiation(), is(300));
+        for (int i = 0; i < 10; i++) {
+            world.tick();
+        }
+        assertTrue(totalRadiation() < 250);
+        assertTrue(totalRadiation() > 200);
+    }
+
+    private int totalRadiation() {
+        return IntStream.range(0, space.size()).map(world::getRadiation).sum();
     }
 }

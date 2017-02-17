@@ -2,6 +2,9 @@
 <world name="Nuclear Winter">
     <description>This world is a post-apocolyptic world, covered in pools of radiation. It is cold and hostile.
     </description>
+    <configuration>
+        <half_life element='acid' period='50'/>
+    </configuration>
     <at_start>
         <add_resources amount='100'>
             <everywhere/>
@@ -19,4 +22,9 @@
             <pools count='100' radius='50'/>
         </radiation>
     </at_start>
+    <in_season season="winter">
+        <acid>
+            <pools count = '10' radius='50'/>
+        </acid>
+    </in_season>
 </world>

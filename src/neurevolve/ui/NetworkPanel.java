@@ -104,7 +104,7 @@ public class NetworkPanel extends JPanel {
         showOrHideInactiveButton = new JButton(showAllNeurons());
         toolBar.add(showOrHideInactiveButton);
         add(toolBar, BorderLayout.NORTH);
-        add(makeImagePanel(), BorderLayout.CENTER);
+        add(new ImagePanel(), BorderLayout.CENTER);
     }
 
     private Action showAllNeurons() {
@@ -129,20 +129,52 @@ public class NetworkPanel extends JPanel {
         };
     }
 
-    private JPanel makeImagePanel() {
-        return new JPanel() {
-            @Override
-            public void paint(Graphics g) {
-                g.setColor(Color.WHITE);
-                g.fillRect(0, 0, getWidth(), getHeight());
-                if (species != null) {
-                    g.drawImage(networkImage, INPUT_IMAGE_WIDTH + offsetX + dragX,
-                            offsetY + dragY, this);
-                    g.drawImage(inputImage, 0, 0, this);
-                    paintInputs((Graphics2D) g);
-                }
+    private class ImagePanel extends JPanel {
+
+        @Override
+        public void paint(Graphics g) {
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, getWidth(), getHeight());
+            if (species != null) {
+                g.drawImage(networkImage, INPUT_IMAGE_WIDTH + offsetX + dragX,
+                        offsetY + dragY, this);
+                g.drawImage(inputImage, 0, 0, this);
+                paintInputs((Graphics2D) g);
             }
-        };
+        }
+
+        /**
+         * Paint the links from the input image to the network image
+         */
+        private void paintInputs(Graphics2D g) {
+            neuronPositions.forEach((n, p) -> paintNeuronInputs(g, n, p));
+        }
+
+        private void paintNeuronInputs(Graphics2D g, Integer neuron, Point point) {
+            int maxX = getWidth() - INPUT_IMAGE_WIDTH;
+            int maxY = getHeight();
+            Point p = new Point(offsetX + dragX + point.x,
+                    offsetY + dragY + point.y + NEURON_HEIGHT / 2);
+            if (p.x > 0 && p.x < maxX && p.y > 0 && p.y < maxY) {
+                neurons.get(neuron).forEachInput((i, w) -> paintSingleInput(g, i, w, p));
+            }
+        }
+
+        private void paintSingleInput(Graphics2D g, int code, int weight, Point point) {
+            WorldInput input = WorldInput.decode(code);
+            if (inputPositions.containsKey(input)) {
+                Point start = inputPositions.get(input);
+                if (weight < 0) {
+                    g.setColor(NEGATIVE_COLOUR);
+                } else if (weight > 0) {
+                    g.setColor(POSITIVE_COLOUR);
+                } else {
+                    g.setColor(Color.DARK_GRAY);
+                }
+                g.setStroke(new BasicStroke(Math.min(5, Math.abs(weight) / 4)));
+                g.drawLine(start.x, start.y, INPUT_IMAGE_WIDTH + point.x, point.y);
+            }
+        }
     }
 
     /**
@@ -196,6 +228,14 @@ public class NetworkPanel extends JPanel {
         drawLine(g, y, farForward(y), WorldInput.LOOK_RADIATION_FAR_FORWARD);
         drawLine(g, y, left(y), WorldInput.LOOK_RADIATION_LEFT);
         drawLine(g, y, right(y), WorldInput.LOOK_RADIATION_RIGHT);
+
+        y += height;
+        drawInputName(g, "Acid", y);
+        drawDot(g, here(y), WorldInput.LOOK_ACID_HERE);
+        drawLine(g, y, forward(y), WorldInput.LOOK_ACID_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_ACID_FAR_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_ACID_LEFT);
+        drawLine(g, y, right(y), WorldInput.LOOK_ACID_RIGHT);
 
         y += height;
         drawInputName(g, "Other Colour", y);
@@ -290,31 +330,6 @@ public class NetworkPanel extends JPanel {
     public void clear() {
         species = null;
         repaint();
-    }
-
-    /**
-     * Paint the links from the input image to the network image
-     */
-    private void paintInputs(Graphics2D g) {
-        neuronPositions.forEach((neuron, point) -> {
-            neurons.get(neuron).forEachInput((i, w) -> {
-                WorldInput input = WorldInput.decode(i);
-                if (inputPositions.containsKey(input)) {
-                    Point start = inputPositions.get(input);
-                    if (w < 0) {
-                        g.setColor(NEGATIVE_COLOUR);
-                    } else if (w > 0) {
-                        g.setColor(POSITIVE_COLOUR);
-                    } else {
-                        g.setColor(Color.DARK_GRAY);
-                    }
-                    g.setStroke(new BasicStroke(Math.min(5, Math.abs(w) / 2)));
-                    g.drawLine(start.x, start.y,
-                            INPUT_IMAGE_WIDTH + offsetX + dragX + point.x,
-                            offsetY + dragY + point.y + NEURON_HEIGHT / 2);
-                }
-            });
-        });
     }
 
     /**
@@ -431,5 +446,4 @@ public class NetworkPanel extends JPanel {
             g.fillRect(point.x - threshold - 1, point.y, threshold, NEURON_HEIGHT);
         }
     }
-
 }

@@ -16,6 +16,11 @@ import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
+import static neurevolve.world.GroundElement.ACID;
+import static neurevolve.world.GroundElement.ELEVATION;
+import static neurevolve.world.GroundElement.RADIATION;
+import static neurevolve.world.GroundElement.RESOURCES;
+import static neurevolve.world.GroundElement.WALL;
 import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.SOUTH;
@@ -47,46 +52,6 @@ public class World implements Environment {
 
     private final ActivationFunction function;
 
-    protected static enum Data {
-        ACID(1),
-        WALL(ACID, 1),
-        RADIATION(WALL, 2),
-        ELEVATION(RADIATION, 8),
-        RESOURCES(ELEVATION, 8);
-
-        private final int shift;
-        private final int bits;
-        private final int max;
-        private final int mask;
-
-        private Data(Data previous, int bits) {
-            this(previous.shift + previous.bits, bits);
-        }
-
-        private Data(int bits) {
-            this(0, bits);
-        }
-
-        private Data(int shift, int bits) {
-            this.shift = shift;
-            this.bits = bits;
-            this.max = (1 << bits) - 1;
-            this.mask = max << shift;
-        }
-
-        public int get(int input) {
-            return (input & mask) >> shift;
-        }
-
-        public int set(int input, int data) {
-            if (data > max || data < 0) {
-                throw new IllegalArgumentException("Data out of range");
-            }
-            return (input & ~mask) | (data << shift) & mask;
-        }
-
-    }
-
     /**
      * Construct a world within a frame with a configuration
      *
@@ -111,7 +76,7 @@ public class World implements Environment {
     public int[] getResourceCopy() {
         int[] resources = new int[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> resources[i] = Data.RESOURCES.get(positionData[i]));
+                .forEach(i -> resources[i] = RESOURCES.get(positionData[i]));
         return resources;
     }
 
@@ -136,20 +101,20 @@ public class World implements Environment {
     public int[] getElevationCopy() {
         int[] elevations = new int[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> elevations[i] = getData(i, Data.ELEVATION));
+                .forEach(i -> elevations[i] = getData(i, ELEVATION));
         return elevations;
     }
 
     public boolean[] getAcidCopy() {
         boolean[] acid = new boolean[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> acid[i] = getData(i, Data.ACID) == 1);
+                .forEach(i -> acid[i] = getData(i, ACID) == 1);
         return acid;
     }
 
     public int[] getRadiationCopy() {
         int[] radiation = new int[space.size()];
-        forEachPosition(i -> radiation[i] = getData(i, Data.RADIATION));
+        forEachPosition(i -> radiation[i] = getData(i, RADIATION));
         return radiation;
     }
 
@@ -178,7 +143,7 @@ public class World implements Environment {
      * @param amount the amount of resource to set
      */
     protected void setResource(int position, int amount) {
-        setData(position, Data.RESOURCES, amount);
+        setData(position, RESOURCES, amount);
     }
 
     /**
@@ -188,35 +153,35 @@ public class World implements Environment {
      * @return the amount of resource at the given position
      */
     public int getResource(int position) {
-        return getData(position, Data.RESOURCES);
+        return getData(position, RESOURCES);
     }
 
     public boolean isAcidic(int position) {
-        return getData(position, Data.ACID) == 1;
+        return getData(position, ACID) == 1;
     }
 
     public void setAcidic(int position, boolean acidic) {
-        setData(position, Data.ACID, acidic);
+        setData(position, ACID, acidic);
     }
 
     public int getRadiation(int position) {
-        return getData(position, Data.RADIATION);
+        return getData(position, RADIATION);
     }
 
     public void addRadition(int position, int radiation) {
         radiation += getRadiation(position);
-        setData(position, Data.RADIATION, Math.min(radiation, Data.RADIATION.max));
+        setData(position, RADIATION, Math.min(radiation, RADIATION.getMaximum()));
     }
 
-    private int getData(int position, Data data) {
+    private int getData(int position, GroundElement data) {
         return data.get(positionData[position]);
     }
 
-    private void setData(int position, Data data, int value) {
+    private void setData(int position, GroundElement data, int value) {
         positionData[position] = data.set(positionData[position], value);
     }
 
-    private void setData(int position, Data data, boolean value) {
+    private void setData(int position, GroundElement data, boolean value) {
         setData(position, data, value ? 1 : 0);
     }
 
@@ -261,8 +226,8 @@ public class World implements Environment {
      * @param value the elevation to set the position to
      */
     public void addElevation(int position, int value) {
-        value += getData(position, Data.ELEVATION);
-        setData(position, Data.ELEVATION, Math.min(value, Data.ELEVATION.max));
+        value += getData(position, ELEVATION);
+        setData(position, ELEVATION, Math.min(value, ELEVATION.getMaximum()));
     }
 
     /**
@@ -272,15 +237,15 @@ public class World implements Environment {
      * @return the elevation at the given position
      */
     public int getElevation(int position) {
-        return getData(position, Data.ELEVATION);
+        return getData(position, ELEVATION);
     }
 
     public void setWall(int position, boolean wall) {
-        setData(position, Data.WALL, wall);
+        setData(position, WALL, wall);
     }
 
     public boolean hasWall(int position) {
-        return getData(position, Data.WALL) == 1;
+        return getData(position, WALL) == 1;
     }
 
     /**
@@ -371,13 +336,9 @@ public class World implements Environment {
         time.tick();
         seedOrganisms();
         growResources();
+        halfLives();
         processPopulation();
         tickListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
-        if (time.timeOfYear() == 0) {
-            System.out.println("Year " + time.getYear()
-                    + " population = " + population.size()
-                    + " complexity = " + String.format("%.2f", getAverageComplexity()));
-        }
     }
 
     private void seedOrganisms() {
@@ -415,11 +376,30 @@ public class World implements Environment {
         }
     }
 
+    private void halfLives() {
+        halfLife(ACID);
+        halfLife(WALL);
+        halfLife(RADIATION);
+        halfLife(RESOURCES);
+        halfLife(ELEVATION);
+    }
+
+    private void halfLife(GroundElement element) {
+        int halfLife = config.getHalfLife(element);
+        if (halfLife > 0) {
+            for (int i = 0; i < space.size(); i++) {
+                int value = getData(i, element);
+                if (value > 0 && random.nextInt(halfLife) == 0)
+                    setData(i, element, value - 1);
+            }
+        }
+    }
+
     public void addResources(int position, int amount) {
-        int resources = getData(position, Data.RESOURCES) + amount;
-        resources = Math.min(resources, Data.RESOURCES.max);
+        int resources = getData(position, RESOURCES) + amount;
+        resources = Math.min(resources, RESOURCES.getMaximum());
         resources = Math.max(resources, 0);
-        setData(position, Data.RESOURCES, resources);
+        setData(position, RESOURCES, resources);
     }
 
     public float getAverageComplexity() {
@@ -532,6 +512,8 @@ public class World implements Environment {
      */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
+        if (isAcidic(position))
+            organism.reduceEnergy(config.getAcidToxicity());
         organism.reduceEnergy(config.getBaseCost());
         organism.reduceEnergy(organism.size() * config.getSizeCost() / 10);
         organism.reduceEnergy(organism.getAge() * config.getAgeCost() / 100);

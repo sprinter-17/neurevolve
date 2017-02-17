@@ -11,6 +11,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.GroundElement;
 import neurevolve.world.Time.Season;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
@@ -70,6 +71,9 @@ import org.xml.sax.SAXException;
  * between divisions to {@code p}</td></tr>
  * <tr><td>{@code <consumption_rate rate='r'/>}</td><td>Set the maximum amount of resource an
  * organism can convert to energy in a single eat activity.</td></tr>
+ * <tr><td>{@code <half_life element='e' period='p/>}</td><td>Set the period over which element
+ * {@code e} will, on average, reduce by 1. All elements are supported: acid, wall, radiation,
+ * elevation or resource.</td></tr>
  * </table>
  *
  * <p>
@@ -231,6 +235,14 @@ public class Loader {
                 break;
             case "consumption_rate":
                 config.setConsumptionRate(getInt(element, "rate"));
+                break;
+            case "half_life":
+                String groundName = element.getAttribute("element");
+                GroundElement ground = Arrays.stream(GroundElement.values())
+                        .filter(e -> e.name().equalsIgnoreCase(groundName))
+                        .findAny()
+                        .orElseThrow(() -> new SAXException("No half life element " + groundName));
+                config.setHalfLife(ground, getInt(element, "period"));
                 break;
             default:
                 throw new SAXException("Illegal configuration: " + element.getNodeName());

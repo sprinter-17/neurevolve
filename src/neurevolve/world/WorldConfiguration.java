@@ -16,6 +16,7 @@ public class WorldConfiguration {
     private enum Key {
         NORMAL_MUTATION_RATE(10),
         RADIATION_MUTATION_RATE(100),
+        ACID_TOXICITY(50),
         MIN_TEMP(100),
         MAX_TEMP(120),
         YEAR_LENGTH(500),
@@ -28,7 +29,8 @@ public class WorldConfiguration {
         CONSUMPTION_RATE(50),
         SIZE_RATE(5),
         ACTIVITY_COST(1),
-        ACTIVITY_FACTOR(50);
+        ACTIVITY_FACTOR(50),
+        HALF_LIFE(0);
 
         private final int defaultValue;
 
@@ -48,6 +50,7 @@ public class WorldConfiguration {
     private final EnumMap<Key, Integer> values = new EnumMap<>(Key.class);
     private final EnumMap<WorldActivity, Integer> costs = new EnumMap<>(WorldActivity.class);
     private final EnumMap<WorldActivity, Integer> factors = new EnumMap<>(WorldActivity.class);
+    private final EnumMap<GroundElement, Integer> halfLives = new EnumMap<>(GroundElement.class);
 
     public int getNormalMutationRate() {
         return Key.NORMAL_MUTATION_RATE.getValue(this);
@@ -75,6 +78,14 @@ public class WorldConfiguration {
         if (rate < 0 || rate > 1000)
             throw new IllegalArgumentException("Radiated mutations rate must be in the range 0=1000");
         Key.RADIATION_MUTATION_RATE.setValue(this, rate);
+    }
+
+    public int getAcidToxicity() {
+        return Key.ACID_TOXICITY.getValue(this);
+    }
+
+    public void setAcidToxicity(int toxicity) {
+        Key.ACID_TOXICITY.setValue(this, toxicity);
     }
 
     public int getMinTemp() {
@@ -221,4 +232,13 @@ public class WorldConfiguration {
     public void setSizeCost(int cost) {
         Key.SIZE_RATE.setValue(this, cost);
     }
+
+    public int getHalfLife(GroundElement element) {
+        return halfLives.getOrDefault(element, Key.HALF_LIFE.defaultValue);
+    }
+
+    public void setHalfLife(GroundElement element, int period) {
+        halfLives.put(element, period);
+    }
+
 }

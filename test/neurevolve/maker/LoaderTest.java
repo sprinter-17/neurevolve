@@ -4,6 +4,7 @@ import java.io.StringReader;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import static neurevolve.world.GroundElement.ACID;
 import neurevolve.world.Time;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
@@ -165,6 +166,12 @@ public class LoaderTest {
     public void testConsumptionRate() throws SAXException {
         loadConfig("<consumption_rate rate='80'/>");
         verify(config).setConsumptionRate(80);
+    }
+
+    @Test
+    public void testHalfLife() throws SAXException {
+        loadConfig("<half_life element='acid' period='37'/>");
+        verify(config).setHalfLife(ACID, 37);
     }
 
     @Test

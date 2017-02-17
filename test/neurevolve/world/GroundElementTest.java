@@ -1,16 +1,16 @@
 package neurevolve.world;
 
 import java.util.Random;
-import static neurevolve.world.World.Data.ACID;
-import static neurevolve.world.World.Data.ELEVATION;
-import static neurevolve.world.World.Data.RESOURCES;
-import static neurevolve.world.World.Data.WALL;
+import static neurevolve.world.GroundElement.ACID;
+import static neurevolve.world.GroundElement.ELEVATION;
+import static neurevolve.world.GroundElement.RESOURCES;
+import static neurevolve.world.GroundElement.WALL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-public class WorldDataTest {
+public class GroundElementTest {
 
     private final Random random = new Random();
     private int data;

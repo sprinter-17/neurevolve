@@ -10,7 +10,6 @@ import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import neurevolve.organism.Species;
 import neurevolve.ui.NetworkPanel;
-import neurevolve.ui.NewWorldDialog;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
@@ -40,8 +39,8 @@ import neurevolve.world.WorldInput;
 public class Neurevolve {
 
     public static void main(String[] args) {
-        new NewWorldDialog().setVisible(true);
-//        testNetworkFrame();
+//        new NewWorldDialog().setVisible(true);
+        testNetworkFrame();
     }
 
     private static void testNetworkFrame() throws HeadlessException {
