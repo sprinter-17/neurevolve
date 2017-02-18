@@ -10,6 +10,7 @@ import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import neurevolve.organism.Species;
 import neurevolve.ui.NetworkPanel;
+import neurevolve.ui.NewWorldDialog;
 import neurevolve.world.Space;
 import neurevolve.world.World;
 import neurevolve.world.WorldActivity;
@@ -39,8 +40,8 @@ import neurevolve.world.WorldInput;
 public class Neurevolve {
 
     public static void main(String[] args) {
-//        new NewWorldDialog().setVisible(true);
-        testNetworkFrame();
+        new NewWorldDialog().setVisible(true);
+//        testNetworkFrame();
     }
 
     private static void testNetworkFrame() throws HeadlessException {
@@ -70,7 +71,7 @@ public class Neurevolve {
         recipe.add(Instruction.ADD_NEURON, 0);
         recipe.add(Instruction.ADD_LINK, 2, 4);
         recipe.add(Instruction.ADD_INPUT, WorldInput.AGE.ordinal(), -7);
-        recipe.add(Instruction.ADD_INPUT, WorldInput.LOOK_WALL_RIGHT.ordinal(), -7);
+        recipe.add(Instruction.ADD_INPUT, WorldInput.LOOK_SPACE_RIGHT.ordinal(), -7);
         recipe.add(Instruction.ADD_LINK, 3, -1);
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_FORWARD.ordinal());
 

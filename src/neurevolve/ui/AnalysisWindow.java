@@ -1,6 +1,5 @@
 package neurevolve.ui;
 
-import neurevolve.organism.Species;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -30,6 +29,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import neurevolve.organism.Organism;
+import neurevolve.organism.Species;
 import neurevolve.world.World;
 
 /**
@@ -133,14 +133,22 @@ public class AnalysisWindow extends JFrame {
 
         public TableCellRenderer getColourCellRenderer() {
             return new DefaultTableCellRenderer() {
+                private JLabel label;
+
                 @Override
                 public Component getTableCellRendererComponent(JTable table, Object value,
                         boolean isSelected, boolean hasFocus, int row, int column) {
-                    JLabel label = (JLabel) super.getTableCellRendererComponent(table, value,
+                    label = (JLabel) super.getTableCellRendererComponent(table, value,
                             isSelected, hasFocus, row, column);
-                    label.setText("");
-                    label.setBackground(new Color(speciesList.get(row).getColour()));
                     return label;
+                }
+
+                @Override
+                protected void setValue(Object value) {
+                    if (label != null && value != null && value instanceof Number) {
+                        label.setBackground(new Color(((Number) value).intValue()));
+                    }
+                    super.setValue("");
                 }
             };
         }

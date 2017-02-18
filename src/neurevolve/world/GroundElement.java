@@ -7,30 +7,37 @@ package neurevolve.world;
  * {@code 2 ^ bits - 1} inclusive;
  */
 public enum GroundElement {
-    ACID(1),
-    WALL(ACID, 1),
-    RADIATION(WALL, 2),
-    ELEVATION(RADIATION, 8),
-    RESOURCES(ELEVATION, 8);
+    ACID("Acid", 1),
+    WALL("Wall", ACID, 1),
+    BODY("Body", WALL, 1),
+    RADIATION("Radiation", BODY, 2),
+    ELEVATION("Elevation", RADIATION, 8),
+    RESOURCES("Resources", ELEVATION, 8);
 
+    private final String name;
     private final int shift;
     private final int bits;
     private final int max;
     private final int mask;
 
-    private GroundElement(GroundElement previous, int bits) {
-        this(previous.shift + previous.bits, bits);
+    private GroundElement(String name, GroundElement previous, int bits) {
+        this(name, previous.shift + previous.bits, bits);
     }
 
-    private GroundElement(int bits) {
-        this(0, bits);
+    private GroundElement(String name, int bits) {
+        this(name, 0, bits);
     }
 
-    private GroundElement(int shift, int bits) {
+    private GroundElement(String name, int shift, int bits) {
+        this.name = name;
         this.shift = shift;
         this.bits = bits;
         this.max = (1 << bits) - 1;
         this.mask = max << shift;
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**

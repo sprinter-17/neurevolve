@@ -1,6 +1,5 @@
 package neurevolve.ui;
 
-import neurevolve.organism.Species;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -19,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
+import neurevolve.organism.Species;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -33,11 +33,7 @@ public class ZoomWindow {
     private static final int HALF_SCALE = SCALE / 2;
     private static final int SIDE = PIXEL_SIZE * SCALE;
     private static final int NETWORK_PANEL_WIDTH = 210;
-    private static final int NETWORK_PANEL_VALUE = 170;
-    private static final int TEXT_HEIGHT = 17;
     private static final int MAX_SNAPSHOTS = 100;
-    private static final Color POSITIVE = new Color(40, 120, 20);
-    private static final Color NEGATIVE = new Color(190, 30, 70);
 
     private final World world;
     private final Space space;
@@ -183,7 +179,7 @@ public class ZoomWindow {
         tools.add(movementButton(">|", () -> snapShots.size() - 1));
         zoomPanel = new ZoomPanel();
         zoomPanel.setPreferredSize(new Dimension(SIDE, SIDE));
-        frame.add(zoomPanel, BorderLayout.CENTER);
+        frame.add(zoomPanel, BorderLayout.WEST);
 
         NetworkPanel networkDisplay = new NetworkPanel();
         networkDisplay.setPreferredSize(new Dimension(NETWORK_PANEL_WIDTH, SIDE));
@@ -203,7 +199,9 @@ public class ZoomWindow {
             }
         });
 
-        frame.add(networkDisplay, BorderLayout.EAST);
+        frame.add(networkDisplay, BorderLayout.CENTER);
+        networkDisplay.setPreferredSize(new Dimension(400, 500));
+
         frame.setLocationRelativeTo(null);
         frame.pack();
     }

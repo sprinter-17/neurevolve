@@ -52,6 +52,10 @@ public class WorldConfiguration {
     private final EnumMap<WorldActivity, Integer> factors = new EnumMap<>(WorldActivity.class);
     private final EnumMap<GroundElement, Integer> halfLives = new EnumMap<>(GroundElement.class);
 
+    {
+        halfLives.put(GroundElement.BODY, 4);
+    }
+
     public int getNormalMutationRate() {
         return Key.NORMAL_MUTATION_RATE.getValue(this);
     }

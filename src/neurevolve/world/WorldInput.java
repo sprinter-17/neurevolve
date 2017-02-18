@@ -13,10 +13,10 @@ public enum WorldInput {
     LOOK_SLOPE_FORWARD("Slope Forward", (w, o) -> w.getSlope(o, FORWARD)),
     LOOK_SLOPE_LEFT("Slope Left", (w, o) -> w.getSlope(o, LEFT)),
     LOOK_SLOPE_RIGHT("Slope Right", (w, o) -> w.getSlope(o, RIGHT)),
-    LOOK_WALL_FORWARD("Wall Forward", getWall(FORWARD)),
-    LOOK_WALL_FAR_FORWARD("Wall Far Forward", getWall(FORWARD, FORWARD)),
-    LOOK_WALL_LEFT("Wall Left", getWall(LEFT)),
-    LOOK_WALL_RIGHT("Wall Right", getWall(RIGHT)),
+    LOOK_SPACE_FORWARD("Space Forward", getSpace(FORWARD)),
+    LOOK_SPACE_FAR_FORWARD("Space Far Forward", getSpace(FORWARD, FORWARD)),
+    LOOK_SPACE_LEFT("Space Left", getSpace(LEFT)),
+    LOOK_SPACE_RIGHT("Space Right", getSpace(RIGHT)),
     LOOK_ACID_HERE("Acid Here", getAcid()),
     LOOK_ACID_FORWARD("Acid Forward", getAcid(FORWARD)),
     LOOK_ACID_FAR_FORWARD("Acid Far Forward", getAcid(FORWARD, FORWARD)),
@@ -88,8 +88,8 @@ public enum WorldInput {
         return getWorldValueGetter((w, o, p) -> w.getColourDifference(o, p));
     }
 
-    private static ValueGetter getWall(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.hasWall(p) ? 100 : 0, angles);
+    private static ValueGetter getSpace(Angle... angles) {
+        return getWorldValueGetter((w, o, p) -> w.isEmpty(p) ? 100 : 0, angles);
     }
 
     private static ValueGetter getAcid(Angle... angles) {

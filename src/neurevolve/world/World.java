@@ -17,6 +17,7 @@ import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.GroundElement.ACID;
+import static neurevolve.world.GroundElement.BODY;
 import static neurevolve.world.GroundElement.ELEVATION;
 import static neurevolve.world.GroundElement.RADIATION;
 import static neurevolve.world.GroundElement.RESOURCES;
@@ -66,6 +67,10 @@ public class World implements Environment {
         this.time = new Time(configuration);
         this.population = new Population(space);
         this.positionData = new int[frame.size()];
+    }
+
+    public int[] copyGroundElements() {
+        return Arrays.copyOf(positionData, space.size());
     }
 
     /**
@@ -248,6 +253,10 @@ public class World implements Environment {
         return getData(position, WALL) == 1;
     }
 
+    public boolean isEmpty(int position) {
+        return getData(position, WALL) == 0 && getData(position, BODY) == 0;
+    }
+
     /**
      * Calculate a position relative to an organism. Given one or more angles, calculates a position
      * by moving from an organism's position according to the angles.
@@ -297,8 +306,8 @@ public class World implements Environment {
      * @throws IllegalArgumentException if the position already has an organism
      */
     public void addOrganism(Organism organism, int position, int direction) {
-        if (hasWall(position)) {
-            throw new IllegalArgumentException("Attempt to add organism in wall");
+        if (!isEmpty(position)) {
+            throw new IllegalArgumentException("Attempt to add organism in non-empty position");
         }
         population.addOrganism(organism, position, direction);
         if (isAcidic(position)) {
@@ -349,7 +358,7 @@ public class World implements Environment {
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
         if (population.size() < config.getSeedCount()) {
             int position = random.nextInt(space.size());
-            if (!population.hasOrganism(position) && !hasWall(position)) {
+            if (!population.hasOrganism(position) && isEmpty(position)) {
                 population.addOrganism(new Organism(this, config.getSeedInitialEnergy(), recipe),
                         position, random.nextInt(4));
             }
@@ -377,11 +386,8 @@ public class World implements Environment {
     }
 
     private void halfLives() {
-        halfLife(ACID);
-        halfLife(WALL);
-        halfLife(RADIATION);
-        halfLife(RESOURCES);
-        halfLife(ELEVATION);
+        Arrays.stream(GroundElement.values())
+                .forEach(this::halfLife);
     }
 
     private void halfLife(GroundElement element) {
@@ -389,7 +395,7 @@ public class World implements Environment {
         if (halfLife > 0) {
             for (int i = 0; i < space.size(); i++) {
                 int value = getData(i, element);
-                if (value > 0 && random.nextInt(halfLife) == 0)
+                if (value > 0 && (halfLife == 1 || random.nextInt(halfLife) == 0))
                     setData(i, element, value - 1);
             }
         }
@@ -420,7 +426,7 @@ public class World implements Environment {
      */
     public void feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
-        if (!hasWall(position)) {
+        if (isEmpty(position)) {
             int amount = Math.min(getResource(position), config.getConsumptionRate());
             organism.increaseEnergy(amount);
             addResources(position, -amount);
@@ -435,7 +441,7 @@ public class World implements Environment {
      */
     public void moveOrganism(Organism organism) {
         int slope = Math.max(0, getSlope(organism, FORWARD));
-        if (!hasWall(population.getPosition(organism, FORWARD))) {
+        if (isEmpty(population.getPosition(organism, FORWARD))) {
             population.moveOrganism(organism, slope);
             if (getRadiation(population.getPosition(organism)) > 0) {
                 splitToAnyOpenPosition(0, organism);
@@ -491,7 +497,7 @@ public class World implements Environment {
         Collections.shuffle(directions);
         return directions.stream()
                 .mapToInt(dir -> space.move(position, dir))
-                .filter(pos -> !hasOrganism(pos) && !hasWall(pos))
+                .filter(pos -> !hasOrganism(pos) && isEmpty(pos))
                 .findFirst();
     }
 
@@ -522,6 +528,7 @@ public class World implements Environment {
         totalComplexity += organism.complexity();
         if (organism.isDead()) {
             removeOrganism(organism);
+            setData(position, BODY, true);
         }
     }
 

@@ -8,6 +8,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import javax.swing.JPanel;
 import neurevolve.organism.Organism;
+import static neurevolve.world.GroundElement.ACID;
+import static neurevolve.world.GroundElement.BODY;
+import static neurevolve.world.GroundElement.ELEVATION;
+import static neurevolve.world.GroundElement.RADIATION;
+import static neurevolve.world.GroundElement.RESOURCES;
+import static neurevolve.world.GroundElement.WALL;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -60,18 +66,19 @@ public class MapPanel extends JPanel {
      * display represents a snapshot of the world.
      */
     private void redraw() {
-        int[] resources = world.getResourceCopy();
         Population population = world.getPopulationCopy();
-        int[] elevation = world.getElevationCopy();
-        boolean[] acid = world.getAcidCopy();
-        int[] radiation = world.getRadiationCopy();
-        for (int i = 0; i < resources.length; i++) {
-            if (world.hasWall(i)) {
+        int[] ground = world.copyGroundElements();
+
+        for (int i = 0; i < ground.length; i++) {
+            int data = ground[i];
+            if (WALL.get(data) == 1) {
                 pixels[i] = Color.DARK_GRAY.getRGB();
             } else if (population.hasOrganism(i)) {
                 pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
+            } else if (BODY.get(data) == 1) {
+                pixels[i] = 255 << 24;
             } else {
-                pixels[i] = convertToColour(config, resources[i], elevation[i], acid[i], radiation[i]);
+                pixels[i] = convertToColour(config, data);
                 pixels[i] |= 255 << 24;
             }
         }
@@ -88,18 +95,14 @@ public class MapPanel extends JPanel {
      * Convert resources, organism and elevation for a position to a colour to display
      *
      * @param config the configuration for the world
-     * @param resources the amount of resources
-     * @param elevation the height of the position
-     * @param acid true if the position is acidic
-     * @param radiation the amount of radiation
+     * @param ground the packed data containing the ground elements
      * @return a colour, in RGB format, representing the status of the position
      */
-    public static int convertToColour(WorldConfiguration config, int resources, int elevation,
-            boolean acid, int radiation) {
-        return resourceColour(config, resources)
-                | elevationColour(config, elevation)
-                | acidColour(config, acid)
-                | radiationColour(config, radiation);
+    public static int convertToColour(WorldConfiguration config, int ground) {
+        return resourceColour(config, RESOURCES.get(ground))
+                | elevationColour(config, ELEVATION.get(ground))
+                | acidColour(config, ACID.get(ground) == 1)
+                | radiationColour(config, RADIATION.get(ground));
     }
 
     /**
@@ -142,5 +145,4 @@ public class MapPanel extends JPanel {
     public static int populationColour(WorldConfiguration config, Organism organism) {
         return organism == null ? 0 : organism.getColour();
     }
-
 }

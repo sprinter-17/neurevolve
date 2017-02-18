@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -55,11 +56,8 @@ public class NetworkPanel extends JPanel {
     private Species species = null;
     private int[] ranges;
 
-    private int offsetX = 0;
-    private int offsetY = 0;
-
-    private int dragX = 0;
-    private int dragY = 0;
+    private Point offset = new Point(0, 0);
+    private Point drag = new Point(0, 0);
 
     private boolean showInactiveNeurons = false;
 
@@ -76,17 +74,16 @@ public class NetworkPanel extends JPanel {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            dragX = e.getX() - clickX;
-            dragY = e.getY() - clickY;
+            drag.x = e.getX() - clickX;
+            drag.y = e.getY() - clickY;
             repaint();
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            offsetX += dragX;
-            offsetY += dragY;
-            dragX = 0;
-            dragY = 0;
+            offset.x += drag.x;
+            offset.y += drag.y;
+            drag = new Point(0, 0);
             repaint();
         }
     }
@@ -136,8 +133,8 @@ public class NetworkPanel extends JPanel {
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, getWidth(), getHeight());
             if (species != null) {
-                g.drawImage(networkImage, INPUT_IMAGE_WIDTH + offsetX + dragX,
-                        offsetY + dragY, this);
+                g.drawImage(networkImage, INPUT_IMAGE_WIDTH + offset.x + drag.x,
+                        offset.y + drag.y, this);
                 g.drawImage(inputImage, 0, 0, this);
                 paintInputs((Graphics2D) g);
             }
@@ -153,15 +150,15 @@ public class NetworkPanel extends JPanel {
         private void paintNeuronInputs(Graphics2D g, Integer neuron, Point point) {
             int maxX = getWidth() - INPUT_IMAGE_WIDTH;
             int maxY = getHeight();
-            Point p = new Point(offsetX + dragX + point.x,
-                    offsetY + dragY + point.y + NEURON_HEIGHT / 2);
+            Point p = new Point(offset.x + drag.x + point.x,
+                    offset.y + drag.y + point.y + NEURON_HEIGHT / 2);
             if (p.x > 0 && p.x < maxX && p.y > 0 && p.y < maxY) {
                 neurons.get(neuron).forEachInput((i, w) -> paintSingleInput(g, i, w, p));
             }
         }
 
-        private void paintSingleInput(Graphics2D g, int code, int weight, Point point) {
-            WorldInput input = WorldInput.decode(code);
+        private void paintSingleInput(Graphics2D g, int inputCode, int weight, Point point) {
+            WorldInput input = WorldInput.decode(inputCode);
             if (inputPositions.containsKey(input)) {
                 Point start = inputPositions.get(input);
                 if (weight < 0) {
@@ -215,11 +212,11 @@ public class NetworkPanel extends JPanel {
         drawLine(g, y, right(y), WorldInput.LOOK_SLOPE_RIGHT);
 
         y += height;
-        drawInputName(g, "Wall", y);
-        drawLine(g, y, forward(y), WorldInput.LOOK_WALL_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_WALL_FAR_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_WALL_FORWARD);
-        drawLine(g, y, right(y), WorldInput.LOOK_WALL_RIGHT);
+        drawInputName(g, "Space", y);
+        drawLine(g, y, forward(y), WorldInput.LOOK_SPACE_FORWARD);
+        drawLine(g, y, farForward(y), WorldInput.LOOK_SPACE_FAR_FORWARD);
+        drawLine(g, y, left(y), WorldInput.LOOK_SPACE_FORWARD);
+        drawLine(g, y, right(y), WorldInput.LOOK_SPACE_RIGHT);
 
         y += height;
         drawInputName(g, "Radiation", y);
@@ -336,51 +333,54 @@ public class NetworkPanel extends JPanel {
      * Paint the network into a graphics
      */
     private void paintNetwork() {
+        resetDrag();
+        calculateNeuronPositions();
         Graphics2D g = createImage();
         paintBackground(g);
+        neuronPositions.forEach((n, p) -> paintNeuron(g, n, p));
+        repaint();
+    }
+
+    private void resetDrag() {
+        offset = new Point(0, 0);
+    }
+
+    private void calculateNeuronPositions() {
         neuronPositions.clear();
         if (species != null) {
             Point point = new Point(INDENT, GAP);
             for (int n = 0; n < neurons.size(); n++) {
                 if (showInactiveNeurons || !neurons.get(n).isInactive()) {
                     neuronPositions.put(n, point);
-                    paintNeuronBox(g, n);
-                    paintLinks(g, n);
-                    paintThreshold(g, n);
                     point = new Point(point.x + INDENT, point.y + NEURON_HEIGHT + GAP);
                 }
             }
         }
-        repaint();
     }
 
     private Graphics2D createImage() {
-        offsetX = 0;
-        offsetY = 0;
-        networkImage = new BufferedImage(500, 1000, BufferedImage.TYPE_INT_RGB);
+        Point lastPoint = neuronPositions.values().stream()
+                .max(Comparator.comparingDouble(Point::getY))
+                .orElse(new Point(0, 0));
+        int width = lastPoint.x + NEURON_WIDTH + 5;
+        int height = lastPoint.y + NEURON_HEIGHT + 5;
+        networkImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         return networkImage.createGraphics();
     }
 
     private void paintBackground(Graphics2D g) {
         g.setColor(Color.WHITE);
-        g.fillRect(0, 0, 500, 1000);
+        g.fillRect(0, 0, networkImage.getWidth(), networkImage.getHeight());
     }
 
-    private void paintLinks(Graphics2D g, int neuron) {
-        Map<Integer, Integer> synapses = new HashMap<>();
-        neurons.get(neuron).forEachLink(synapses::put);
-        int height = synapses.values().stream()
-                .mapToInt(n -> Math.min(5, Math.abs(n)) + 1).sum();
-        int linkSpace = NEURON_HEIGHT / 2 + height / 2;
-        for (int n : synapses.keySet()) {
-            paintLink(g, n, neuron, linkSpace, synapses.get(n));
-            linkSpace -= 1 + synapses.get(n);
-        }
+    private void paintNeuron(Graphics2D g, int neuron, Point point) {
+        paintNeuronBox(g, neuron, point);
+        paintLinks(g, neuron, point);
+        paintThreshold(g, neuron, point);
     }
 
-    private void paintNeuronBox(Graphics2D g, int neuron) {
+    private void paintNeuronBox(Graphics2D g, int neuron, Point point) {
         Color colour = ranges != null && ranges[neuron] > 0 ? Color.CYAN : Color.LIGHT_GRAY;
-        Point point = neuronPositions.get(neuron);
         if (neurons.get(neuron).hasActivity()) {
             paintBox(g, colour, point.x, point.y, NEURON_WIDTH);
             paintActivity(g, neurons.get(neuron).getActivityName(),
@@ -410,6 +410,18 @@ public class NetworkPanel extends JPanel {
         g.drawString(text, x, y);
     }
 
+    private void paintLinks(Graphics2D g, int neuron, Point point) {
+        Map<Integer, Integer> synapses = new HashMap<>();
+        neurons.get(neuron).forEachLink(synapses::put);
+        int height = synapses.values().stream()
+                .mapToInt(n -> Math.min(5, Math.abs(n)) + 1).sum();
+        int linkSpace = NEURON_HEIGHT / 2 + height / 2;
+        for (int n : synapses.keySet()) {
+            paintLink(g, n, neuron, linkSpace, synapses.get(n));
+            linkSpace -= 1 + synapses.get(n);
+        }
+    }
+
     /**
      * Paint a link from one neuron to another
      */
@@ -433,9 +445,8 @@ public class NetworkPanel extends JPanel {
     /**
      * Paint a visual display of a neuron's threshold
      */
-    private void paintThreshold(Graphics2D g, int neuron) {
+    private void paintThreshold(Graphics2D g, int neuron, Point point) {
         int threshold = neurons.get(neuron).getThreshold();
-        Point point = neuronPositions.get(neuron);
         if (threshold < 0) {
             threshold = Math.min(10, -threshold);
             g.setColor(POSITIVE_COLOUR);

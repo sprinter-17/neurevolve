@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <world name="Walled World">
     <description>Not much on this world</description>
+    <configuration>
+        <seed count='5' energy='100'/>
+    </configuration>
     <at_start>
         <add_resources amount='200'>
             <everywhere/>

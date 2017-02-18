@@ -58,7 +58,7 @@ class Mutator implements Replicator {
     }
 
     private int colour(int colour) {
-        for (int i = 0; i < mutationCount; i++) {
+        if (mutationCount > 0) {
             colour ^= 1 << random.nextInt(24);
         }
         return colour;

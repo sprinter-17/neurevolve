@@ -16,6 +16,7 @@ import javax.swing.JTabbedPane;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import javax.swing.border.Border;
+import neurevolve.world.GroundElement;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
 
@@ -29,6 +30,7 @@ public class ConfigPanel extends JTabbedPane {
         this.config = config;
         layout.insets = new Insets(0, 8, 0, 8);
         addWorldPanel();
+        addGroundPanel();
         addOrganismPanel();
     }
 
@@ -60,6 +62,21 @@ public class ConfigPanel extends JTabbedPane {
                 config.getYearLength(), v -> config.setYear(v, config.getTempVariation()));
         addValueSlider(temperaturePanel, "Season Variation", 0, 50,
                 config.getTempVariation(), v -> config.setYear(config.getYearLength(), v));
+    }
+
+    private void addGroundPanel() {
+        JPanel groundPanel = new JPanel();
+        groundPanel.setLayout(new BoxLayout(groundPanel, BoxLayout.Y_AXIS));
+        addTab("Ground", new JScrollPane(groundPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
+        JPanel effectsPanel = addGroupPanel(groundPanel, "Effects");
+        addValueSlider(effectsPanel, "Acid Toxicity", 1, 100,
+                config.getAcidToxicity(), config::setAcidToxicity);
+        JPanel halfLife = addGroupPanel(groundPanel, "Half Lives");
+        for (GroundElement element : GroundElement.values()) {
+            addValueSlider(halfLife, element.getName(), 0, 50,
+                    config.getHalfLife(element), v -> config.setHalfLife(element, v));
+        }
+        layout.gridy = 0;
     }
 
     private void addOrganismPanel() {
