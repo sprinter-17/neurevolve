@@ -3,7 +3,6 @@ package neurevolve.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -282,8 +281,7 @@ public class AnalysisWindow extends JFrame {
     }
 
     private void makeNetworkPanel() {
-        networkPanel = new NetworkPanel();
-        networkPanel.setPreferredSize(new Dimension(400, 400));
+        networkPanel = new NetworkPanel(world);
         add(networkPanel, BorderLayout.CENTER);
     }
 

@@ -1,85 +1,125 @@
 package neurevolve.world;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.IntStream;
 import neurevolve.organism.Organism;
-import static neurevolve.world.Angle.BACKWARD;
 import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Angle.LEFT;
 import static neurevolve.world.Angle.RIGHT;
 
-public enum WorldInput {
-    AGE("Own Age", (w, o) -> o.getAge()),
-    OWN_ENERGY("Own Energy", (w, o) -> o.getEnergy()),
-    TEMPERATURE("Temperature", (w, o) -> w.getTemperature(w.getPosition(o))),
-    LOOK_SLOPE_FORWARD("Slope Forward", (w, o) -> w.getSlope(o, FORWARD)),
-    LOOK_SLOPE_LEFT("Slope Left", (w, o) -> w.getSlope(o, LEFT)),
-    LOOK_SLOPE_RIGHT("Slope Right", (w, o) -> w.getSlope(o, RIGHT)),
-    LOOK_SPACE_FORWARD("Space Forward", getSpace(FORWARD)),
-    LOOK_SPACE_FAR_FORWARD("Space Far Forward", getSpace(FORWARD, FORWARD)),
-    LOOK_SPACE_LEFT("Space Left", getSpace(LEFT)),
-    LOOK_SPACE_RIGHT("Space Right", getSpace(RIGHT)),
-    LOOK_ACID_HERE("Acid Here", getAcid()),
-    LOOK_ACID_FORWARD("Acid Forward", getAcid(FORWARD)),
-    LOOK_ACID_FAR_FORWARD("Acid Far Forward", getAcid(FORWARD, FORWARD)),
-    LOOK_ACID_LEFT("Acid Left", getAcid(LEFT)),
-    LOOK_ACID_RIGHT("Acid Right", getAcid(RIGHT)),
-    LOOK_RADIATION_HERE("Radition Here", getRadiation()),
-    LOOK_RADIATION_FORWARD("Radition Forward", getRadiation(FORWARD)),
-    LOOK_RADIATION_FAR_FORWARD("Radition Far Forward", getRadiation(FORWARD, FORWARD)),
-    LOOK_RADIATION_RIGHT("Radition Right", getRadiation(RIGHT)),
-    LOOK_RADIATION_LEFT("Radition Left", getRadiation(LEFT)),
-    LOOK_ORGANISM_BACKWARD("Colour Backward", getColourDifference(BACKWARD)),
-    LOOK_ORGANISM_FORWARD("Colour Forward", getColourDifference(FORWARD)),
-    LOOK_ORGANISM_LEFT("Colour Left", getColourDifference(LEFT)),
-    LOOK_ORGANISM_RIGHT("Colour Right", getColourDifference(RIGHT)),
-    LOOK_ORGANISM_FAR_FORWARD("Colour Far Forward", getColourDifference(FORWARD, FORWARD)),
-    LOOK_ORGANISM_ENERGY_FORWARD("Organism Energy Forward", getEnergy(FORWARD)),
-    LOOK_ORGANISM_ENERGY_FAR_FORWARD("Organism Energy Far Forward", getEnergy(FORWARD)),
-    LOOK_RESOURCE_HERE("Resource Here", getResource()),
-    LOOK_RESOURCE_FORWARD("Resource Forward", getResource(FORWARD)),
-    LOOK_RESOURCE_LEFT("Resource Left", getResource(LEFT)),
-    LOOK_RESOURCE_RIGHT("Resource Right", getResource(RIGHT)),
-    LOOK_RESOURCE_FAR_FORWARD("Resource Far Forward", getResource(FORWARD, FORWARD)),;
+public class WorldInput {
 
+    public static final int MAX_VALUE = 100;
+
+    @FunctionalInterface
     private interface ValueGetter {
 
-        public int getValue(World world, Organism organism);
+        int getValue(Organism organism);
     }
 
-    private final String name;
-    private final ValueGetter getter;
+    private class WorldValueGetter {
 
-    private WorldInput(String name, ValueGetter getter) {
-        this.name = name;
-        this.getter = getter;
+        private final String name;
+        private final ValueGetter valueGetter;
+
+        public WorldValueGetter(String name, ValueGetter valueGetter) {
+            this.name = name;
+            this.valueGetter = valueGetter;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getValue(Organism organism) {
+            return valueGetter.getValue(organism);
+        }
     }
 
-    public int getValue(World world, Organism organism) {
-        return getter.getValue(world, organism);
+    private final World world;
+    private final List<WorldValueGetter> valueGetters = new ArrayList<>();
+
+    private enum VisionField {
+        LOOK_HERE("Here"),
+        LOOK_FORWARD("Forward", FORWARD),
+        LOOK_FAR_FORWARD("Far Forward", FORWARD, FORWARD),
+        LOOK_LEFT("Left", LEFT),
+        LOOK_FORWARD_LEFT("Forward Left", FORWARD, LEFT),
+        LOOK_FAR_LEFT("Far Left", LEFT, LEFT),
+        LOOK_RIGHT("Right", RIGHT),
+        LOOK_FORWARD_RIGHT("Forward Right", FORWARD, RIGHT),
+        LOOK_FAR_RIGHT("Far Right", RIGHT, RIGHT);
+
+        private final String name;
+        private final Angle[] angles;
+
+        VisionField(String name, Angle... angles) {
+            this.name = name;
+            this.angles = angles;
+        }
     }
 
-    public static WorldInput decode(int code) {
-        final int count = values().length;
-        return values()[Math.floorMod(code, count)];
+    public WorldInput(World world) {
+        this.world = world;
+        addInput("Own Age", Organism::getAge);
+        addInput("Own Energy", Organism::getEnergy);
+        addInput("Temperature Here", o -> world.getTemperature(world.getPosition(o)));
+        addInput("Look Slope Forward", o -> world.getSlope(o, FORWARD));
+        addInput("Look Slope Left", o -> world.getSlope(o, LEFT));
+        addInput("Look Slope Right", o -> world.getSlope(o, RIGHT));
+        addVisionInput("Other Energy", (o, p) -> world.getOrganismEnergy(p));
+        addVisionInput("Other Colour", world::getColourDifference);
+        addVisionElementInput(GroundElement.WALL);
+        addVisionElementInput(GroundElement.ACID);
+        addVisionElementInput(GroundElement.RESOURCES);
+        addVisionElementInput(GroundElement.BODY);
+        addVisionElementInput(GroundElement.RADIATION);
     }
 
-    public static int getValue(int input, World world, Organism organism) {
-        return decode(input).getValue(world, organism);
+    private void addInput(String name, ValueGetter valueGetter) {
+        valueGetters.add(new WorldValueGetter(name, valueGetter));
     }
 
-    public static String describe(int code) {
+    private void addVisionInput(String name, BiFunction<Organism, Integer, Integer> getter) {
+        for (VisionField field : VisionField.values()) {
+            String fieldName = "Look " + name + " " + field.name;
+            addInput(fieldName, o -> getter.apply(o, world.getPosition(o, field.angles)));
+        }
+    }
+
+    private void addVisionElementInput(GroundElement element) {
+        addVisionInput(element.getName(), (o, p) -> getValue(p, element));
+    }
+
+    private int getValue(int position, GroundElement element) {
+        return world.getElementValue(position, element) * MAX_VALUE / element.getMaximum();
+    }
+
+    public String getName(int code) {
         return decode(code).name;
     }
 
-    @FunctionalInterface
-    private interface WorldValueGetter {
-
-        int getValue(World world, Organism organism, int position);
+    public int getValue(Organism organism, int code) {
+        return decode(code).valueGetter.getValue(organism);
     }
 
+    public int getCode(String name) {
+        return IntStream.range(0, valueGetters.size())
+                .filter(i -> valueGetters.get(i).name.equals(name))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("No input with name " + name));
+    }
+
+    private WorldValueGetter decode(int code) {
+        return valueGetters.get(Math.floorMod(code, valueGetters.size()));
+    }
+
+    /*
     private static ValueGetter getEnergy(Angle... angles) {
         return getWorldValueGetter((w, o, p) -> w.getOrganismEnergy(p), angles);
     }
-
     private static ValueGetter getResource(Angle... angles) {
         return getWorldValueGetter((w, o, p) -> w.getResource(p), angles);
     }
@@ -103,5 +143,5 @@ public enum WorldInput {
     private static ValueGetter getWorldValueGetter(WorldValueGetter getter, Angle... angles) {
         return (world, organism) -> getter.getValue(world, organism, world.getPosition(organism, angles));
     }
-
+     */
 }

@@ -121,13 +121,13 @@ public class MainWindow {
 
     private void addMapPanel(final World world, final Space space, final WorldConfiguration config) {
         MapPanel mapPanel = new MapPanel(world, space, config);
-        mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight()));
+        mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight() + 10));
         frame.getContentPane().add(mapPanel, BorderLayout.CENTER);
     }
 
     private void addConfigPanel(Space space, final WorldConfiguration config) {
         ConfigPanel configPanel = new ConfigPanel(config);
-        configPanel.setPreferredSize(new Dimension(300, space.getHeight()));
+        configPanel.setPreferredSize(new Dimension(350, space.getHeight()));
         frame.getContentPane().add(configPanel, BorderLayout.EAST);
     }
 

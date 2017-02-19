@@ -32,6 +32,7 @@ public class ConfigPanel extends JTabbedPane {
         addWorldPanel();
         addGroundPanel();
         addOrganismPanel();
+        addActivityPanel();
     }
 
     private void addWorldPanel() {
@@ -100,11 +101,23 @@ public class ConfigPanel extends JTabbedPane {
                 config.getAgeCost(), config::setAgeCost);
         addValueSlider(ratePanel, "Size Cost", 0, 20,
                 config.getSizeCost(), config::setSizeCost);
+    }
 
-        JPanel costPanel = addGroupPanel(organismPanel, "Costs");
+    private void addActivityPanel() {
+        JPanel activityPanel = new JPanel();
+        activityPanel.setLayout(new BoxLayout(activityPanel, BoxLayout.Y_AXIS));
+        addTab("Activities", new JScrollPane(activityPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
+
+        JPanel costPanel = addGroupPanel(activityPanel, "Costs");
         for (WorldActivity activity : WorldActivity.values()) {
             addValueSlider(costPanel, WorldActivity.describe(activity.ordinal()),
                     0, 10, config.getActivityCost(activity), v -> config.setActivityCost(activity, v));
+        }
+
+        JPanel factorPanel = addGroupPanel(activityPanel, "Repeat Factor");
+        for (WorldActivity activity : WorldActivity.values()) {
+            addValueSlider(factorPanel, WorldActivity.describe(activity.ordinal()),
+                    0, 200, config.getActivityFactor(activity), v -> config.setActivityFactor(activity, v));
         }
     }
 

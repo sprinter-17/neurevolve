@@ -181,8 +181,7 @@ public class ZoomWindow {
         zoomPanel.setPreferredSize(new Dimension(SIDE, SIDE));
         frame.add(zoomPanel, BorderLayout.WEST);
 
-        NetworkPanel networkDisplay = new NetworkPanel();
-        networkDisplay.setPreferredSize(new Dimension(NETWORK_PANEL_WIDTH, SIDE));
+        NetworkPanel networkDisplay = new NetworkPanel(world);
         zoomPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {

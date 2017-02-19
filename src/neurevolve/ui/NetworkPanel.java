@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import static java.awt.BasicStroke.CAP_BUTT;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -12,7 +13,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +25,7 @@ import javax.swing.event.MouseInputAdapter;
 import neurevolve.organism.RecipeDescriber;
 import neurevolve.organism.RecipeDescriber.Neuron;
 import neurevolve.organism.Species;
-import neurevolve.world.WorldInput;
-import static neurevolve.world.WorldInput.AGE;
-import static neurevolve.world.WorldInput.OWN_ENERGY;
-import static neurevolve.world.WorldInput.TEMPERATURE;
+import neurevolve.world.World;
 
 /**
  * A {@code NetworkPanel} is used to visually display an organism's or species's network. It can be
@@ -45,7 +42,12 @@ public class NetworkPanel extends JPanel {
     private static final int NEURON_WIDTH = 100;
     private static final int NEURON_HEIGHT = 35;
 
-    private final EnumMap<WorldInput, Point> inputPositions = new EnumMap<>(WorldInput.class);
+    private static final Point FORWARD = new Point(16, 0);
+    private static final Point LEFT = new Point(0, -8);
+    private static final Point RIGHT = new Point(0, +8);
+
+    private final World world;
+    private final Map<Integer, Point> inputPositions = new HashMap<>();
     private final Map<Integer, Point> neuronPositions = new HashMap<>();
     private final List<Neuron> neurons = new ArrayList<>();
     private final JButton showOrHideInactiveButton;
@@ -90,9 +92,12 @@ public class NetworkPanel extends JPanel {
 
     /**
      * Construct a network panel
+     *
+     * @param world the world the network's organism is in
      */
-    public NetworkPanel() {
+    public NetworkPanel(World world) {
         super(new BorderLayout());
+        this.world = world;
         Dragger dragger = new Dragger();
         addMouseListener(dragger);
         addMouseMotionListener(dragger);
@@ -102,6 +107,7 @@ public class NetworkPanel extends JPanel {
         toolBar.add(showOrHideInactiveButton);
         add(toolBar, BorderLayout.NORTH);
         add(new ImagePanel(), BorderLayout.CENTER);
+        setPreferredSize(new Dimension(INPUT_IMAGE_WIDTH * 2, 500));
     }
 
     private Action showAllNeurons() {
@@ -147,7 +153,7 @@ public class NetworkPanel extends JPanel {
             neuronPositions.forEach((n, p) -> paintNeuronInputs(g, n, p));
         }
 
-        private void paintNeuronInputs(Graphics2D g, Integer neuron, Point point) {
+        private void paintNeuronInputs(Graphics2D g, int neuron, Point point) {
             int maxX = getWidth() - INPUT_IMAGE_WIDTH;
             int maxY = getHeight();
             Point p = new Point(offset.x + drag.x + point.x,
@@ -158,9 +164,9 @@ public class NetworkPanel extends JPanel {
         }
 
         private void paintSingleInput(Graphics2D g, int inputCode, int weight, Point point) {
-            WorldInput input = WorldInput.decode(inputCode);
-            if (inputPositions.containsKey(input)) {
-                Point start = inputPositions.get(input);
+            inputCode = world.getInputCode(world.describeInput(inputCode));
+            if (inputPositions.containsKey(inputCode)) {
+                Point start = inputPositions.get(inputCode);
                 if (weight < 0) {
                     g.setColor(NEGATIVE_COLOUR);
                 } else if (weight > 0) {
@@ -170,6 +176,8 @@ public class NetworkPanel extends JPanel {
                 }
                 g.setStroke(new BasicStroke(Math.min(5, Math.abs(weight) / 4)));
                 g.drawLine(start.x, start.y, INPUT_IMAGE_WIDTH + point.x, point.y);
+            } else {
+                System.out.println("No position for input code " + inputCode);
             }
         }
     }
@@ -184,118 +192,49 @@ public class NetworkPanel extends JPanel {
         g.fillRect(0, 0, INPUT_IMAGE_WIDTH, 1000);
         g.setColor(Color.pink.darker());
         int y = 25;
+        int code;
 
-        int height = 40;
+        int height = 44;
+        code = world.getInputCode("Own Age");
         drawInputName(g, "Own Age", y);
-        drawDot(g, here(y), AGE);
+        drawDot(g, here(y), code);
 
-        y += height;
+        y += 20;
+        code = world.getInputCode("Own Energy");
         drawInputName(g, "Own Energy", y);
-        drawDot(g, here(y), OWN_ENERGY);
+        drawDot(g, here(y), code);
 
-        y += height;
+        y += 20;
+        code = world.getInputCode("Temperature Here");
         drawInputName(g, "Temperature", y);
-        drawDot(g, here(y), TEMPERATURE);
+        drawDot(g, here(y), code);
 
-        y += height;
-        drawInputName(g, "Resource", y);
-        drawDot(g, here(y), WorldInput.LOOK_RESOURCE_HERE);
-        drawLine(g, y, forward(y), WorldInput.LOOK_RESOURCE_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_RESOURCE_FAR_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_RESOURCE_LEFT);
-        drawLine(g, y, right(y), WorldInput.LOOK_RESOURCE_RIGHT);
-
-        y += height;
+        y += 30;
         drawInputName(g, "Slope", y);
-        drawLine(g, y, forward(y), WorldInput.LOOK_SLOPE_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_SLOPE_LEFT);
-        drawLine(g, y, right(y), WorldInput.LOOK_SLOPE_RIGHT);
+        drawLine(g, y, world.getInputCode("Look Slope Forward"), FORWARD);
+        drawLine(g, y, world.getInputCode("Look Slope Left"), LEFT);
+        drawLine(g, y, world.getInputCode("Look Slope Right"), RIGHT);
 
         y += height;
-        drawInputName(g, "Space", y);
-        drawLine(g, y, forward(y), WorldInput.LOOK_SPACE_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_SPACE_FAR_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_SPACE_FORWARD);
-        drawLine(g, y, right(y), WorldInput.LOOK_SPACE_RIGHT);
+        drawVisualInput(g, "Resources", y);
 
         y += height;
-        drawInputName(g, "Radiation", y);
-        drawDot(g, here(y), WorldInput.LOOK_RADIATION_HERE);
-        drawLine(g, y, forward(y), WorldInput.LOOK_RADIATION_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_RADIATION_FAR_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_RADIATION_LEFT);
-        drawLine(g, y, right(y), WorldInput.LOOK_RADIATION_RIGHT);
+        drawVisualInput(g, "Acid", y);
 
         y += height;
-        drawInputName(g, "Acid", y);
-        drawDot(g, here(y), WorldInput.LOOK_ACID_HERE);
-        drawLine(g, y, forward(y), WorldInput.LOOK_ACID_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_ACID_FAR_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_ACID_LEFT);
-        drawLine(g, y, right(y), WorldInput.LOOK_ACID_RIGHT);
+        drawVisualInput(g, "Other Colour", y);
 
         y += height;
-        drawInputName(g, "Other Colour", y);
-        drawLine(g, y, forward(y), WorldInput.LOOK_ORGANISM_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_ORGANISM_FAR_FORWARD);
-        drawLine(g, y, left(y), WorldInput.LOOK_ORGANISM_LEFT);
-        drawLine(g, y, right(y), WorldInput.LOOK_ORGANISM_RIGHT);
+        drawVisualInput(g, "Other Energy", y);
 
         y += height;
-        drawInputName(g, "Other Energy", y);
-        drawLine(g, y, forward(y), WorldInput.LOOK_ORGANISM_ENERGY_FORWARD);
-        drawLine(g, y, farForward(y), WorldInput.LOOK_ORGANISM_ENERGY_FAR_FORWARD);
-    }
+        drawVisualInput(g, "Wall", y);
 
-    /**
-     * Calculate the point representing input from the current position
-     */
-    private Point here(int y) {
-        return new Point(86, y - 4);
-    }
+        y += height;
+        drawVisualInput(g, "Radiation", y);
 
-    /**
-     * Calculate the point representing input from the forward position
-     */
-    private Point forward(int y) {
-        return new Point(here(y).x + 16, here(y).y);
-    }
-
-    /**
-     * Calculate the point representing input from the far forward position
-     */
-    private Point farForward(int y) {
-        return new Point(here(y).x + 32, here(y).y);
-    }
-
-    /**
-     * Calculate the point representing input from the left position
-     */
-    private Point left(int y) {
-        return new Point(here(y).x, here(y).y - 12);
-    }
-
-    /**
-     * Calculate the point representing input from the right position
-     */
-    private Point right(int y) {
-        return new Point(here(y).x, here(y).y + 12);
-    }
-
-    /**
-     * Draw a line and dot representing an input
-     */
-    private void drawLine(Graphics2D g, int y, Point to, WorldInput input) {
-        g.drawLine(here(y).x, here(y).y, to.x, to.y);
-        drawDot(g, to, input);
-    }
-
-    /**
-     * Draw a dot representing an input
-     */
-    private void drawDot(Graphics2D g, Point p, WorldInput input) {
-        g.fillOval(p.x - 4, p.y - 4, 8, 8);
-        inputPositions.put(input, p);
+        y += height;
+        drawVisualInput(g, "Body", y);
     }
 
     /**
@@ -303,6 +242,46 @@ public class NetworkPanel extends JPanel {
      */
     private void drawInputName(Graphics2D g, String name, int y) {
         g.drawString(name, 80 - g.getFontMetrics().stringWidth(name), y);
+    }
+
+    /**
+     * Draw a dot representing an input
+     */
+    private void drawDot(Graphics2D g, Point p, int input) {
+        g.fillOval(p.x - 4, p.y - 4, 8, 8);
+        inputPositions.put(input, p);
+    }
+
+    private void drawVisualInput(Graphics2D g, String name, int y) {
+        drawInputName(g, name, y);
+        drawLine(g, y, world.getInputCode("Look " + name + " Here"));
+        drawLine(g, y, world.getInputCode("Look " + name + " Forward"), FORWARD);
+        drawLine(g, y, world.getInputCode("Look " + name + " Far Forward"), FORWARD, FORWARD);
+        drawLine(g, y, world.getInputCode("Look " + name + " Left"), LEFT);
+        drawLine(g, y, world.getInputCode("Look " + name + " Forward Left"), FORWARD, LEFT);
+        drawLine(g, y, world.getInputCode("Look " + name + " Far Left"), LEFT, LEFT);
+        drawLine(g, y, world.getInputCode("Look " + name + " Right"), RIGHT);
+        drawLine(g, y, world.getInputCode("Look " + name + " Forward Right"), FORWARD, RIGHT);
+        drawLine(g, y, world.getInputCode("Look " + name + " Far Right"), RIGHT, RIGHT);
+    }
+
+    /**
+     * Draw a line and dot representing an input
+     */
+    private void drawLine(Graphics2D g, int y, int input, Point... adjustments) {
+        Point from = here(y);
+        Point to = here(y);
+        for (Point adjustment : adjustments) {
+            to.x += adjustment.x;
+            to.y += adjustment.y;
+        }
+        if (from.x != to.x || from.y != to.y)
+            g.drawLine(from.x, from.y, to.x, to.y);
+        drawDot(g, to, input);
+    }
+
+    private Point here(int y) {
+        return new Point(86, y - 4);
     }
 
     /**

@@ -238,9 +238,9 @@ public class WorldTest {
         int position = space.position(4, 7);
         Organism organism = new Organism(world, 100);
         world.addOrganism(organism, position, EAST);
-        assertThat(world.getInput(organism, WorldInput.LOOK_SLOPE_FORWARD.ordinal()), is(0));
+        assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward")), is(0));
         world.addElevation(world.getPosition(organism, FORWARD), 11);
-        assertThat(world.getInput(organism, WorldInput.LOOK_SLOPE_FORWARD.ordinal()), is(11));
+        assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward")), is(11));
     }
 
     @Test

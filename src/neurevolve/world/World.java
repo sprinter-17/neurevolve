@@ -44,6 +44,7 @@ public class World implements Environment {
     private final WorldConfiguration config;
     private final int[] positionData;
     private final Random random = new Random();
+    private final WorldInput inputs;
 
     private final List<Runnable> tickListeners = new ArrayList<>();
 
@@ -65,6 +66,7 @@ public class World implements Environment {
         this.config = configuration;
         this.space = frame;
         this.time = new Time(configuration);
+        this.inputs = new WorldInput(this);
         this.population = new Population(space);
         this.positionData = new int[frame.size()];
     }
@@ -106,20 +108,20 @@ public class World implements Environment {
     public int[] getElevationCopy() {
         int[] elevations = new int[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> elevations[i] = getData(i, ELEVATION));
+                .forEach(i -> elevations[i] = getElementValue(i, ELEVATION));
         return elevations;
     }
 
     public boolean[] getAcidCopy() {
         boolean[] acid = new boolean[space.size()];
         IntStream.range(0, space.size())
-                .forEach(i -> acid[i] = getData(i, ACID) == 1);
+                .forEach(i -> acid[i] = getElementValue(i, ACID) == 1);
         return acid;
     }
 
     public int[] getRadiationCopy() {
         int[] radiation = new int[space.size()];
-        forEachPosition(i -> radiation[i] = getData(i, RADIATION));
+        forEachPosition(i -> radiation[i] = getElementValue(i, RADIATION));
         return radiation;
     }
 
@@ -158,11 +160,11 @@ public class World implements Environment {
      * @return the amount of resource at the given position
      */
     public int getResource(int position) {
-        return getData(position, RESOURCES);
+        return getElementValue(position, RESOURCES);
     }
 
     public boolean isAcidic(int position) {
-        return getData(position, ACID) == 1;
+        return getElementValue(position, ACID) == 1;
     }
 
     public void setAcidic(int position, boolean acidic) {
@@ -170,7 +172,7 @@ public class World implements Environment {
     }
 
     public int getRadiation(int position) {
-        return getData(position, RADIATION);
+        return getElementValue(position, RADIATION);
     }
 
     public void addRadition(int position, int radiation) {
@@ -178,8 +180,8 @@ public class World implements Environment {
         setData(position, RADIATION, Math.min(radiation, RADIATION.getMaximum()));
     }
 
-    private int getData(int position, GroundElement data) {
-        return data.get(positionData[position]);
+    public int getElementValue(int position, GroundElement element) {
+        return element.get(positionData[position]);
     }
 
     private void setData(int position, GroundElement data, int value) {
@@ -214,14 +216,14 @@ public class World implements Environment {
     }
 
     /**
-     * Get the difference in elevation between an organism's position and an adjacent position
+     * Get the difference in elevation between an organism's position and another position
      *
      * @param organism the organism that the slope is relative to
-     * @param angle the angle to the position for the slope
+     * @param angles the angles to the position for the slope
      * @return the difference in elevation between the adjacent position and the organism's position
      */
-    public int getSlope(Organism organism, Angle angle) {
-        return getElevation(getPosition(organism, angle)) - getElevation(getPosition(organism));
+    public int getSlope(Organism organism, Angle... angles) {
+        return getElevation(getPosition(organism, angles)) - getElevation(getPosition(organism));
     }
 
     /**
@@ -231,7 +233,7 @@ public class World implements Environment {
      * @param value the elevation to set the position to
      */
     public void addElevation(int position, int value) {
-        value += getData(position, ELEVATION);
+        value += getElementValue(position, ELEVATION);
         setData(position, ELEVATION, Math.min(value, ELEVATION.getMaximum()));
     }
 
@@ -242,7 +244,7 @@ public class World implements Environment {
      * @return the elevation at the given position
      */
     public int getElevation(int position) {
-        return getData(position, ELEVATION);
+        return getElementValue(position, ELEVATION);
     }
 
     public void setWall(int position, boolean wall) {
@@ -250,11 +252,11 @@ public class World implements Environment {
     }
 
     public boolean hasWall(int position) {
-        return getData(position, WALL) == 1;
+        return getElementValue(position, WALL) == 1;
     }
 
     public boolean isEmpty(int position) {
-        return getData(position, WALL) == 0 && getData(position, BODY) == 0;
+        return getElementValue(position, WALL) == 0 && getElementValue(position, BODY) == 0;
     }
 
     /**
@@ -291,9 +293,12 @@ public class World implements Environment {
 
     public int getColourDifference(Organism organism, int position) {
         if (!hasOrganism(position)) {
-            return -100;
+            return 0;
         } else {
-            return organism.getColour() ^ population.getOrganism(position).getColour();
+            int differences = organism.getColour() ^ population.getOrganism(position).getColour();
+            return (int) IntStream.range(0, 24)
+                    .filter(b -> (differences & (1 << b)) != 0)
+                    .count();
         }
     }
 
@@ -394,7 +399,7 @@ public class World implements Environment {
         int halfLife = config.getHalfLife(element);
         if (halfLife > 0) {
             for (int i = 0; i < space.size(); i++) {
-                int value = getData(i, element);
+                int value = getElementValue(i, element);
                 if (value > 0 && (halfLife == 1 || random.nextInt(halfLife) == 0))
                     setData(i, element, value - 1);
             }
@@ -402,7 +407,7 @@ public class World implements Environment {
     }
 
     public void addResources(int position, int amount) {
-        int resources = getData(position, RESOURCES) + amount;
+        int resources = getElementValue(position, RESOURCES) + amount;
         resources = Math.min(resources, RESOURCES.getMaximum());
         resources = Math.max(resources, 0);
         setData(position, RESOURCES, resources);
@@ -613,7 +618,7 @@ public class World implements Environment {
      */
     @Override
     public int getInput(Organism organism, int input) {
-        return WorldInput.getValue(input, this, organism);
+        return inputs.getValue(organism, input);
     }
 
     /**
@@ -637,7 +642,11 @@ public class World implements Environment {
 
     @Override
     public String describeInput(int input) {
-        return WorldInput.describe(input);
+        return inputs.getName(input);
+    }
+
+    public int getInputCode(String name) {
+        return inputs.getCode(name);
     }
 
     @Override
