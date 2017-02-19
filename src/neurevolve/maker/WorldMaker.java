@@ -158,9 +158,10 @@ public class WorldMaker {
      * @return the shape
      */
     public Shape horizontalDividers(int count, int width, int gap) {
+        int scaledGap = scaleWidth(gap);
         return action -> IntStream.range(0, count)
                 .map(i -> (i + 1) * space.getHeight() / (count + 1))
-                .forEach(yc -> horizontalWall(yc, gap, space.getWidth() - gap, width, action));
+                .forEach(yc -> horizontalWall(yc, scaledGap, space.getWidth() - scaledGap, width, action));
     }
 
     /**
@@ -185,9 +186,10 @@ public class WorldMaker {
      * @return the shape
      */
     public Shape verticalDividers(int count, int width, int gap) {
+        int scaledGap = scaleHeight(gap);
         return action -> IntStream.range(0, count)
                 .map(i -> (i + 1) * space.getWidth() / (count + 1))
-                .forEach(x -> verticalWall(x, gap, space.getHeight() - gap, width, action));
+                .forEach(x -> verticalWall(x, scaledGap, space.getHeight() - scaledGap, width, action));
     }
 
     /**
@@ -211,7 +213,8 @@ public class WorldMaker {
      * @return
      */
     public Shape pools(int count, int radius) {
-        return action -> IntStream.range(0, count).forEach(i -> makePool(radius, action));
+        int scaledCount = scaleSize(count);
+        return action -> IntStream.range(0, scaledCount).forEach(i -> makePool(radius, action));
     }
 
     /**
@@ -336,6 +339,18 @@ public class WorldMaker {
         elements.stream()
                 .filter(e -> e.timing.shouldMake(world.getTime()))
                 .forEach(el -> el.apply(world, config));
+    }
+
+    private int scaleWidth(int value) {
+        return value * space.getWidth() / 100;
+    }
+
+    private int scaleHeight(int value) {
+        return value * space.getHeight() / 100;
+    }
+
+    private int scaleSize(int value) {
+        return value * space.size() / 10000;
     }
 
 }

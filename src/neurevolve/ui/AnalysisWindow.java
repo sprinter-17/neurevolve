@@ -8,6 +8,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -44,6 +45,8 @@ public class AnalysisWindow extends JFrame {
 
     private final World world;
     private final SpeciesTableModel speciesModel = new SpeciesTableModel();
+    private final List<Consumer<Species>> selectionListeners = new ArrayList<>();
+
     private Optional<AnalysisWorker> worker = Optional.empty();
     private NetworkPanel networkPanel;
     private JProgressBar progressBar;
@@ -235,6 +238,7 @@ public class AnalysisWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
+                selectionListeners.forEach(l -> l.accept(null));
             }
         });
         add(toolBar, BorderLayout.NORTH);
@@ -275,7 +279,9 @@ public class AnalysisWindow extends JFrame {
             int index = speciesTable.convertRowIndexToModel(row);
             Species species = speciesModel.getSpecies(index);
             networkPanel.showSpecies(species);
+            selectionListeners.forEach(l -> l.accept(species));
         } else {
+            selectionListeners.forEach(l -> l.accept(null));
             networkPanel.clear();
         }
     }
@@ -296,5 +302,9 @@ public class AnalysisWindow extends JFrame {
         statusBar.add(progressBar);
         statusBar.setBorder(BorderFactory.createEtchedBorder());
         add(statusBar, BorderLayout.SOUTH);
+    }
+
+    public void addSelectionListener(Consumer<Species> listener) {
+        selectionListeners.add(listener);
     }
 }

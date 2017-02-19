@@ -112,11 +112,11 @@ import org.xml.sax.SAXException;
  * <tr><td>{@code <vertical_edges width='w'>}</td><td>place bands of width {@code w} along the left
  * and right edges</td></tr>
  * <tr><td>{@code <horizontal_dividers count='n' width='w' gap='g'>}</td><td>place {@code n}
- * horizontal bands of width {@code w} with gaps of {@code g} on the left and right ends</td></tr>
+ * horizontal bands of width {@code w} with gaps of {@code g%} on the left and right ends</td></tr>
  * <tr><td>{@code <vertical_dividers count='n' width='w' gap='g'>}</td><td>place {@code n} vertical
- * bands of width {@code w} with gaps of {@code g} on the top and bottom ends</td></tr>
+ * bands of width {@code w} with gaps of {@code g%} on the top and bottom ends</td></tr>
  * <tr><td>{@code <pools count='n' radius='r'>}</td><td>randomly place {@code n} circles of radius
- * {@code r}</td></tr>
+ * {@code r}. The number of pools is scaled relative to the size of the space.</td></tr>
  * <tr><td>{@code <maze cell='c' edge='e'>}</td><td>place walls of thickness {@code e} to form a
  * randomly generated maze in which each cell in the maze has a width and height of
  * {@code c}</td></tr>

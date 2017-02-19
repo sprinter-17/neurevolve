@@ -6,8 +6,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.util.Optional;
 import javax.swing.JPanel;
 import neurevolve.organism.Organism;
+import neurevolve.organism.Species;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.BODY;
 import static neurevolve.world.GroundElement.ELEVATION;
@@ -39,6 +41,8 @@ public class MapPanel extends JPanel {
     private final BufferedImage image;
     private final int[] pixels;
 
+    private Optional<Species> selectedSpecies = Optional.empty();
+
     /**
      * Construct a <code>MapPanel</code>
      *
@@ -61,6 +65,10 @@ public class MapPanel extends JPanel {
         });
     }
 
+    public void selectSpecies(Species species) {
+        this.selectedSpecies = Optional.ofNullable(species);
+    }
+
     /**
      * Redraw the world. Copies the resources, population and elevation in order to ensure that the
      * display represents a snapshot of the world.
@@ -74,7 +82,11 @@ public class MapPanel extends JPanel {
             if (WALL.get(data) == 1) {
                 pixels[i] = Color.DARK_GRAY.getRGB();
             } else if (population.hasOrganism(i)) {
-                pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
+                Organism organism = population.getOrganism(i);
+                if (selectedSpecies.isPresent() && selectedSpecies.get().matches(organism))
+                    pixels[i] = Color.WHITE.getRGB();
+                else
+                    pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
             } else if (BODY.get(data) == 1) {
                 pixels[i] = 255 << 24;
             } else {

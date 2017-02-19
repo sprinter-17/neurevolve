@@ -111,7 +111,7 @@ public class ConfigPanel extends JTabbedPane {
         JPanel costPanel = addGroupPanel(activityPanel, "Costs");
         for (WorldActivity activity : WorldActivity.values()) {
             addValueSlider(costPanel, WorldActivity.describe(activity.ordinal()),
-                    0, 10, config.getActivityCost(activity), v -> config.setActivityCost(activity, v));
+                    0, 20, config.getActivityCost(activity), v -> config.setActivityCost(activity, v));
         }
 
         JPanel factorPanel = addGroupPanel(activityPanel, "Repeat Factor");

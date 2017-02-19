@@ -122,6 +122,7 @@ public class MainWindow {
     private void addMapPanel(final World world, final Space space, final WorldConfiguration config) {
         MapPanel mapPanel = new MapPanel(world, space, config);
         mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight() + 10));
+        analysisWindow.addSelectionListener(mapPanel::selectSpecies);
         frame.getContentPane().add(mapPanel, BorderLayout.CENTER);
     }
 

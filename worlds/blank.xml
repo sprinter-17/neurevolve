@@ -2,14 +2,18 @@
 <world name="Walled World">
     <description>Not much on this world</description>
     <configuration>
-        <seed count='5' energy='100'/>
+        <seed count='10' energy='100'/>
+        <activity_cost activity='split' cost='18' factor='0'/>
+        <minimum_split_time period='6'/>
+        <temperature_range min='85' max='110'/>
+        <year length='600' variation='8'/>
     </configuration>
     <at_start>
         <add_resources amount='200'>
             <everywhere/>
         </add_resources>
         <wall>
-            <vertical_dividers count='3' width='10' gap='40'/>
+            <vertical_dividers count='6' width='3' gap='5'/>
             <vertical_edges width='4'/>
         </wall>
     </at_start>
