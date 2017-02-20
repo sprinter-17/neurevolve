@@ -44,7 +44,7 @@ class Mutator implements Replicator {
 
     private int advance() {
         if (mutate()) {
-            return random.nextInt(9) - 4;
+            return random.nextInt(17) - 8;
         } else {
             return 1;
         }
@@ -52,7 +52,7 @@ class Mutator implements Replicator {
 
     private int copy(int code) {
         if (mutate()) {
-            code += random.nextInt(17) - 8;
+            code += random.nextInt(11) + random.nextInt(11) + random.nextInt(11) - 15;
         }
         return code;
     }

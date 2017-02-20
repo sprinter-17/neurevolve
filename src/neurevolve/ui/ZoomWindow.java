@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.IntSupplier;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -18,6 +19,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
+import neurevolve.organism.RecipeDescriber;
+import neurevolve.organism.RecipeDescriber.Neuron;
 import neurevolve.organism.Species;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
@@ -88,12 +91,16 @@ public class ZoomWindow {
     }
 
     private NetworkSnapShot getNetwork(Organism organism) {
-        if (organism == null || snapShots.isEmpty()) {
+        if (organism == null || snapShots.isEmpty())
             return null;
-        }
-        return snapShots.get(currentSnapShot).networks.stream()
+        else
+            return getNetwork(organism, currentSnapShot).orElse(null);
+    }
+
+    private Optional<NetworkSnapShot> getNetwork(Organism organism, int snapShot) {
+        return snapShots.get(snapShot).networks.stream()
                 .filter(n -> n.organism == organism)
-                .findAny().orElse(null);
+                .findAny();
     }
 
     private class SnapShot {
@@ -144,6 +151,20 @@ public class ZoomWindow {
                         }
                     }
                 });
+                if (currentOrganism != null) {
+                    List<String> activities = new ArrayList<>();
+                    RecipeDescriber describer = currentOrganism.describeRecipe();
+                    for (int n = 0; n < currentSnapShot; n++) {
+                        getNetwork(currentOrganism, n).ifPresent(network -> {
+                            for (int i = 0; i < network.values.length; i++) {
+                                Neuron neuron = describer.getNeuron(i);
+                                if (network.values[i] >= 0 && neuron.hasActivity())
+                                    activities.add(0, neuron.getActivityName());
+                            }
+                        });
+                    }
+                    System.out.println(activities);
+                }
             }
         }
     }
@@ -230,7 +251,8 @@ public class ZoomWindow {
         if (snapShots.size() < MAX_SNAPSHOTS) {
             snapShots.add(new SnapShot());
             updatePositionLabel();
-            frame.repaint();
+            if (snapShots.size() == 1)
+                frame.repaint();
         }
     }
 

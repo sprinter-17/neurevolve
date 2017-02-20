@@ -214,7 +214,8 @@ public class WorldMaker {
      */
     public Shape pools(int count, int radius) {
         int scaledCount = scaleSize(count);
-        return action -> IntStream.range(0, scaledCount).forEach(i -> makePool(radius, action));
+        int scaledRadius = Math.min(scaleHeight(radius), scaleWidth(radius));
+        return action -> IntStream.range(0, scaledCount).forEach(i -> makePool(scaledRadius, action));
     }
 
     /**
