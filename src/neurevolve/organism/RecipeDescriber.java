@@ -165,9 +165,10 @@ public class RecipeDescriber {
                 neurons.add(new Neuron(values[0]));
                 break;
             case ADD_LINK:
-                if (values[0] >= 0 && values[0] < neurons.size() - 1) {
-                    last().ifPresent(n -> n.links.put(values[0], values[1]));
-                    last().ifPresent(n -> neurons.get(values[0]).outputs.add(n.id));
+                if (neurons.size() > 1) {
+                    int from = Math.floorMod(values[0], neurons.size() - 1);
+                    last().ifPresent(n -> n.links.put(from, values[1]));
+                    last().ifPresent(n -> neurons.get(from).outputs.add(n.id));
                 }
                 break;
             case ADD_INPUT:

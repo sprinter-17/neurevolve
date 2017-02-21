@@ -1,7 +1,6 @@
 package neurevolve.ui;
 
 import java.awt.BasicStroke;
-import static java.awt.BasicStroke.CAP_BUTT;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -25,6 +24,7 @@ import javax.swing.event.MouseInputAdapter;
 import neurevolve.organism.RecipeDescriber;
 import neurevolve.organism.RecipeDescriber.Neuron;
 import neurevolve.organism.Species;
+import neurevolve.world.GroundElement;
 import neurevolve.world.World;
 
 /**
@@ -182,6 +182,26 @@ public class NetworkPanel extends JPanel {
         }
     }
 
+    private class InputPlacer {
+
+        private static final int FULL_LINE_HEIGHT = 44;
+        private static final int HALF_LINE_HEIGHT = FULL_LINE_HEIGHT / 2;
+        private int y = 25;
+
+        public void nextFull() {
+            y += FULL_LINE_HEIGHT;
+        }
+
+        public void nextHalf() {
+            y += HALF_LINE_HEIGHT;
+        }
+
+        private Point here() {
+            return new Point(86, y - 4);
+        }
+
+    }
+
     /**
      * Draw a fixed image representing the various inputs to neurons
      */
@@ -191,57 +211,41 @@ public class NetworkPanel extends JPanel {
         g.setColor(new Color(242, 217, 230));
         g.fillRect(0, 0, INPUT_IMAGE_WIDTH, 1000);
         g.setColor(Color.pink.darker());
-        int y = 25;
-        int code;
 
-        int height = 44;
-        code = world.getInputCode("Own Age");
-        drawInputName(g, "Own Age", y);
-        drawDot(g, here(y), code);
+        InputPlacer placer = new InputPlacer();
 
-        y += 20;
-        code = world.getInputCode("Own Energy");
-        drawInputName(g, "Own Energy", y);
-        drawDot(g, here(y), code);
+        drawInputName(g, "Own Age", placer);
+        drawDot(g, placer.here(), world.getInputCode("Own Age"));
 
-        y += 20;
-        code = world.getInputCode("Temperature Here");
-        drawInputName(g, "Temperature", y);
-        drawDot(g, here(y), code);
+        placer.nextHalf();
+        drawInputName(g, "Own Energy", placer);
+        drawDot(g, placer.here(), world.getInputCode("Own Energy"));
 
-        y += 30;
-        drawInputName(g, "Slope", y);
-        drawLine(g, y, world.getInputCode("Look Slope Forward"), FORWARD);
-        drawLine(g, y, world.getInputCode("Look Slope Left"), LEFT);
-        drawLine(g, y, world.getInputCode("Look Slope Right"), RIGHT);
+        placer.nextHalf();
+        drawInputName(g, "Temperature", placer);
+        drawDot(g, placer.here(), world.getInputCode("Temperature Here"));
 
-        y += height;
-        drawVisualInput(g, "Resources", y);
+        drawVisualInput(g, "Other Colour", placer);
+        drawVisualInput(g, "Other Energy", placer);
+        drawVisualInput(g, "Body", placer);
 
-        y += height;
-        drawVisualInput(g, "Acid", y);
-
-        y += height;
-        drawVisualInput(g, "Other Colour", y);
-
-        y += height;
-        drawVisualInput(g, "Other Energy", y);
-
-        y += height;
-        drawVisualInput(g, "Wall", y);
-
-        y += height;
-        drawVisualInput(g, "Radiation", y);
-
-        y += height;
-        drawVisualInput(g, "Body", y);
+        if (world.usesElement(GroundElement.ELEVATION))
+            drawVisualInput(g, "Slope", placer);
+        if (world.usesElement(GroundElement.RESOURCES))
+            drawVisualInput(g, "Resources", placer);
+        if (world.usesElement(GroundElement.WALL))
+            drawVisualInput(g, "Wall", placer);
+        if (world.usesElement(GroundElement.ACID))
+            drawVisualInput(g, "Acid", placer);
+        if (world.usesElement(GroundElement.RADIATION))
+            drawVisualInput(g, "Radiation", placer);
     }
 
     /**
      * Draw a string for the name of the input
      */
-    private void drawInputName(Graphics2D g, String name, int y) {
-        g.drawString(name, 80 - g.getFontMetrics().stringWidth(name), y);
+    private void drawInputName(Graphics2D g, String name, InputPlacer placer) {
+        g.drawString(name, 80 - g.getFontMetrics().stringWidth(name), placer.y);
     }
 
     /**
@@ -252,25 +256,26 @@ public class NetworkPanel extends JPanel {
         inputPositions.put(input, p);
     }
 
-    private void drawVisualInput(Graphics2D g, String name, int y) {
-        drawInputName(g, name, y);
-        drawLine(g, y, world.getInputCode("Look " + name + " Here"));
-        drawLine(g, y, world.getInputCode("Look " + name + " Forward"), FORWARD);
-        drawLine(g, y, world.getInputCode("Look " + name + " Far Forward"), FORWARD, FORWARD);
-        drawLine(g, y, world.getInputCode("Look " + name + " Left"), LEFT);
-        drawLine(g, y, world.getInputCode("Look " + name + " Forward Left"), FORWARD, LEFT);
-        drawLine(g, y, world.getInputCode("Look " + name + " Far Left"), LEFT, LEFT);
-        drawLine(g, y, world.getInputCode("Look " + name + " Right"), RIGHT);
-        drawLine(g, y, world.getInputCode("Look " + name + " Forward Right"), FORWARD, RIGHT);
-        drawLine(g, y, world.getInputCode("Look " + name + " Far Right"), RIGHT, RIGHT);
+    private void drawVisualInput(Graphics2D g, String name, InputPlacer placer) {
+        placer.nextFull();
+        drawInputName(g, name, placer);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Here"));
+        drawLine(g, placer, world.getInputCode("Look " + name + " Forward"), FORWARD);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Far Forward"), FORWARD, FORWARD);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Left"), LEFT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Forward Left"), FORWARD, LEFT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Far Left"), LEFT, LEFT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Right"), RIGHT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Forward Right"), FORWARD, RIGHT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Far Right"), RIGHT, RIGHT);
     }
 
     /**
      * Draw a line and dot representing an input
      */
-    private void drawLine(Graphics2D g, int y, int input, Point... adjustments) {
-        Point from = here(y);
-        Point to = here(y);
+    private void drawLine(Graphics2D g, InputPlacer placer, int input, Point... adjustments) {
+        Point from = placer.here();
+        Point to = placer.here();
         for (Point adjustment : adjustments) {
             to.x += adjustment.x;
             to.y += adjustment.y;
@@ -278,10 +283,6 @@ public class NetworkPanel extends JPanel {
         if (from.x != to.x || from.y != to.y)
             g.drawLine(from.x, from.y, to.x, to.y);
         drawDot(g, to, input);
-    }
-
-    private Point here(int y) {
-        return new Point(86, y - 4);
     }
 
     /**
@@ -373,6 +374,7 @@ public class NetworkPanel extends JPanel {
      * Paint a box representing a neuron
      */
     private void paintBox(Graphics2D g, Color color, int x, int y, int width) {
+        g.setStroke(new BasicStroke(1));
         g.setColor(color);
         g.fillRect(x, y, width, NEURON_HEIGHT);
         g.setColor(Color.LIGHT_GRAY.darker());
@@ -392,13 +394,16 @@ public class NetworkPanel extends JPanel {
     private void paintLinks(Graphics2D g, int neuron, Point point) {
         Map<Integer, Integer> synapses = new HashMap<>();
         neurons.get(neuron).forEachLink(synapses::put);
-        int height = synapses.values().stream()
-                .mapToInt(n -> Math.min(5, Math.abs(n)) + 1).sum();
+        int height = synapses.values().stream().mapToInt(n -> weightWidth(n) + 1).sum();
         int linkSpace = NEURON_HEIGHT / 2 + height / 2;
         for (int n : synapses.keySet()) {
             paintLink(g, n, neuron, linkSpace, synapses.get(n));
-            linkSpace -= 1 + synapses.get(n);
+            linkSpace -= 1 + weightWidth(synapses.get(n));
         }
+    }
+
+    private int weightWidth(int weight) {
+        return Math.min(5, Math.abs(weight / 5));
     }
 
     /**
@@ -410,15 +415,15 @@ public class NetworkPanel extends JPanel {
         int toX = neuronPositions.get(to).x - 1;
         int toY = neuronPositions.get(to).y + linkSpace;
         g.setColor(Color.BLACK);
+        g.setStroke(new BasicStroke(1));
         g.drawLine(fromX, fromY, fromX, toY);
         if (weight < 0) {
             g.setColor(NEGATIVE_COLOUR);
         } else if (weight > 0) {
             g.setColor(POSITIVE_COLOUR);
         }
-        g.setStroke(new BasicStroke(Math.min(5, Math.abs(weight)), CAP_BUTT, CAP_BUTT));
+        g.setStroke(new BasicStroke(weightWidth(weight)));
         g.drawLine(fromX, toY, toX, toY);
-        g.setStroke(new BasicStroke(1));
     }
 
     /**

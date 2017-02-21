@@ -3,6 +3,7 @@ package neurevolve.world;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -51,6 +52,7 @@ public class World implements Environment {
     private final Time time;
     private int totalComplexity;
     private final Population population;
+    private final EnumSet<GroundElement> usedElements = EnumSet.of(GroundElement.BODY);
 
     private final ActivationFunction function;
 
@@ -69,6 +71,15 @@ public class World implements Environment {
         this.inputs = new WorldInput(this);
         this.population = new Population(space);
         this.positionData = new int[frame.size()];
+    }
+
+    public void setUsedElements(EnumSet<GroundElement> elements) {
+        this.usedElements.addAll(elements);
+        inputs.setUsedElements(usedElements);
+    }
+
+    public boolean usesElement(GroundElement element) {
+        return usedElements.contains(element);
     }
 
     public int[] copyGroundElements() {
@@ -222,8 +233,8 @@ public class World implements Environment {
      * @param angles the angles to the position for the slope
      * @return the difference in elevation between the adjacent position and the organism's position
      */
-    public int getSlope(Organism organism, Angle... angles) {
-        return getElevation(getPosition(organism, angles)) - getElevation(getPosition(organism));
+    public int getSlope(Organism organism, int position) {
+        return getElevation(position) - getElevation(getPosition(organism));
     }
 
     /**
@@ -445,8 +456,9 @@ public class World implements Environment {
      * @param organism the organism to move
      */
     public void moveOrganism(Organism organism) {
-        int slope = Math.max(0, getSlope(organism, FORWARD));
-        if (isEmpty(population.getPosition(organism, FORWARD))) {
+        int position = population.getPosition(organism, FORWARD);
+        if (isEmpty(position)) {
+            int slope = Math.max(0, getSlope(organism, position));
             population.moveOrganism(organism, slope);
             if (getRadiation(population.getPosition(organism)) > 0) {
                 splitToAnyOpenPosition(0, organism);

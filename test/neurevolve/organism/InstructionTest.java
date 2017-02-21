@@ -33,11 +33,12 @@ public class InstructionTest {
 
     @Test
     public void testAddLink() {
+        Instruction.ADD_NEURON.complete(organism, -0);
         Instruction.ADD_NEURON.complete(organism, -27);
         Instruction.ADD_NEURON.complete(organism, 0);
-        Instruction.ADD_LINK.complete(organism, 0, 20 * Neuron.WEIGHT_DIVISOR);
+        Instruction.ADD_LINK.complete(organism, 1, 20 * Neuron.WEIGHT_DIVISOR);
         organism.getBrain().activate();
-        assertThat(organism.getBrain().getValue(1), is(540));
+        assertThat(organism.getBrain().getValue(2), is(540));
     }
 
     @Test

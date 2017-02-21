@@ -13,7 +13,7 @@
             <everywhere/>
         </add_resources>
         <add_resources amount='50'>
-            <pools count='20' radius='80'/>
+            <pools count='20' radius='4'/>
         </add_resources>
         <wall>
             <maze cell='50' edge='5'/>

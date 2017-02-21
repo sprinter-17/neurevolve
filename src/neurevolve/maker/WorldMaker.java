@@ -1,11 +1,13 @@
 package neurevolve.maker;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 import neurevolve.network.SigmoidFunction;
+import neurevolve.world.GroundElement;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
@@ -20,6 +22,7 @@ public class WorldMaker {
     private final WorldConfiguration config;
     private final List<Element> elements = new ArrayList<>();
     private final Random random = new Random();
+    private final EnumSet<GroundElement> usedElements = EnumSet.noneOf(GroundElement.class);
 
     /**
      * An element within the world with a timing, type and shape
@@ -64,6 +67,7 @@ public class WorldMaker {
      * @return a type used to place acid in the world
      */
     public Type acid() {
+        usedElements.add(GroundElement.ACID);
         return (world, position, factor) -> world.setAcidic(position, true);
     }
 
@@ -74,6 +78,7 @@ public class WorldMaker {
      * @return a type used to place radiation in the world
      */
     public Type radiation(int radiation) {
+        usedElements.add(GroundElement.RADIATION);
         return (world, position, factor) -> world.addRadition(position, factor * radiation / 100);
     }
 
@@ -83,6 +88,7 @@ public class WorldMaker {
      * @return a type used to place walls in the world
      */
     public Type wall() {
+        usedElements.add(GroundElement.WALL);
         return (world, position, factor) -> world.setWall(position, true);
     }
 
@@ -93,6 +99,7 @@ public class WorldMaker {
      * @return a type used to add to the elevation in the world
      */
     public Type elevation(int maxElevation) {
+        usedElements.add(GroundElement.ELEVATION);
         return (world, position, factor) -> world.addElevation(position, factor * maxElevation / 100);
     }
 
@@ -103,6 +110,7 @@ public class WorldMaker {
      * @return a type used to add resources to the world
      */
     public Type addResources(int resources) {
+        usedElements.add(GroundElement.RESOURCES);
         return (world, position, factor) -> world.addResources(position, resources * factor / 100);
     }
 
@@ -325,7 +333,8 @@ public class WorldMaker {
      * @return the constructed world
      */
     public World make() {
-        World world = new World(new SigmoidFunction(1000), space, config);
+        World world = new World(new SigmoidFunction(100), space, config);
+        world.setUsedElements(usedElements);
         process(world);
         world.addTickListener(() -> process(world));
         return world;

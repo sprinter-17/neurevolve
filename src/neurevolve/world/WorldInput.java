@@ -1,6 +1,7 @@
 package neurevolve.world;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -66,16 +67,8 @@ public class WorldInput {
         addInput("Own Age", Organism::getAge);
         addInput("Own Energy", Organism::getEnergy);
         addInput("Temperature Here", o -> world.getTemperature(world.getPosition(o)));
-        addInput("Look Slope Forward", o -> world.getSlope(o, FORWARD));
-        addInput("Look Slope Left", o -> world.getSlope(o, LEFT));
-        addInput("Look Slope Right", o -> world.getSlope(o, RIGHT));
         addVisionInput("Other Energy", (o, p) -> world.getOrganismEnergy(p));
         addVisionInput("Other Colour", world::getColourDifference);
-        addVisionElementInput(GroundElement.WALL);
-        addVisionElementInput(GroundElement.ACID);
-        addVisionElementInput(GroundElement.RESOURCES);
-        addVisionElementInput(GroundElement.BODY);
-        addVisionElementInput(GroundElement.RADIATION);
     }
 
     private void addInput(String name, ValueGetter valueGetter) {
@@ -89,12 +82,19 @@ public class WorldInput {
         }
     }
 
-    private void addVisionElementInput(GroundElement element) {
-        addVisionInput(element.getName(), (o, p) -> getValue(p, element));
+    public void setUsedElements(EnumSet<GroundElement> elements) {
+        elements.forEach(this::addVisionElementInput);
     }
 
-    private int getValue(int position, GroundElement element) {
-        return world.getElementValue(position, element) * MAX_VALUE / element.getMaximum();
+    private void addVisionElementInput(GroundElement element) {
+        addVisionInput(element == GroundElement.ELEVATION ? "Slope" : element.getName(), (o, p) -> getValue(o, p, element));
+    }
+
+    private int getValue(Organism organism, int position, GroundElement element) {
+        if (element == GroundElement.ELEVATION)
+            return world.getSlope(organism, position);
+        else
+            return world.getElementValue(position, element) * MAX_VALUE / element.getMaximum();
     }
 
     public String getName(int code) {
@@ -115,33 +115,4 @@ public class WorldInput {
     private WorldValueGetter decode(int code) {
         return valueGetters.get(Math.floorMod(code, valueGetters.size()));
     }
-
-    /*
-    private static ValueGetter getEnergy(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.getOrganismEnergy(p), angles);
-    }
-    private static ValueGetter getResource(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.getResource(p), angles);
-    }
-
-    private static ValueGetter getColourDifference(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.getColourDifference(o, p));
-    }
-
-    private static ValueGetter getSpace(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.isEmpty(p) ? 100 : 0, angles);
-    }
-
-    private static ValueGetter getAcid(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.isAcidic(p) ? 100 : 0, angles);
-    }
-
-    private static ValueGetter getRadiation(Angle... angles) {
-        return getWorldValueGetter((w, o, p) -> w.getRadiation(p), angles);
-    }
-
-    private static ValueGetter getWorldValueGetter(WorldValueGetter getter, Angle... angles) {
-        return (world, organism) -> getter.getValue(world, organism, world.getPosition(organism, angles));
-    }
-     */
 }

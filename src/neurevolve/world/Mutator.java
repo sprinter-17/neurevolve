@@ -52,6 +52,8 @@ class Mutator implements Replicator {
 
     private int copy(int code) {
         if (mutate()) {
+            code = random.nextInt(100) - random.nextInt(100);
+        } else if (mutate()) {
             code += random.nextInt(11) + random.nextInt(11) + random.nextInt(11) - 15;
         }
         return code;

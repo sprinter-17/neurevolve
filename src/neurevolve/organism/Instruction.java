@@ -11,26 +11,26 @@ public enum Instruction {
     /**
      * Add a new neuron with a given threshold.
      */
-    ADD_NEURON(Instruction::addNeuron, 1),
+    ADD_NEURON(Instruction::addNeuron, 1, 1),
     /**
      * Add a link to the last neuron from the neuron indexed in the next value and with the weight
      * specified in the following value. If no neuron has been added or if the next value does not
      * index an existing neuron then this instruction is ignored.
      */
-    ADD_LINK(Instruction::addLink, 2),
+    ADD_LINK(Instruction::addLink, 2, 4),
     /**
      * Add an input to the last neuron. The code for the input is given in the next value.
      */
-    ADD_INPUT(Instruction::addInput, 2),
+    ADD_INPUT(Instruction::addInput, 2, 7),
     /**
      * Add a delay to the last neuron. The amount to delay is given in the next value.
      */
-    ADD_DELAY(Instruction::addDelay, 1),
+    ADD_DELAY(Instruction::addDelay, 1, 8),
     /**
      * Set an activity to perform if the last neuron is activated. The code for the activity is
      * given in the next value.
      */
-    SET_ACTIVITY(Instruction::setActivity, 1);
+    SET_ACTIVITY(Instruction::setActivity, 1, 9);
 
     @FunctionalInterface
     public interface Processor {
@@ -45,10 +45,12 @@ public enum Instruction {
 
     private final Operation operation;
     private final int valueCount;
+    private final int code;
 
-    private Instruction(Operation operation, int valueCount) {
+    private Instruction(Operation operation, int valueCount, int code) {
         this.operation = operation;
         this.valueCount = valueCount;
+        this.code = code;
     }
 
     /**
@@ -57,7 +59,7 @@ public enum Instruction {
      * @return the <code>int</code> code for this instruction
      */
     public int getCode() {
-        return ordinal();
+        return code - 1;
     }
 
     /**
@@ -68,8 +70,12 @@ public enum Instruction {
      * @return the instruction
      */
     public static Instruction decode(int code) {
-        final int count = values().length;
-        return values()[((code % count) + count) % count];
+        code = Math.floorMod(code, SET_ACTIVITY.code);
+        for (Instruction instruction : values()) {
+            if (code < instruction.code)
+                return instruction;
+        }
+        throw new IllegalStateException("No instruction for code " + code);
     }
 
     public int getValueCount() {
@@ -94,8 +100,7 @@ public enum Instruction {
     private static void addNeuron(Organism organism, int... values) {
         assert values.length == 1;
         organism.getBrain().addNeuron();
-        int threshold = values[0];
-        organism.getBrain().setThreshold(threshold);
+        organism.getBrain().setThreshold(values[0]);
     }
 
     /**
@@ -103,12 +108,10 @@ public enum Instruction {
      */
     private static void addLink(Organism organism, int... values) {
         assert values.length == 2;
-        if (!organism.getBrain().isEmpty()) {
-            int from = values[0];
-            if (from >= 0 && from < organism.getBrain().size() - 1) {
-                int weight = values[1];
-                organism.getBrain().addLink(from, weight);
-            }
+        if (organism.getBrain().size() > 1) {
+            int from = Math.floorMod(values[0], organism.getBrain().size() - 1);
+            int weight = values[1];
+            organism.getBrain().addLink(from, weight);
         }
     }
 

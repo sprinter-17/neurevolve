@@ -1,5 +1,6 @@
 package neurevolve.world;
 
+import java.util.EnumSet;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.FORWARD;
@@ -53,6 +54,7 @@ public class WorldInputTest {
 
     @Test
     public void testSlope() {
+        input.setUsedElements(EnumSet.of(GroundElement.ELEVATION));
         assertThat(input("Look Slope Forward"), is(0));
         world.addElevation(frame.move(position, 0), 17);
         assertThat(input("Look Slope Forward"), is(17));
@@ -61,6 +63,7 @@ public class WorldInputTest {
 
     @Test
     public void testWall() {
+        input.setUsedElements(EnumSet.of(GroundElement.WALL));
         assertThat(input("Look Wall Far Forward"), is(0));
         world.setWall(world.getPosition(organism, FORWARD, FORWARD), true);
         assertThat(input("Look Wall Far Forward"), is(WorldInput.MAX_VALUE));
@@ -68,6 +71,7 @@ public class WorldInputTest {
 
     @Test
     public void testAcid() {
+        input.setUsedElements(EnumSet.of(GroundElement.ACID));
         assertThat(input("Look Acid Forward Left"), is(0));
         world.setAcidic(world.getPosition(organism, FORWARD, LEFT), true);
         assertThat(input("Look Acid Forward Left"), is(WorldInput.MAX_VALUE));
