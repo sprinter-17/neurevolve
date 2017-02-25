@@ -86,6 +86,8 @@ import org.xml.sax.SAXException;
  * created</td></tr>
  * <tr><td>{@code <with_period period='n'>}</td><td>specifies an element to be placed every
  * {@code n} ticks</td></tr>
+ * <tr><td>{@code <in_season season='summer|winter|sprint|autumn'>}</td><td>species an element to be
+ * placed every tick in the season with the given name</td></tr>
  * </table>
  *
  * <br>

@@ -232,7 +232,7 @@ public class World implements Environment {
      * Get the difference in elevation between an organism's position and another position
      *
      * @param organism the organism that the slope is relative to
-     * @param angles the angles to the position for the slope
+     * @param position the position whose elevation to compare
      * @return the difference in elevation between the adjacent position and the organism's position
      */
     public int getSlope(Organism organism, int position) {
@@ -437,6 +437,7 @@ public class World implements Environment {
      * @param organism the organism
      * @param angles zero or more angles defining the path to the position from which to consume
      * resources
+     * @return true if the organism was fed
      */
     public boolean feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
@@ -450,10 +451,11 @@ public class World implements Environment {
     }
 
     /**
-     * Move an organism forward, if it has sufficient energy to climb the slope and there is not
-     * organism in front.
+     * Move an organism forward, if it has sufficient energy to climb the slope and there is no
+     * organism, wall or body in front.
      *
      * @param organism the organism to move
+     * @return true if the organism moved
      */
     public boolean moveOrganism(Organism organism) {
         int position = population.getPosition(organism, FORWARD);
@@ -474,6 +476,7 @@ public class World implements Environment {
      *
      * @param organism the organism to turn
      * @param angle the angle to turn the organism by
+     * @return true, always
      */
     public boolean turnOrganism(Organism organism, Angle angle) {
         population.turn(organism, angle);
@@ -487,6 +490,7 @@ public class World implements Environment {
      * split if there are no free positions adjacent to the organism.
      *
      * @param organism the organism to split
+     * @return true if the organism split
      */
     public boolean splitOrganism(Organism organism) {
         return splitToAnyOpenPosition(config.getMinimumSplitTime(), organism);
@@ -494,8 +498,10 @@ public class World implements Environment {
 
     private boolean splitToAnyOpenPosition(int minTime, Organism parent) {
         if (parent.canDivide(minTime)) {
-            openPositionNextTo(getPosition(parent)).ifPresent(pos -> splitTo(parent, pos));
-            return true;
+            OptionalInt position = openPositionNextTo(getPosition(parent));
+            if (position.isPresent()) {
+                splitTo(parent, position.getAsInt());
+            }
         }
         return false;
     }
@@ -566,22 +572,22 @@ public class World implements Environment {
     }
 
     /**
-     * Attack an organism at a given angle. This activity costs 20 energy. The organism with less
-     * current energy dies. The energy of that organism becomes resources at their current position.
+     * Attack an organism at a given angle. If the attacked organism does not have greater energy
+     * then it dies and its energy is transfered to the attacker.
      *
      * @param attacker the organism that is the source of the attack
      * @param angle the angle to the target organism
+     * @return true if the organism attacked (even if unsuccessfully)
      */
     public boolean attackOrganism(Organism attacker, Angle angle) {
         int position = getPosition(attacker, angle);
         if (hasOrganism(position)) {
             Organism target = population.getOrganism(position);
             if (attacker.getEnergy() >= target.getEnergy()) {
-                addResources(getPosition(target), target.getEnergy() / 2);
-                attacker.increaseEnergy(target.getEnergy() / 2);
+                addResources(getPosition(target), target.getEnergy());
                 target.reduceEnergy(target.getEnergy());
-                return true;
             }
+            return true;
         }
         return false;
     }

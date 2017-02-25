@@ -218,7 +218,7 @@ public class WorldMaker {
      *
      * @param count the number of circles to place
      * @param radius the maximum radius of each circle
-     * @return
+     * @return the shape
      */
     public Shape pools(int count, int radius) {
         int scaledCount = scaleSize(count);

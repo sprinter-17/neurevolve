@@ -74,7 +74,7 @@ public class ConfigPanel extends JTabbedPane {
                 config.getAcidToxicity(), config::setAcidToxicity);
         JPanel halfLife = addGroupPanel(groundPanel, "Half Lives");
         for (GroundElement element : GroundElement.values()) {
-            addValueSlider(halfLife, element.getName(), 0, 50,
+            addValueSlider(halfLife, element.getName(), 0, 1000,
                     config.getHalfLife(element), v -> config.setHalfLife(element, v));
         }
         layout.gridy = 0;
@@ -111,7 +111,7 @@ public class ConfigPanel extends JTabbedPane {
         JPanel costPanel = addGroupPanel(activityPanel, "Costs");
         for (WorldActivity activity : WorldActivity.values()) {
             addValueSlider(costPanel, WorldActivity.describe(activity.ordinal()),
-                    0, 20, config.getActivityCost(activity), v -> config.setActivityCost(activity, v));
+                    0, 50, config.getActivityCost(activity), v -> config.setActivityCost(activity, v));
         }
 
         JPanel factorPanel = addGroupPanel(activityPanel, "Repeat Factor");

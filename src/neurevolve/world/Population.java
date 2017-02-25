@@ -198,6 +198,7 @@ public class Population {
      *
      * @param organism the organism to move
      * @param energyCost the cost in energy for the move
+     * @return true if the organism moved
      */
     public boolean moveOrganism(Organism organism, int energyCost) {
         int position = getPosition(organism, FORWARD);

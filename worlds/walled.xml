@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<world name="Walled World">
+    <description>Not much on this world</description>
+    <configuration>
+        <seed count='20' energy='200'/>
+        <activity_cost activity='split' cost='20' factor='0'/>
+        <activity_cost activity='move' cost='15' factor='150'/>
+        <minimum_split_time period='15'/>
+        <half_life element='wall' period='600'/>
+        <temperature_range min='85' max='110'/>
+        <year length='600' variation='8'/>
+    </configuration>
+    <at_start>
+        <add_resources amount='200'>
+            <everywhere/>
+        </add_resources>
+    </at_start>
+    <in_season season='summer'>
+        <wall>
+            <vertical_dividers count='10' width='3' gap='0'/>
+            <vertical_edges width='4'/>
+        </wall>
+    </in_season>
+</world>
