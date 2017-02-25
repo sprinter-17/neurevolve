@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import neurevolve.TestEnvironment;
 import neurevolve.TestReplicator;
+import static neurevolve.organism.Code.fromInt;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -56,7 +57,7 @@ public class DistanceSpeciesTest {
 
     private Organism makeOrganism(int instruction) {
         Recipe recipe = new Recipe(0);
-        recipe.add(instruction);
+        recipe.add(fromInt(instruction));
         return new Organism(environment, 100, recipe);
     }
 

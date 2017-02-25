@@ -2,6 +2,8 @@ package neurevolve.organism;
 
 import neurevolve.network.Activity;
 import neurevolve.network.Input;
+import static neurevolve.organism.Code.fromInt;
+import static neurevolve.organism.Code.toInt;
 
 /**
  * The possible instructions that can be included in a {@link Recipe}. The instruction is executed
@@ -35,12 +37,12 @@ public enum Instruction {
     @FunctionalInterface
     public interface Processor {
 
-        void process(Instruction instruction, int... values);
+        void process(Instruction instruction, byte... values);
     }
 
     private interface Operation {
 
-        void operate(Organism organism, int... values);
+        void operate(Organism organism, byte... values);
     }
 
     private final Operation operation;
@@ -58,8 +60,8 @@ public enum Instruction {
      *
      * @return the <code>int</code> code for this instruction
      */
-    public int getCode() {
-        return code - 1;
+    public byte getCode() {
+        return fromInt(code - 1);
     }
 
     /**
@@ -69,8 +71,8 @@ public enum Instruction {
      * @param code the code to convert to an <code>Instruction</code>
      * @return the instruction
      */
-    public static Instruction decode(int code) {
-        code = Math.floorMod(code, SET_ACTIVITY.code);
+    public static Instruction decode(byte code) {
+        code = Code.mod(code, SET_ACTIVITY.code);
         for (Instruction instruction : values()) {
             if (code < instruction.code)
                 return instruction;
@@ -90,27 +92,27 @@ public enum Instruction {
      * @param organism the organism to perform the related operation on
      * @param values the values to use in performing the operation
      */
-    public void complete(Organism organism, int... values) {
+    public void complete(Organism organism, byte... values) {
         operation.operate(organism, values);
     }
 
     /**
      * Add a neuron to the organism's network
      */
-    private static void addNeuron(Organism organism, int... values) {
+    private static void addNeuron(Organism organism, byte... values) {
         assert values.length == 1;
         organism.getBrain().addNeuron();
-        organism.getBrain().setThreshold(values[0]);
+        organism.getBrain().setThreshold(toInt(values[0]));
     }
 
     /**
      * Add a link to the last neuron in the organism's network
      */
-    private static void addLink(Organism organism, int... values) {
+    private static void addLink(Organism organism, byte... values) {
         assert values.length == 2;
         if (organism.getBrain().size() > 1) {
             int from = Math.floorMod(values[0], organism.getBrain().size() - 1);
-            int weight = values[1];
+            int weight = toInt(values[1]);
             organism.getBrain().addLink(from, weight);
         }
     }
@@ -118,16 +120,16 @@ public enum Instruction {
     /**
      * Add an input to the last neuron in the organism's network.
      */
-    private static void addInput(Organism organism, int... values) {
+    private static void addInput(Organism organism, byte... values) {
         assert values.length == 2;
         if (!organism.getBrain().isEmpty()) {
             Input input = organism.getInput(values[0]);
-            int weight = values[1];
+            int weight = toInt(values[1]);
             organism.getBrain().addInput(input, weight);
         }
     }
 
-    private static void addDelay(Organism organism, int... values) {
+    private static void addDelay(Organism organism, byte... values) {
         assert values.length == 1;
         if (!organism.getBrain().isEmpty()) {
             int delay = values[0];
@@ -139,7 +141,7 @@ public enum Instruction {
     /**
      * Set an activity for the last neuron in the organism's network
      */
-    private static void setActivity(Organism organism, int... values) {
+    private static void setActivity(Organism organism, byte... values) {
         assert values.length == 1;
         if (!organism.getBrain().isEmpty()) {
             Activity activity = organism.getActivity(values[0]);

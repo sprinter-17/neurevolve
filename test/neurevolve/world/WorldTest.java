@@ -3,6 +3,7 @@ package neurevolve.world;
 import java.util.EnumSet;
 import java.util.stream.IntStream;
 import neurevolve.TestConfiguration;
+import static neurevolve.organism.Code.fromInt;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
@@ -259,8 +260,8 @@ public class WorldTest {
     @Test
     public void testMoveAsPartOfRecipe() {
         Recipe recipe = new Recipe(0);
-        recipe.add(Instruction.ADD_NEURON, -10);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.ordinal());
+        recipe.add(Instruction.ADD_NEURON, fromInt(-10));
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.code());
         Organism organism = new Organism(world, 50, recipe);
         world.addOrganism(organism, space.position(5, 5), EAST);
         world.tick();

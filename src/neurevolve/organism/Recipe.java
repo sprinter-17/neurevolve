@@ -4,6 +4,8 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.stream.IntStream;
+import static neurevolve.organism.Code.abs;
+import static neurevolve.organism.Code.toInt;
 
 /**
  * A <code>Recipe</code> is a list of instructions that can be used to build a new organism. The
@@ -17,7 +19,7 @@ public class Recipe {
     private static final int EXPANSION_FACTOR = 3;
 
     private final int colour;
-    private int[] instructions = new int[INITIAL_CAPACITY];
+    private byte[] instructions = new byte[INITIAL_CAPACITY];
     private int size = 0;
 
     public Recipe(int colour) {
@@ -43,9 +45,9 @@ public class Recipe {
      * @param instruction the instruction to add
      * @param values zero or more values to add following the instruction
      */
-    public void add(Instruction instruction, int... values) {
+    public void add(Instruction instruction, byte... values) {
         add(instruction.getCode());
-        for (int value : values) {
+        for (byte value : values) {
             add(value);
         }
     }
@@ -55,7 +57,7 @@ public class Recipe {
      *
      * @param value the value to add
      */
-    public void add(int value) {
+    public void add(byte value) {
         expandIfNecessary();
         instructions[size++] = value;
     }
@@ -70,8 +72,10 @@ public class Recipe {
         while (i < size) {
             Instruction instruction = Instruction.decode(instructions[i++]);
             int valueCount = instruction.getValueCount();
-            if (i + valueCount <= size)
-                processor.process(instruction, Arrays.copyOfRange(instructions, i, i += valueCount));
+            if (i + valueCount <= size) {
+                byte[] values = Arrays.copyOfRange(instructions, i, i += valueCount);
+                processor.process(instruction, values);
+            }
         }
     }
 
@@ -84,8 +88,8 @@ public class Recipe {
      *
      * @return the instructions in a queue
      */
-    protected Queue<Integer> instructionInQueue() {
-        Queue<Integer> values = new ArrayDeque<>();
+    protected Queue<Byte> instructionInQueue() {
+        Queue<Byte> values = new ArrayDeque<>();
         IntStream.range(0, size).forEach(i -> values.add(instructions[i]));
         return values;
     }
@@ -109,15 +113,21 @@ public class Recipe {
         // This algorithm is from https://en.wikipedia.org/wiki/Levenshtein_distance
         int distance[][] = new int[this.size + 1][other.size + 1];
         for (int i = 0; i <= this.size; i++) {
-            distance[i][0] = Arrays.stream(this.instructions).limit(i).map(Math::abs).sum();
+            distance[i][0] = 0;
+            for (int j = 0; j < i; j++) {
+                distance[i][0] += toInt(abs(this.instructions[j]));
+            }
         }
         for (int j = 0; j <= other.size; j++) {
-            distance[0][j] = Arrays.stream(other.instructions).limit(j).map(Math::abs).sum();
+            distance[0][j] = 0;
+            for (int i = 0; i < j; i++) {
+                distance[0][j] += toInt(abs(other.instructions[i]));
+            }
         }
         for (int i = 1; i <= this.size; i++) {
             for (int j = 1; j <= other.size; j++) {
-                int val1 = this.instructions[i - 1];
-                int val2 = other.instructions[j - 1];
+                int val1 = toInt(this.instructions[i - 1]);
+                int val2 = toInt(other.instructions[j - 1]);
                 int cost = distance[i - 1][j - 1] + Math.abs(val1 - val2);
                 cost = Math.min(cost, distance[i][j - 1] + Math.abs(val2));
                 cost = Math.min(cost, distance[i - 1][j] + Math.abs(val1));

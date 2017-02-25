@@ -17,6 +17,6 @@ public interface Replicator {
      * @param colour the colour of the recipe
      * @return a new recipe containing the copied instructions
      */
-    public Recipe copyInstructions(int[] instructions, int size, int colour);
+    public Recipe copyInstructions(byte[] instructions, int size, int colour);
 
 }

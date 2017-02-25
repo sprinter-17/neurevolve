@@ -20,10 +20,10 @@ class Mutator implements Replicator {
     }
 
     @Override
-    public Recipe copyInstructions(int[] instructions, int size, int colour) {
+    public Recipe copyInstructions(byte[] instructions, int size, int colour) {
         this.mutationCount = 0;
         this.size = size;
-        List<Integer> copy = new LinkedList<>();
+        List<Byte> copy = new LinkedList<>();
         for (int pos = 0; pos < size; pos += advance()) {
             if (pos >= 0) {
                 copy.add(copy(instructions[pos]));
@@ -50,11 +50,9 @@ class Mutator implements Replicator {
         }
     }
 
-    private int copy(int code) {
+    private byte copy(byte code) {
         if (mutate()) {
-            code = random.nextInt(100) - random.nextInt(100);
-        } else if (mutate()) {
-            code += random.nextInt(11) + random.nextInt(11) + random.nextInt(11) - 15;
+            code ^= 1 << random.nextInt(8);
         }
         return code;
     }

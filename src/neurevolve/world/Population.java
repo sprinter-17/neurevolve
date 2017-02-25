@@ -19,7 +19,6 @@ public class Population {
     private final Organism[] organisms;
     private final Map<Organism, OrganismInfo> info = new HashMap<>();
 
-
     private class OrganismInfo {
 
         private final int position;
@@ -200,15 +199,18 @@ public class Population {
      * @param organism the organism to move
      * @param energyCost the cost in energy for the move
      */
-    public void moveOrganism(Organism organism, int energyCost) {
+    public boolean moveOrganism(Organism organism, int energyCost) {
         int position = getPosition(organism, FORWARD);
-        if (!hasOrganism(position)) {
-            if (organism.consume(energyCost)) {
-                int direction = getDirection(organism);
-                removeOrganism(organism);
-                addOrganism(organism, position, direction);
-            }
+        int direction = getDirection(organism);
+        if (hasOrganism(position))
+            throw new IllegalStateException("Attempt to move organism to position with organism");
+        if (organism.hasEnergy(energyCost)) {
+            organism.reduceEnergy(energyCost);
+            removeOrganism(organism);
+            addOrganism(organism, position, direction);
+            return true;
         }
+        return false;
     }
 
 }

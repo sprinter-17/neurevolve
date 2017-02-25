@@ -2,7 +2,7 @@
 <world name="Walled World">
     <description>Not much on this world</description>
     <configuration>
-        <seed count='20' energy='1000'/>
+        <seed count='20' energy='200'/>
         <activity_cost activity='split' cost='18' factor='0'/>
         <activity_cost activity='move' cost='15' factor='150'/>
         <minimum_split_time period='5'/>

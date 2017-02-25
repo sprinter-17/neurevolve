@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -25,11 +27,14 @@ import neurevolve.world.WorldConfiguration;
  */
 public class MainWindow {
 
+    private static final Logger LOG = Logger.getLogger(MainWindow.class.getName());
+
     private final NewWorldDialog newWorldDialog;
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final World world;
     private final JFrame frame;
     private final AnalysisWindow analysisWindow;
+    private final TrendWindow trendWindow;
     private final JToggleButton pauseButton = new JToggleButton("Pause");
     private final JLabel seasonLabel = new JLabel();
     private final JLabel populationLabel = new JLabel();
@@ -55,14 +60,8 @@ public class MainWindow {
         frame.setTitle(title);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         analysisWindow = new AnalysisWindow(world);
-        world.addTickListener(() -> {
-            if (world.getTime() % config.getYearLength() == 0) {
-                System.out.println("Year " + (1 + world.getTime() / config.getYearLength())
-                        + " population = " + world.getPopulationSize()
-                        + " complexity = " + String.format("%.2f", world.getAverageComplexity()));
-            }
-        });
-        addTools(world, config);
+        trendWindow = new TrendWindow(world);
+        addTools();
         addMapPanel(world, space, config);
         addConfigPanel(space, config);
         addStatusBar(world);
@@ -70,7 +69,7 @@ public class MainWindow {
         scheduleTick();
     }
 
-    private void addTools(final World world, final WorldConfiguration config) {
+    private void addTools() {
         JPanel tools = new JPanel();
         tools.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         tools.add(new JButton(new AbstractAction("New World") {
@@ -81,11 +80,10 @@ public class MainWindow {
                 frame.setVisible(false);
             }
         }));
-        tools.add(new JButton(new AbstractAction("Exit") {
+        tools.add(new JButton(new AbstractAction("Trend") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                executor.shutdown();
-                System.exit(0);
+                trendWindow.setVisible(true);
             }
         }));
 
@@ -115,6 +113,13 @@ public class MainWindow {
         tools.add(new JLabel(String.valueOf(delaySlider.getMinimum())));
         tools.add(delaySlider);
         tools.add(new JLabel(String.valueOf(delaySlider.getMaximum())));
+        tools.add(new JButton(new AbstractAction("Exit") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                executor.shutdown();
+                System.exit(0);
+            }
+        }));
 
         frame.getContentPane().add(tools, BorderLayout.NORTH);
     }
@@ -166,6 +171,7 @@ public class MainWindow {
             if (!paused)
                 scheduleTick();
         } catch (Exception exception) {
+            LOG.log(Level.SEVERE, "Tick exception", exception);
             exception.printStackTrace(System.out);
         }
     }

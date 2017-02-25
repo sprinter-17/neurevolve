@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import neurevolve.network.ActivationFunction;
+import neurevolve.organism.Code;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
@@ -50,7 +51,8 @@ public class World implements Environment {
     private final List<Runnable> tickListeners = new ArrayList<>();
 
     private final Time time;
-    private int totalComplexity;
+    private WorldStatistics stats;
+
     private final Population population;
     private final EnumSet<GroundElement> usedElements = EnumSet.of(GroundElement.BODY);
 
@@ -366,12 +368,16 @@ public class World implements Environment {
         tickListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
     }
 
+    public WorldStatistics getStats() {
+        return stats;
+    }
+
     private void seedOrganisms() {
         Recipe recipe = new Recipe(random.nextInt(1 << 24));
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.ordinal());
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.ordinal());
+        recipe.add(Instruction.ADD_NEURON, Code.ZERO);
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.code());
+        recipe.add(Instruction.ADD_NEURON, Code.ZERO);
+        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.code());
         if (population.size() < config.getSeedCount()) {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position) && isEmpty(position)) {
@@ -424,14 +430,6 @@ public class World implements Environment {
         setData(position, RESOURCES, resources);
     }
 
-    public float getAverageComplexity() {
-        if (population.size() == 0) {
-            return 0f;
-        } else {
-            return (float) totalComplexity / population.size();
-        }
-    }
-
     /**
      * Feed an organism by consuming resources at a position relative to the organism. The amount is
      * added to the organism's energy and taken from the world's resources at that position.
@@ -440,13 +438,15 @@ public class World implements Environment {
      * @param angles zero or more angles defining the path to the position from which to consume
      * resources
      */
-    public void feedOrganism(Organism organism, Angle... angles) {
+    public boolean feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
         if (isEmpty(position)) {
             int amount = Math.min(getResource(position), config.getConsumptionRate());
             organism.increaseEnergy(amount);
             addResources(position, -amount);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -455,15 +455,18 @@ public class World implements Environment {
      *
      * @param organism the organism to move
      */
-    public void moveOrganism(Organism organism) {
+    public boolean moveOrganism(Organism organism) {
         int position = population.getPosition(organism, FORWARD);
-        if (isEmpty(position)) {
+        if (isEmpty(position) && !population.hasOrganism(position)) {
             int slope = Math.max(0, getSlope(organism, position));
-            population.moveOrganism(organism, slope);
-            if (getRadiation(population.getPosition(organism)) > 0) {
-                splitToAnyOpenPosition(0, organism);
+            if (population.moveOrganism(organism, slope)) {
+                if (getRadiation(population.getPosition(organism)) > 0) {
+                    splitToAnyOpenPosition(0, organism);
+                }
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -472,8 +475,9 @@ public class World implements Environment {
      * @param organism the organism to turn
      * @param angle the angle to turn the organism by
      */
-    public void turnOrganism(Organism organism, Angle angle) {
+    public boolean turnOrganism(Organism organism, Angle angle) {
         population.turn(organism, angle);
+        return true;
     }
 
     /**
@@ -484,14 +488,16 @@ public class World implements Environment {
      *
      * @param organism the organism to split
      */
-    public void splitOrganism(Organism organism) {
-        splitToAnyOpenPosition(config.getMinimumSplitTime(), organism);
+    public boolean splitOrganism(Organism organism) {
+        return splitToAnyOpenPosition(config.getMinimumSplitTime(), organism);
     }
 
-    private void splitToAnyOpenPosition(int minTime, Organism parent) {
+    private boolean splitToAnyOpenPosition(int minTime, Organism parent) {
         if (parent.canDivide(minTime)) {
             openPositionNextTo(getPosition(parent)).ifPresent(pos -> splitTo(parent, pos));
+            return true;
         }
+        return false;
     }
 
     private void splitTo(Organism parent, int position) {
@@ -523,7 +529,7 @@ public class World implements Environment {
      * during processing do not interfere with the current state.
      */
     public void processPopulation() {
-        totalComplexity = 0;
+        stats = new WorldStatistics(time);
         Population copy = population.copy();
         IntStream.range(0, space.size())
                 .filter(copy::hasOrganism)
@@ -542,7 +548,7 @@ public class World implements Environment {
         organism.reduceEnergy(organism.getAge() * config.getAgeCost() / 100);
         population.resetActivityCount(organism);
         organism.activate();
-        totalComplexity += organism.complexity();
+        stats.add(organism);
         if (organism.isDead()) {
             removeOrganism(organism);
             setData(position, BODY, true);
@@ -566,7 +572,7 @@ public class World implements Environment {
      * @param attacker the organism that is the source of the attack
      * @param angle the angle to the target organism
      */
-    public void attackOrganism(Organism attacker, Angle angle) {
+    public boolean attackOrganism(Organism attacker, Angle angle) {
         int position = getPosition(attacker, angle);
         if (hasOrganism(position)) {
             Organism target = population.getOrganism(position);
@@ -574,8 +580,10 @@ public class World implements Environment {
                 addResources(getPosition(target), target.getEnergy() / 2);
                 attacker.increaseEnergy(target.getEnergy() / 2);
                 target.reduceEnergy(target.getEnergy());
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -646,9 +654,11 @@ public class World implements Environment {
         for (int i = 0; i < population.getActivityCount(organism, activity); i++) {
             cost = cost * (100 + config.getActivityFactor(activity)) / 100;
         }
-        if (organism.consume(cost)) {
-            activity.perform(this, organism);
-            population.incrementActivityCount(organism, activity);
+        if (organism.hasEnergy(cost)) {
+            if (activity.perform(this, organism)) {
+                organism.reduceEnergy(cost);
+                population.incrementActivityCount(organism, activity);
+            }
         }
     }
 

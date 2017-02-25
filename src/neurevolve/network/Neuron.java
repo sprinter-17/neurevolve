@@ -13,7 +13,7 @@ import java.util.Optional;
  */
 public class Neuron {
 
-    public static final int WEIGHT_DIVISOR = 10;
+    public static final int WEIGHT_DIVISOR = 5;
     private final ActivationFunction function;
 
     private int threshold = 0;

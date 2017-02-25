@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 import neurevolve.TestEnvironment;
 import neurevolve.network.Neuron;
+import static neurevolve.organism.Code.fromInt;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +21,7 @@ public class RecipeTest {
     private class Gene {
 
         private Instruction instruction;
-        private int[] values;
+        private byte[] values;
     }
 
     @Before
@@ -53,7 +54,7 @@ public class RecipeTest {
 
     @Test
     public void testSimpleRecipe() {
-        recipe.add(Instruction.ADD_NEURON, 5);
+        recipe.add(Instruction.ADD_NEURON, fromInt(5));
         assertThat(new Organism(environment, 100, recipe).getBrain().size(), is(1));
     }
 
@@ -72,17 +73,17 @@ public class RecipeTest {
 
     @Test
     public void testGetGene() {
-        recipe.add(Instruction.ADD_NEURON, 7);
+        recipe.add(Instruction.ADD_NEURON, fromInt(7));
         getGenes();
         assertThat(genes.get(0).instruction, is(Instruction.ADD_NEURON));
-        assertThat(genes.get(0).values[0], is(7));
+        assertThat(genes.get(0).values[0], is(fromInt(7)));
         assertThat(genes.get(0).values.length, is(1));
     }
 
     @Test
     public void testGetTwoGenes() {
-        recipe.add(Instruction.ADD_LINK, 5, 7);
-        recipe.add(Instruction.ADD_DELAY, 4);
+        recipe.add(Instruction.ADD_LINK, fromInt(5), fromInt(7));
+        recipe.add(Instruction.ADD_DELAY, fromInt(4));
         getGenes();
         assertThat(genes.size(), is(2));
         assertThat(genes.get(0).instruction, is(Instruction.ADD_LINK));
@@ -91,9 +92,9 @@ public class RecipeTest {
 
     @Test
     public void testComplexRecipe() {
-        recipe.add(Instruction.ADD_NEURON, -18);
-        recipe.add(Instruction.ADD_NEURON, 0);
-        recipe.add(Instruction.ADD_LINK, 0, 5 * Neuron.WEIGHT_DIVISOR);
+        recipe.add(Instruction.ADD_NEURON, fromInt(-18));
+        recipe.add(Instruction.ADD_NEURON, Code.ZERO);
+        recipe.add(Instruction.ADD_LINK, Code.ZERO, fromInt(5 * Neuron.WEIGHT_DIVISOR));
         Organism organism = new Organism(environment, 400, recipe);
         organism.getBrain().activate();
         assertThat(organism.getBrain().getValue(1), is(90));
@@ -101,7 +102,7 @@ public class RecipeTest {
 
     @Test
     public void testJunkRecipe() {
-        recipe.add(9);
+        recipe.add(fromInt(9));
         Organism organism = new Organism(environment, 100, recipe);
         assertThat(organism.getBrain().size(), is(0));
     }
@@ -117,58 +118,58 @@ public class RecipeTest {
     @Test
     public void testDistanceToSelf() {
         Random random = new Random();
-        random.ints(100, -100, 100).forEach(recipe::add);
+        random.ints(100, -100, 100).mapToObj(i -> (byte) i).forEach(recipe::add);
         assertThat(recipe.distanceTo(recipe), is(0));
     }
 
     @Test
     public void testSingleInsertionDistance() {
-        recipe.add(5);
+        recipe.add(fromInt(5));
         assertThat(recipe.distanceTo(new Recipe(0)), is(5));
     }
 
     @Test
     public void testSingleDeletionDistance() {
-        recipe.add(5);
+        recipe.add(fromInt(5));
         assertThat(new Recipe(0).distanceTo(recipe), is(5));
     }
 
     @Test
     public void testSingleSubstituteDistance() {
         Recipe other = new Recipe(0);
-        recipe.add(5);
-        recipe.add(17);
-        other.add(-2);
-        other.add(17);
+        recipe.add(fromInt(5));
+        recipe.add(fromInt(17));
+        other.add(fromInt(-2));
+        other.add(fromInt(17));
         assertThat(recipe.distanceTo(other), is(7));
     }
 
     @Test
     public void testMultipleSubstituteDistance() {
         Recipe other = new Recipe(0);
-        recipe.add(7);
-        other.add(9);
-        recipe.add(12);
-        other.add(10);
+        recipe.add(fromInt(7));
+        other.add(fromInt(9));
+        recipe.add(fromInt(12));
+        other.add(fromInt(10));
         assertThat(recipe.distanceTo(other), is(4));
     }
 
     @Test
     public void testComplexInsertionDistance() {
         Recipe other = new Recipe(0);
-        recipe.add(65);
-        recipe.add(-4);
-        recipe.add(17);
-        other.add(65);
-        other.add(17);
+        recipe.add(fromInt(65));
+        recipe.add(fromInt(-4));
+        recipe.add(fromInt(17));
+        other.add(fromInt(65));
+        other.add(fromInt(17));
         assertThat(recipe.distanceTo(other), is(4));
     }
 
     @Test
     public void testInverseDistance() {
         Recipe other = new Recipe(0);
-        recipe.add(5);
-        other.add(-5);
+        recipe.add(fromInt(5));
+        other.add(fromInt(-5));
         assertThat(recipe.distanceTo(other), is(10));
     }
 

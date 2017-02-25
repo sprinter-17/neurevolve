@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import static neurevolve.organism.Code.toInt;
 
 /**
  * The function of a <code>RecipeDescriber</code> is to turn a {@link Recipe} into information about
@@ -27,10 +28,10 @@ public class RecipeDescriber {
 
         private final int id;
         private final int threshold;
-        private final Map<Integer, Integer> links = new HashMap<>();
-        private final Map<Integer, Integer> inputs = new HashMap<>();
+        private final Map<Integer, Byte> links = new HashMap<>();
+        private final Map<Byte, Byte> inputs = new HashMap<>();
         private final List<Integer> outputs = new ArrayList<>();
-        private Optional<Integer> activity = Optional.empty();
+        private Optional<Byte> activity = Optional.empty();
         private int delay = 0;
 
         /**
@@ -62,7 +63,7 @@ public class RecipeDescriber {
          *
          * @param action the operation to perform
          */
-        public void forEachLink(BiConsumer<Integer, Integer> action) {
+        public void forEachLink(BiConsumer<Integer, Byte> action) {
             links.forEach(action);
         }
 
@@ -71,7 +72,7 @@ public class RecipeDescriber {
          *
          * @param action the operation to perform
          */
-        public void forEachInput(BiConsumer<Integer, Integer> action) {
+        public void forEachInput(BiConsumer<Byte, Byte> action) {
             inputs.forEach(action);
         }
 
@@ -129,6 +130,10 @@ public class RecipeDescriber {
         private String weight(int weight) {
             return String.format("%+d", weight);
         }
+
+        private String weight(byte weight) {
+            return String.format("%+d", toInt(weight));
+        }
     }
 
     /**
@@ -159,10 +164,10 @@ public class RecipeDescriber {
         recipe.forEachInstruction(this::process);
     }
 
-    private void process(Instruction instruction, int... values) {
+    private void process(Instruction instruction, byte... values) {
         switch (instruction) {
             case ADD_NEURON:
-                neurons.add(new Neuron(values[0]));
+                neurons.add(new Neuron(toInt(values[0])));
                 break;
             case ADD_LINK:
                 if (neurons.size() > 1) {

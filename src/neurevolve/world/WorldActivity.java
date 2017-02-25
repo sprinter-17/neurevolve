@@ -18,7 +18,7 @@ public enum WorldActivity {
 
     private interface ActivityPerformer {
 
-        public void perform(World world, Organism organism);
+        public boolean perform(World world, Organism organism);
     }
 
     private final String name;
@@ -29,8 +29,12 @@ public enum WorldActivity {
         this.performer = performer;
     }
 
-    public void perform(World world, Organism organism) {
-        performer.perform(world, organism);
+    public byte code() {
+        return (byte) ordinal();
+    }
+
+    public boolean perform(World world, Organism organism) {
+        return performer.perform(world, organism);
     }
 
     public static Optional<WorldActivity> withName(String name) {

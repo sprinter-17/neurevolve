@@ -11,6 +11,12 @@ import org.junit.Test;
 public class CodeTest {
 
     @Test
+    public void testFromInt() {
+        assertThat(fromInt(5), is((byte) 5));
+        assertThat(fromInt(128), is((byte) 0));
+    }
+
+    @Test
     public void testAbs() {
         assertThat(toInt(abs(fromInt(0))), is(0));
         assertThat(toInt(abs(fromInt(10))), is(10));
@@ -19,6 +25,13 @@ public class CodeTest {
 
     @Test
     public void testMod() {
-        assertThat(mod(fromInt(-10), 4), is(2));
+        assertThat(mod(fromInt(-10), 4), is((byte) 2));
+    }
+
+    @Test
+    public void testLimits() {
+        for (int i = -1000; i <= 1000; i++) {
+            assertThat(toInt(fromInt(i)), is(i % 128));
+        }
     }
 }

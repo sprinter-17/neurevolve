@@ -392,7 +392,7 @@ public class NetworkPanel extends JPanel {
     }
 
     private void paintLinks(Graphics2D g, int neuron, Point point) {
-        Map<Integer, Integer> synapses = new HashMap<>();
+        Map<Integer, Byte> synapses = new HashMap<>();
         neurons.get(neuron).forEachLink(synapses::put);
         int height = synapses.values().stream().mapToInt(n -> weightWidth(n) + 1).sum();
         int linkSpace = NEURON_HEIGHT / 2 + height / 2;
