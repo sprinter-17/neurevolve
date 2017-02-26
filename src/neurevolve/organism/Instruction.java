@@ -34,10 +34,13 @@ public enum Instruction {
      */
     SET_ACTIVITY(Instruction::setActivity, 1, 9);
 
-    @FunctionalInterface
     public interface Processor {
 
         void process(Instruction instruction, byte... values);
+
+        default void junk(byte value) {
+
+        }
     }
 
     private interface Operation {

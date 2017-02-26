@@ -3,6 +3,7 @@ package neurevolve.world;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import neurevolve.organism.Organism;
@@ -105,11 +106,10 @@ public class WorldInput {
         return decode(code).valueGetter.getValue(organism);
     }
 
-    public int getCode(String name) {
+    public OptionalInt getCode(String name) {
         return IntStream.range(0, valueGetters.size())
-                .filter(i -> valueGetters.get(i).name.equals(name))
-                .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("No input with name " + name));
+                .filter(i -> valueGetters.get(i).name.equalsIgnoreCase(name.replace("_", " ")))
+                .findAny();
     }
 
     private WorldValueGetter decode(int code) {

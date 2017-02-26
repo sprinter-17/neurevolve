@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><recipe colour="14768011"><add_neuron weight="0"/><set_activity activity="attack"/><add_neuron weight="0"/><set_activity activity="eat_here"/><set_activity activity="attack"/><set_activity activity="eat_here"/><set_activity activity="attack"/><add_neuron weight="0"/><set_activity activity="divide"/></recipe>

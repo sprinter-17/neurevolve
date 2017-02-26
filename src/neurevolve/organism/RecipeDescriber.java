@@ -1,6 +1,7 @@
 package neurevolve.organism;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import static neurevolve.organism.Code.toInt;
 public class RecipeDescriber {
 
     private final Environment environment;
+    private final Recipe recipe;
     private final List<Neuron> neurons = new ArrayList<>();
 
     /**
@@ -73,7 +75,9 @@ public class RecipeDescriber {
          * @param action the operation to perform
          */
         public void forEachInput(BiConsumer<Byte, Byte> action) {
-            inputs.forEach(action);
+            inputs.entrySet().stream()
+                    .sorted(Comparator.comparing(e -> environment.describeInput(toInt(e.getKey()))))
+                    .forEach(e -> action.accept(e.getKey(), e.getValue()));
         }
 
         /**
@@ -89,7 +93,7 @@ public class RecipeDescriber {
          * @return the activity's name
          */
         public String getActivityName() {
-            return environment.describeActivity(activity.get());
+            return environment.describeActivity(toInt(activity.get()));
         }
 
         public boolean isInactive() {
@@ -111,13 +115,19 @@ public class RecipeDescriber {
             StringBuilder description = new StringBuilder();
             description.append("N").append(id + 1).append(weight(threshold));
             if (delay > 0)
-                description.append("d").append(delay);
+                description.append("d")
+                        .append(delay);
             if (hasActivity())
-                description.append(" ").append(getActivityName());
-            links.forEach((l, w) -> description.append(" <N").append(l + 1).append(weight(w)));
-            inputs.forEach((i, w) -> description.append(" ").append(environment.describeInput(i))
+                description.append(" ")
+                        .append(getActivityName());
+            links.forEach((l, w) -> description.append(" <N")
+                    .append(l + 1)
                     .append(weight(w)));
-            outputs.forEach(o -> description.append(" >N").append(o + 1));
+            forEachInput((i, w) -> description.append(" ")
+                    .append(environment.describeInput(toInt(i)))
+                    .append(weight(w)));
+            outputs.forEach(o -> description.append(" >N")
+                    .append(o + 1));
             return description.toString();
         }
 
@@ -134,6 +144,10 @@ public class RecipeDescriber {
         private String weight(byte weight) {
             return String.format("%+d", toInt(weight));
         }
+    }
+
+    public Recipe getRecipe() {
+        return recipe;
     }
 
     /**
@@ -160,6 +174,7 @@ public class RecipeDescriber {
      * @param environment the environment to use to describe inputs and activities
      */
     public RecipeDescriber(Recipe recipe, Environment environment) {
+        this.recipe = recipe;
         this.environment = environment;
         recipe.forEachInstruction(this::process);
     }

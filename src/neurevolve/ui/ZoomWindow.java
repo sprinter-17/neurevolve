@@ -21,7 +21,6 @@ import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
 import neurevolve.organism.RecipeDescriber;
 import neurevolve.organism.RecipeDescriber.Neuron;
-import neurevolve.organism.Species;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -212,7 +211,7 @@ public class ZoomWindow {
                     int y = e.getY() / PIXEL_SIZE;
                     if (x < SIDE && y < SIDE) {
                         currentOrganism = snapShot.organisms[x][y];
-                        networkDisplay.showSpecies(new Species(currentOrganism));
+                        networkDisplay.showRecipe(currentOrganism.describeRecipe());
                     }
                     zoomPanel.repaint();
                 }

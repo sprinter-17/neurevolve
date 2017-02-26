@@ -86,6 +86,6 @@ public class WorldInputTest {
     }
 
     private int input(String name) {
-        return input.getValue(organism, input.getCode(name));
+        return input.getValue(organism, input.getCode(name).getAsInt());
     }
 }

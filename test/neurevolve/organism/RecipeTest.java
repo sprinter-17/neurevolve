@@ -182,5 +182,4 @@ public class RecipeTest {
             genes.add(gene);
         });
     }
-
 }

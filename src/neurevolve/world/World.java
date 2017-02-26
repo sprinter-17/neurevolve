@@ -12,9 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import neurevolve.network.ActivationFunction;
-import neurevolve.organism.Code;
 import neurevolve.organism.Environment;
-import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
@@ -373,11 +371,13 @@ public class World implements Environment {
     }
 
     private void seedOrganisms() {
-        Recipe recipe = new Recipe(random.nextInt(1 << 24));
-        recipe.add(Instruction.ADD_NEURON, Code.ZERO);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.code());
-        recipe.add(Instruction.ADD_NEURON, Code.ZERO);
-        recipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.code());
+        Recipe recipe = config.getSeedRecipe().replicate((instructions, size, c) -> {
+            Recipe copy = new Recipe(random.nextInt(1 << 24));
+            for (int i = 0; i < size; i++) {
+                copy.add(instructions[i]);
+            }
+            return copy;
+        });
         if (population.size() < config.getSeedCount()) {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position) && isEmpty(position)) {
@@ -584,7 +584,7 @@ public class World implements Environment {
         if (hasOrganism(position)) {
             Organism target = population.getOrganism(position);
             if (attacker.getEnergy() >= target.getEnergy()) {
-                addResources(getPosition(target), target.getEnergy());
+                attacker.increaseEnergy(target.getEnergy());
                 target.reduceEnergy(target.getEnergy());
             }
             return true;
@@ -665,6 +665,8 @@ public class World implements Environment {
                 organism.reduceEnergy(cost);
                 population.incrementActivityCount(organism, activity);
             }
+        } else {
+            organism.reduceEnergy(cost / 2);
         }
     }
 
@@ -673,7 +675,7 @@ public class World implements Environment {
         return inputs.getName(input);
     }
 
-    public int getInputCode(String name) {
+    public OptionalInt getInputCode(String name) {
         return inputs.getCode(name);
     }
 

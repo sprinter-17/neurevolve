@@ -10,21 +10,28 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import neurevolve.organism.RecipeDescriber;
 import neurevolve.organism.RecipeDescriber.Neuron;
-import neurevolve.organism.Species;
 import neurevolve.world.GroundElement;
+import neurevolve.world.RecipeSaver;
 import neurevolve.world.World;
 
 /**
@@ -51,11 +58,12 @@ public class NetworkPanel extends JPanel {
     private final Map<Integer, Point> neuronPositions = new HashMap<>();
     private final List<Neuron> neurons = new ArrayList<>();
     private final JButton showOrHideInactiveButton;
+    private final JButton saveButton;
 
     private BufferedImage networkImage;
     private BufferedImage inputImage;
 
-    private Species species = null;
+    private Optional<RecipeDescriber> recipe = Optional.empty();
     private int[] ranges;
 
     private Point offset = new Point(0, 0);
@@ -105,6 +113,8 @@ public class NetworkPanel extends JPanel {
         JToolBar toolBar = new JToolBar();
         showOrHideInactiveButton = new JButton(showAllNeurons());
         toolBar.add(showOrHideInactiveButton);
+        saveButton = new JButton(saveRecipe());
+        toolBar.add(saveButton);
         add(toolBar, BorderLayout.NORTH);
         add(new ImagePanel(), BorderLayout.CENTER);
         setPreferredSize(new Dimension(INPUT_IMAGE_WIDTH * 2, 500));
@@ -117,6 +127,33 @@ public class NetworkPanel extends JPanel {
                 showOrHideInactiveButton.setAction(hideInactiveNeurons());
                 showInactiveNeurons = true;
                 paintNetwork();
+            }
+        };
+    }
+
+    private Action saveRecipe() {
+        final RecipeSaver saver = new RecipeSaver(world);
+        return new AbstractAction("Save Recipe") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser chooser = new JFileChooser("./recipes");
+                chooser.setFileFilter(new FileNameExtensionFilter("Recipe files", "rml"));
+                if (chooser.showSaveDialog(NetworkPanel.this) == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        File saveFile = chooser.getSelectedFile();
+                        if (saveFile.exists()) {
+                            if (JOptionPane.showConfirmDialog(NetworkPanel.this, "Overwrite recipe?")
+                                    != JOptionPane.OK_OPTION)
+                                return;
+                            saveFile.delete();
+                        }
+                        String output = saver.save(recipe.get().getRecipe());
+                        Files.write(saveFile.toPath(), output.getBytes());
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(NetworkPanel.this,
+                                "Error writing recipe file " + ex, "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
             }
         };
     }
@@ -138,7 +175,7 @@ public class NetworkPanel extends JPanel {
         public void paint(Graphics g) {
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, getWidth(), getHeight());
-            if (species != null) {
+            if (recipe.isPresent()) {
                 g.drawImage(networkImage, INPUT_IMAGE_WIDTH + offset.x + drag.x,
                         offset.y + drag.y, this);
                 g.drawImage(inputImage, 0, 0, this);
@@ -164,7 +201,7 @@ public class NetworkPanel extends JPanel {
         }
 
         private void paintSingleInput(Graphics2D g, int inputCode, int weight, Point point) {
-            inputCode = world.getInputCode(world.describeInput(inputCode));
+            inputCode = world.getInputCode(world.describeInput(inputCode)).getAsInt();
             if (inputPositions.containsKey(inputCode)) {
                 Point start = inputPositions.get(inputCode);
                 if (weight < 0) {
@@ -215,15 +252,15 @@ public class NetworkPanel extends JPanel {
         InputPlacer placer = new InputPlacer();
 
         drawInputName(g, "Own Age", placer);
-        drawDot(g, placer.here(), world.getInputCode("Own Age"));
+        drawDot(g, placer.here(), world.getInputCode("Own Age").getAsInt());
 
         placer.nextHalf();
         drawInputName(g, "Own Energy", placer);
-        drawDot(g, placer.here(), world.getInputCode("Own Energy"));
+        drawDot(g, placer.here(), world.getInputCode("Own Energy").getAsInt());
 
         placer.nextHalf();
         drawInputName(g, "Temperature", placer);
-        drawDot(g, placer.here(), world.getInputCode("Temperature Here"));
+        drawDot(g, placer.here(), world.getInputCode("Temperature Here").getAsInt());
 
         drawVisualInput(g, "Other Colour", placer);
         drawVisualInput(g, "Other Energy", placer);
@@ -259,15 +296,15 @@ public class NetworkPanel extends JPanel {
     private void drawVisualInput(Graphics2D g, String name, InputPlacer placer) {
         placer.nextFull();
         drawInputName(g, name, placer);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Here"));
-        drawLine(g, placer, world.getInputCode("Look " + name + " Forward"), FORWARD);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Far Forward"), FORWARD, FORWARD);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Left"), LEFT);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Forward Left"), FORWARD, LEFT);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Far Left"), LEFT, LEFT);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Right"), RIGHT);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Forward Right"), FORWARD, RIGHT);
-        drawLine(g, placer, world.getInputCode("Look " + name + " Far Right"), RIGHT, RIGHT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Here").getAsInt());
+        drawLine(g, placer, world.getInputCode("Look " + name + " Forward").getAsInt(), FORWARD);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Far Forward").getAsInt(), FORWARD, FORWARD);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Left").getAsInt(), LEFT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Forward Left").getAsInt(), FORWARD, LEFT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Far Left").getAsInt(), LEFT, LEFT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Right").getAsInt(), RIGHT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Forward Right").getAsInt(), FORWARD, RIGHT);
+        drawLine(g, placer, world.getInputCode("Look " + name + " Far Right").getAsInt(), RIGHT, RIGHT);
     }
 
     /**
@@ -286,18 +323,17 @@ public class NetworkPanel extends JPanel {
     }
 
     /**
-     * Display a species in the network panel.
+     * Display a recipe in the network panel.
      *
-     * @param species the species to display
+     * @param recipe the recipe to display (passed as a description)
      */
-    public void showSpecies(Species species) {
-        this.species = species;
+    public void showRecipe(RecipeDescriber recipe) {
+        this.recipe = Optional.of(recipe);
         neurons.clear();
-        RecipeDescriber describer = species.describeRecipe();
-        for (int i = 0; i < describer.getSize(); i++) {
-            neurons.add(describer.getNeuron(i));
+        for (int i = 0; i < recipe.getSize(); i++) {
+            neurons.add(recipe.getNeuron(i));
         }
-        ranges = species.getRanges();
+        ranges = new int[1000];
         paintNetwork();
     }
 
@@ -305,7 +341,7 @@ public class NetworkPanel extends JPanel {
      * Clear the network panel
      */
     public void clear() {
-        species = null;
+        recipe = Optional.empty();
         repaint();
     }
 
@@ -327,7 +363,7 @@ public class NetworkPanel extends JPanel {
 
     private void calculateNeuronPositions() {
         neuronPositions.clear();
-        if (species != null) {
+        if (recipe.isPresent()) {
             Point point = new Point(INDENT, GAP);
             for (int n = 0; n < neurons.size(); n++) {
                 if (showInactiveNeurons || !neurons.get(n).isInactive()) {

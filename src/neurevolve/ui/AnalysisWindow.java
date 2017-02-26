@@ -278,7 +278,7 @@ public class AnalysisWindow extends JFrame {
         if (row >= 0) {
             int index = speciesTable.convertRowIndexToModel(row);
             Species species = speciesModel.getSpecies(index);
-            networkPanel.showSpecies(species);
+            networkPanel.showRecipe(species.describeRecipe());
             selectionListeners.forEach(l -> l.accept(species));
         } else {
             selectionListeners.forEach(l -> l.accept(null));

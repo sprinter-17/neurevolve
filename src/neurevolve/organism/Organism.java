@@ -55,19 +55,6 @@ public class Organism {
         this.recipe = recipe;
     }
 
-//        Organism organism = new Organism(environment, initialEnergy, colour);
-//        replicator.copyInstructions(instructions, size, colour).applyTo(organism);
-//        return organism;
-//    }
-//
-//    private void applyTo(Organism organism) {
-//        Queue<Integer> values = instructionInQueue();
-//        while (!values.isEmpty()) {
-//            int code = values.remove();
-//            Instruction.decode(code).complete(organism, values);
-//        }
-//        organism.setRecipe(this);
-//    }
     /**
      * Copy the current values for the neurons in the organism's brain
      *

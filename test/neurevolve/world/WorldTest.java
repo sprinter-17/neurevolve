@@ -164,8 +164,7 @@ public class WorldTest {
         world.addOrganism(organism, position, EAST);
         world.addOrganism(victim, world.getPosition(organism, FORWARD), EAST);
         world.attackOrganism(organism, FORWARD);
-        assertThat(organism.getEnergy(), is(115));
-        assertThat(world.getResource(world.getPosition(victim)), is(15));
+        assertThat(organism.getEnergy(), is(130));
         assertTrue(victim.isDead());
     }
 
@@ -241,9 +240,9 @@ public class WorldTest {
         Organism organism = new Organism(world, 100);
         world.addOrganism(organism, position, EAST);
         world.setUsedElements(EnumSet.of(GroundElement.ELEVATION));
-        assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward")), is(0));
+        assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(0));
         world.addElevation(world.getPosition(organism, FORWARD), 11);
-        assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward")), is(11));
+        assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(11));
     }
 
     @Test

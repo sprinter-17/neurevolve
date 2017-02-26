@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<recipe colour="7964381">
+<add_neuron weight="0"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="0"/>
+<set_activity activity="divide"/>
+</recipe>

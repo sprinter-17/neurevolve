@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<recipe colour="4863182">
+<add_neuron weight="0"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="0"/>
+<add_neuron weight="72"/>
+<add_input input="own_age" weight="72"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="0"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="0"/>
+<add_neuron weight="8"/>
+<add_neuron weight="0"/>
+<add_neuron weight="0"/>
+<add_neuron weight="0"/>
+<set_activity activity="move"/>
+</recipe>

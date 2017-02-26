@@ -1,6 +1,9 @@
 package neurevolve.world;
 
 import java.util.EnumMap;
+import neurevolve.organism.Code;
+import neurevolve.organism.Instruction;
+import neurevolve.organism.Recipe;
 
 /**
  * Contains all the variables that can be changed through the simulation to adjust the behaviour of
@@ -51,9 +54,26 @@ public class WorldConfiguration {
     private final EnumMap<WorldActivity, Integer> costs = new EnumMap<>(WorldActivity.class);
     private final EnumMap<WorldActivity, Integer> factors = new EnumMap<>(WorldActivity.class);
     private final EnumMap<GroundElement, Integer> halfLives = new EnumMap<>(GroundElement.class);
+    private Recipe seedRecipe;
 
     {
         halfLives.put(GroundElement.BODY, 4);
+    }
+
+    public WorldConfiguration() {
+        seedRecipe = new Recipe(0);
+        seedRecipe.add(Instruction.ADD_NEURON, Code.fromInt(0));
+        seedRecipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.code());
+        seedRecipe.add(Instruction.ADD_NEURON, Code.fromInt(0));
+        seedRecipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.code());
+    }
+
+    public void setSeedRecipe(Recipe recipe) {
+        this.seedRecipe = recipe;
+    }
+
+    public Recipe getSeedRecipe() {
+        return seedRecipe;
     }
 
     public int getNormalMutationRate() {
