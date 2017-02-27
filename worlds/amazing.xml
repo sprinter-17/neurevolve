@@ -24,8 +24,8 @@
         </acid>
     </at_start>
     <with_period period='10'>
-        <add_resources amount='20'>
-            <pools count='1' radius='3'/>
+        <add_resources amount='200'>
+            <pools count='1' radius='1'/>
         </add_resources>
     </with_period>
 </world>

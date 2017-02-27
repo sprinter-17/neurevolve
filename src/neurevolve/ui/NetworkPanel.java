@@ -51,8 +51,8 @@ public class NetworkPanel extends JPanel {
     private static final int NEURON_HEIGHT = 35;
 
     private static final Point FORWARD = new Point(16, 0);
-    private static final Point LEFT = new Point(0, -8);
-    private static final Point RIGHT = new Point(0, +8);
+    private static final Point LEFT = new Point(0, +8);
+    private static final Point RIGHT = new Point(0, -8);
 
     private final World world;
     private final Map<Integer, Point> inputPositions = new HashMap<>();

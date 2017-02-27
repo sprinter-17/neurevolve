@@ -88,7 +88,7 @@ public class MapPanel extends JPanel {
                 else
                     pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
             } else if (BODY.get(data) == 1) {
-                pixels[i] = 255 << 24;
+                pixels[i] = bodyColour(config);
             } else {
                 pixels[i] = convertToColour(config, data);
                 pixels[i] |= 255 << 24;
@@ -163,5 +163,9 @@ public class MapPanel extends JPanel {
      */
     public static int populationColour(WorldConfiguration config, Organism organism) {
         return organism == null ? 0 : organism.getColour();
+    }
+
+    public static int bodyColour(WorldConfiguration config) {
+        return Color.LIGHT_GRAY.getRGB();
     }
 }

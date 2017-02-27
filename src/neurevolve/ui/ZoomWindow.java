@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
 import neurevolve.organism.RecipeDescriber;
+import neurevolve.world.GroundElement;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
@@ -163,6 +164,12 @@ public class ZoomWindow {
             forEachPosition((x, y, p) -> {
                 g.setColor(new Color(MapPanel.convertToColour(config, snapShot.ground[x][y])));
                 g.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                if (GroundElement.BODY.get(snapShot.ground[x][y]) > 0) {
+                    g.setColor(Color.WHITE);
+                    g.fillOval(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                    g.setColor(new Color(MapPanel.bodyColour(config)));
+                    g.fillOval(x * PIXEL_SIZE + 2, y * PIXEL_SIZE + 2, PIXEL_SIZE - 4, PIXEL_SIZE - 4);
+                }
             });
         }
 
