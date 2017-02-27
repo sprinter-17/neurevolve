@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<recipe colour="643053">
+<add_delay period="-8"/>
+<add_input input="look_other_energy_right" weight="75"/>
+<set_activity activity="turn_right"/>
+<set_activity activity="turn_right"/>
+<add_link neuron="-8" weight="6"/>
+<add_link neuron="75" weight="107"/>
+<set_activity activity="eat_here"/>
+<add_link neuron="-11" weight="-9"/>
+<add_link neuron="2" weight="75"/>
+<set_activity activity="turn_right"/>
+<set_activity activity="move"/>
+<add_link neuron="-9" weight="2"/>
+<add_link neuron="-11" weight="-11"/>
+<add_link neuron="2" weight="-11"/>
+<add_delay period="-3"/>
+<add_link neuron="-43" weight="-11"/>
+<add_delay period="-35"/>
+<add_link neuron="11" weight="-8"/>
+<add_input input="look_resources_forward" weight="-11"/>
+<add_link neuron="11" weight="-8"/>
+<add_input input="look_resources_forward" weight="-11"/>
+<add_link neuron="-8" weight="-3"/>
+<add_neuron weight="-9"/>
+<add_delay period="-10"/>
+<add_link neuron="0" weight="-8"/>
+<add_link neuron="0" weight="-9"/>
+<add_delay period="-10"/>
+<add_delay period="-10"/>
+<add_link neuron="0" weight="-9"/>
+<add_input input="look_other_colour_left" weight="74"/>
+<add_input input="own_age" weight="-26"/>
+<add_link neuron="0" weight="-9"/>
+<add_input input="look_other_colour_left" weight="74"/>
+<add_input input="own_age" weight="-27"/>
+<add_input input="look_body_left" weight="74"/>
+<add_input input="look_resources_far_left" weight="-27"/>
+<add_input input="look_body_far_right" weight="42"/>
+<add_input input="look_body_far_right" weight="10"/>
+<add_input input="look_body_far_right" weight="10"/>
+<add_input input="look_body_far_forward" weight="-74"/>
+<add_link neuron="45" weight="40"/>
+<add_link neuron="10" weight="-26"/>
+<add_input input="look_body_far_right" weight="41"/>
+<add_link neuron="-26" weight="0"/>
+<add_input input="look_body_far_right" weight="41"/>
+<set_activity activity="attack"/>
+<add_input input="look_other_energy_far_left" weight="11"/>
+<set_activity activity="divide"/>
+<add_link neuron="26" weight="0"/>
+<add_link neuron="0" weight="-10"/>
+<set_activity activity="eat_here"/>
+<add_link neuron="0" weight="-10"/>
+<add_input input="look_other_energy_far_left" weight="10"/>
+<set_activity activity="eat_here"/>
+<add_input input="look_resources_here" weight="-9"/>
+<add_link neuron="-3" weight="120"/>
+<add_link neuron="120" weight="41"/>
+<set_activity activity="eat_forward"/>
+<add_input input="look_acid_far_left" weight="96"/>
+<add_input input="look_resources_here" weight="-13"/>
+<add_link neuron="56" weight="41"/>
+<add_link neuron="-4" weight="-56"/>
+<add_input input="look_resources_here" weight="-72"/>
+<add_input input="look_resources_here" weight="-120"/>
+<add_input input="look_resources_far_left" weight="-41"/>
+<add_input input="look_resources_far_forward" weight="-66"/>
+<add_input input="look_resources_here" weight="-88"/>
+<add_input input="own_age" weight="0"/>
+<add_link neuron="-56" weight="-42"/>
+<add_input input="look_other_colour_far_forward" weight="-42"/>
+<add_link neuron="0" weight="-56"/>
+<add_link neuron="-42" weight="14"/>
+<add_input input="own_energy" weight="-56"/>
+<add_input input="look_other_colour_far_forward" weight="-42"/>
+<add_link neuron="46" weight="-42"/>
+<add_link neuron="-40" weight="77"/>
+<set_activity activity="move"/>
+<add_input input="own_energy" weight="-32"/>
+<add_input input="look_wall_right" weight="9"/>
+<set_activity activity="eat_forward"/>
+<add_input input="look_resources_forward" weight="25"/>
+<set_activity activity="move"/>
+<add_input input="look_other_colour_far_forward" weight="-76"/>
+<set_activity activity="eat_here"/>
+<add_input input="look_resources_forward" weight="25"/>
+<add_link neuron="12" weight="36"/>
+<set_activity activity="eat_here"/>
+<add_link neuron="68" weight="-13"/>
+<add_link neuron="-24" weight="-30"/>
+<add_input input="look_body_forward_left" weight="30"/>
+<add_input input="look_resources_forward" weight="53"/>
+<add_input input="look_acid_far_right" weight="126"/>
+<add_input input="look_acid_far_right" weight="126"/>
+<set_activity activity="attack"/>
+<add_input input="look_other_colour_here" weight="15"/>
+<add_input input="look_other_colour_here" weight="-8"/>
+<set_activity activity="eat_here"/>
+<set_activity activity="divide"/>
+<set_activity activity="move"/>
+<add_input input="look_resources_forward" weight="49"/>
+<set_activity activity="eat_here"/>
+<set_activity activity="turn_left"/>
+<add_input input="look_acid_far_forward" weight="-33"/>
+<add_input input="look_body_forward_left" weight="43"/>
+<add_link neuron="34" weight="-94"/>
+<add_input input="look_wall_far_left" weight="-90"/>
+<set_activity activity="turn_right"/>
+<set_activity activity="move"/>
+<add_link neuron="-51" weight="0"/>
+<add_link neuron="-2" weight="35"/>
+<add_link neuron="-39" weight="0"/>
+<add_input input="look_acid_forward" weight="-74"/>
+<add_link neuron="0" weight="-78"/>
+<add_input input="look_other_energy_forward_left" weight="-74"/>
+<add_delay period="0"/>
+<add_input input="look_other_energy_forward" weight="64"/>
+<add_input input="look_acid_forward" weight="0"/>
+<add_input input="look_other_energy_forward" weight="64"/>
+<add_input input="look_acid_forward" weight="-78"/>
+<add_input input="look_other_energy_forward_left" weight="-67"/>
+<set_activity activity="attack"/>
+<add_input input="look_other_colour_here" weight="-60"/>
+<add_input input="look_resources_far_left" weight="4"/>
+<set_activity activity="turn_left"/>
+<add_input input="look_other_colour_forward" weight="-4"/>
+<add_input input="look_resources_far_left" weight="30"/>
+<set_activity activity="turn_left"/>
+<add_input input="look_other_colour_far_forward" weight="8"/>
+<set_activity activity="divide"/>
+<add_link neuron="74" weight="8"/>
+<set_activity activity="turn_left"/>
+<add_link neuron="111" weight="111"/>
+<add_link neuron="8" weight="35"/>
+<set_activity activity="eat_forward"/>
+<add_input input="look_other_energy_far_left" weight="-35"/>
+<add_input input="own_age" weight="-40"/>
+<set_activity activity="eat_forward"/>
+<set_activity activity="move"/>
+<set_activity activity="turn_right"/>
+<add_input input="look_wall_forward_right" weight="74"/>
+<add_link neuron="94" weight="8"/>
+<add_input input="look_acid_left" weight="94"/>
+<add_link neuron="28" weight="94"/>
+<add_link neuron="28" weight="94"/>
+<set_activity activity="turn_right"/>
+<add_input input="look_wall_forward_right" weight="74"/>
+<add_link neuron="94" weight="74"/>
+<set_activity activity="move"/>
+<set_activity activity="turn_left"/>
+<set_activity activity="turn_left"/>
+<set_activity activity="turn_left"/>
+<add_neuron weight="-120"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="-79"/>
+<set_activity activity="move"/>
+<add_neuron weight="-78"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="-22"/>
+<set_activity activity="move"/>
+<add_neuron weight="-45"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="-28"/>
+<set_activity activity="move"/>
+<add_neuron weight="-45"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="-28"/>
+<set_activity activity="move"/>
+<add_input input="look_other_colour_forward_left" weight="-8"/>
+<add_neuron weight="64"/>
+<add_link neuron="-43" weight="-5"/>
+<set_activity activity="eat_forward"/>
+<add_link neuron="13" weight="8"/>
+<add_link neuron="13" weight="64"/>
+<add_input input="look_body_far_left" weight="8"/>
+<add_link neuron="-40" weight="9"/>
+<add_link neuron="72" weight="2"/>
+<add_input input="look_other_energy_right" weight="1"/>
+<add_link neuron="41" weight="1"/>
+<set_activity activity="divide"/>
+<add_input input="look_other_energy_right" weight="5"/>
+<add_link neuron="8" weight="2"/>
+<add_input input="look_other_colour_forward" weight="69"/>
+<add_input input="look_body_far_left" weight="-56"/>
+<add_input input="look_other_colour_left" weight="-41"/>
+<add_input input="look_body_far_left" weight="-13"/>
+<add_link neuron="1" weight="13"/>
+<add_input input="look_other_colour_far_forward" weight="13"/>
+<add_input input="own_energy" weight="13"/>
+<add_input input="look_acid_left" weight="17"/>
+<add_link neuron="13" weight="-33"/>
+<add_link neuron="1" weight="13"/>
+<add_input input="look_other_energy_right" weight="13"/>
+<add_input input="look_other_colour_forward" weight="24"/>
+<add_input input="look_acid_left" weight="13"/>
+<junk value="24"/>
+<junk value="-44"/>
+</recipe>

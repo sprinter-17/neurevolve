@@ -27,6 +27,7 @@ public class WorldConfiguration {
         SEED_COUNT(200),
         INITIAL_ENERGY(1000),
         MIN_SPLIT_TIME(10),
+        MIN_SPLIT_ENERGY(50),
         BASE_COST(1),
         AGING_RATE(10),
         CONSUMPTION_RATE(50),
@@ -181,6 +182,14 @@ public class WorldConfiguration {
 
     public void setMinimumSplitTime(int time) {
         Key.MIN_SPLIT_TIME.setValue(this, time);
+    }
+
+    public int getMinimumSplitEnergy() {
+        return Key.MIN_SPLIT_ENERGY.getValue(this);
+    }
+
+    public void setMinimumSplitEnergy(int energy) {
+        Key.MIN_SPLIT_ENERGY.setValue(this, energy);
     }
 
     public int getConsumptionRate() {

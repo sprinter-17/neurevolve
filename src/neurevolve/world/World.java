@@ -87,18 +87,6 @@ public class World implements Environment {
     }
 
     /**
-     * Make a copy of the resources
-     *
-     * @return a complete copy of the resource array
-     */
-    public int[] getResourceCopy() {
-        int[] resources = new int[space.size()];
-        IntStream.range(0, space.size())
-                .forEach(i -> resources[i] = RESOURCES.get(positionData[i]));
-        return resources;
-    }
-
-    /**
      * Make a copy of the population
      *
      * @return a complete copy of the population array
@@ -109,31 +97,6 @@ public class World implements Environment {
 
     public int getOrganismDirection(Organism organism) {
         return population.getDirection(organism);
-    }
-
-    /**
-     * Make a copy of the elevations
-     *
-     * @return a complete copy of the elevation array
-     */
-    public int[] getElevationCopy() {
-        int[] elevations = new int[space.size()];
-        IntStream.range(0, space.size())
-                .forEach(i -> elevations[i] = getElementValue(i, ELEVATION));
-        return elevations;
-    }
-
-    public boolean[] getAcidCopy() {
-        boolean[] acid = new boolean[space.size()];
-        IntStream.range(0, space.size())
-                .forEach(i -> acid[i] = getElementValue(i, ACID) == 1);
-        return acid;
-    }
-
-    public int[] getRadiationCopy() {
-        int[] radiation = new int[space.size()];
-        forEachPosition(i -> radiation[i] = getElementValue(i, RADIATION));
-        return radiation;
     }
 
     private void forEachPosition(IntConsumer action) {
@@ -304,7 +267,7 @@ public class World implements Environment {
 
     public int getColourDifference(Organism organism, int position) {
         if (!hasOrganism(position)) {
-            return 0;
+            return -100;
         } else {
             int differences = organism.getColour() ^ population.getOrganism(position).getColour();
             return (int) IntStream.range(0, 24)
@@ -497,7 +460,7 @@ public class World implements Environment {
     }
 
     private boolean splitToAnyOpenPosition(int minTime, Organism parent) {
-        if (parent.canDivide(minTime)) {
+        if (parent.canDivide(minTime) && parent.getEnergy() >= config.getMinimumSplitEnergy()) {
             OptionalInt position = openPositionNextTo(getPosition(parent));
             if (position.isPresent()) {
                 splitTo(parent, position.getAsInt());
@@ -657,9 +620,8 @@ public class World implements Environment {
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
         int cost = config.getActivityCost(activity);
-        for (int i = 0; i < population.getActivityCount(organism, activity); i++) {
-            cost = cost * (100 + config.getActivityFactor(activity)) / 100;
-        }
+        int count = population.getActivityCount(organism, activity);
+        cost = cost * (100 + count * config.getActivityFactor(activity)) / 100;
         if (organism.hasEnergy(cost)) {
             if (activity.perform(this, organism)) {
                 organism.reduceEnergy(cost);

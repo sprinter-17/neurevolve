@@ -55,6 +55,10 @@ public class Organism {
         this.recipe = recipe;
     }
 
+    public long getID() {
+        return id;
+    }
+
     /**
      * Copy the current values for the neurons in the organism's brain
      *
@@ -83,6 +87,10 @@ public class Organism {
 
     public int getColour() {
         return recipe.getColour();
+    }
+
+    public Optional<Organism> getParent() {
+        return parent;
     }
 
     public int getDescendents() {

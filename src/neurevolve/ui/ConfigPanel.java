@@ -93,6 +93,8 @@ public class ConfigPanel extends JTabbedPane {
         JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
         addValueSlider(ratePanel, "Minimum Split Time", 0, 20,
                 config.getMinimumSplitTime(), config::setMinimumSplitTime);
+        addValueSlider(ratePanel, "Minimum Split Energy", 0, 100,
+                config.getMinimumSplitEnergy(), config::setMinimumSplitEnergy);
         addValueSlider(ratePanel, "Consumption Rate", 1, 100,
                 config.getConsumptionRate(), config::setConsumptionRate);
         addValueSlider(ratePanel, "Base Cost", 0, 20,

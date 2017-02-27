@@ -69,6 +69,8 @@ import org.xml.sax.SAXException;
  * and the size amount for each 10 instructions in the recipe.</td></tr>
  * <tr><td>{@code <minimum_split_time period='p'/>}</td><td>Set the minimum number of activations
  * between divisions to {@code p}</td></tr>
+ * <tr><td>{@code <minimum_split_energy energy='e'/>}</td><td>Set the minimum amount of energy that
+ * an organism must have to be able to split</td></tr>
  * <tr><td>{@code <consumption_rate rate='r'/>}</td><td>Set the maximum amount of resource an
  * organism can convert to energy in a single eat activity.</td></tr>
  * <tr><td>{@code <half_life element='e' period='p/>}</td><td>Set the period over which element
@@ -234,6 +236,9 @@ public class Loader {
                 break;
             case "minimum_split_time":
                 config.setMinimumSplitTime(getInt(element, "period"));
+                break;
+            case "minimum_split_energy":
+                config.setMinimumSplitEnergy(getInt(element, "energy"));
                 break;
             case "consumption_rate":
                 config.setConsumptionRate(getInt(element, "rate"));

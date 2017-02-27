@@ -79,7 +79,7 @@ public class WorldInputTest {
 
     @Test
     public void testOtherColour() {
-        assertThat(input("Look Other Colour Forward Right"), is(0));
+        assertThat(input("Look Other Colour Forward Right"), is(-100));
         Organism other = new Organism(world, 100, 15);
         world.addOrganism(other, world.getPosition(organism, FORWARD, RIGHT), NORTH);
         assertThat(input("Look Other Colour Forward Right"), is(4));

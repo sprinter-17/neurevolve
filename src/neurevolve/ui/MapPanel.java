@@ -103,6 +103,10 @@ public class MapPanel extends JPanel {
         g.drawImage(image, 0, 0, this);
     }
 
+    public static int wallColour() {
+        return Color.DARK_GRAY.getRGB();
+    }
+
     /**
      * Convert resources, organism and elevation for a position to a colour to display
      *
@@ -111,10 +115,13 @@ public class MapPanel extends JPanel {
      * @return a colour, in RGB format, representing the status of the position
      */
     public static int convertToColour(WorldConfiguration config, int ground) {
-        return resourceColour(config, RESOURCES.get(ground))
-                | elevationColour(config, ELEVATION.get(ground))
-                | acidColour(config, ACID.get(ground) == 1)
-                | radiationColour(config, RADIATION.get(ground));
+        if (WALL.get(ground) > 0)
+            return wallColour();
+        else
+            return resourceColour(config, RESOURCES.get(ground))
+                    | elevationColour(config, ELEVATION.get(ground))
+                    | acidColour(config, ACID.get(ground) == 1)
+                    | radiationColour(config, RADIATION.get(ground));
     }
 
     /**
@@ -124,7 +131,7 @@ public class MapPanel extends JPanel {
      * @param elevation the height of the position
      * @return a colour, in RGB format, representing the height of the position
      */
-    public static int elevationColour(WorldConfiguration config, int elevation) {
+    private static int elevationColour(WorldConfiguration config, int elevation) {
         return elevation << BLUE_SHIFT;
     }
 
@@ -135,15 +142,15 @@ public class MapPanel extends JPanel {
      * @param resource the number of resources
      * @return a colour, in RGB format, representing the number of resources
      */
-    public static int resourceColour(WorldConfiguration config, int resource) {
+    private static int resourceColour(WorldConfiguration config, int resource) {
         return resource << GREEN_SHIFT;
     }
 
-    public static int acidColour(WorldConfiguration config, boolean acid) {
+    private static int acidColour(WorldConfiguration config, boolean acid) {
         return acid ? 172 << GREEN_SHIFT | 172 << RED_SHIFT : 0;
     }
 
-    public static int radiationColour(WorldConfiguration config, int radiation) {
+    private static int radiationColour(WorldConfiguration config, int radiation) {
         return radiation * 64 << RED_SHIFT;
     }
 

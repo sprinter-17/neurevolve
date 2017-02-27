@@ -278,7 +278,7 @@ public class WorldTest {
         world.performActivity(organism, WorldActivity.TURN_LEFT.ordinal());
         assertThat(organism.getEnergy(), is(965));
         world.performActivity(organism, WorldActivity.TURN_LEFT.ordinal());
-        assertThat(organism.getEnergy(), is(903));
+        assertThat(organism.getEnergy(), is(925));
     }
 
     @Test

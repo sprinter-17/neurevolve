@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -64,7 +65,7 @@ public class NetworkPanel extends JPanel {
     private BufferedImage inputImage;
 
     private Optional<RecipeDescriber> recipe = Optional.empty();
-    private int[] ranges;
+    private int[] values;
 
     private Point offset = new Point(0, 0);
     private Point drag = new Point(0, 0);
@@ -326,14 +327,15 @@ public class NetworkPanel extends JPanel {
      * Display a recipe in the network panel.
      *
      * @param recipe the recipe to display (passed as a description)
+     * @param values the current values for each neuron, or null if no current values
      */
-    public void showRecipe(RecipeDescriber recipe) {
+    public void showRecipe(RecipeDescriber recipe, int[] values) {
         this.recipe = Optional.of(recipe);
         neurons.clear();
         for (int i = 0; i < recipe.getSize(); i++) {
             neurons.add(recipe.getNeuron(i));
         }
-        ranges = new int[1000];
+        this.values = values;
         paintNetwork();
     }
 
@@ -378,7 +380,7 @@ public class NetworkPanel extends JPanel {
         Point lastPoint = neuronPositions.values().stream()
                 .max(Comparator.comparingDouble(Point::getY))
                 .orElse(new Point(0, 0));
-        int width = lastPoint.x + NEURON_WIDTH + 5;
+        int width = lastPoint.x + NEURON_WIDTH + NEURON_HEIGHT + 5;
         int height = lastPoint.y + NEURON_HEIGHT + 5;
         networkImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         return networkImage.createGraphics();
@@ -393,16 +395,28 @@ public class NetworkPanel extends JPanel {
         paintNeuronBox(g, neuron, point);
         paintLinks(g, neuron, point);
         paintThreshold(g, neuron, point);
+        paintValue(g, neuron, point);
     }
 
-    private void paintNeuronBox(Graphics2D g, int neuron, Point point) {
-        Color colour = ranges != null && ranges[neuron] > 0 ? Color.CYAN : Color.LIGHT_GRAY;
-        if (neurons.get(neuron).hasActivity()) {
-            paintBox(g, colour, point.x, point.y, NEURON_WIDTH);
-            paintActivity(g, neurons.get(neuron).getActivityName(),
-                    point.x + 10, point.y + NEURON_HEIGHT - 10);
-        } else {
-            paintBox(g, colour, point.x, point.y, INDENT);
+    private void paintNeuronBox(Graphics2D g, int index, Point point) {
+        Neuron neuron = neurons.get(index);
+        int width = neuron.hasActivity() ? NEURON_WIDTH : INDENT;
+        paintDelay(g, neuron.getDelay(), point.x + width, point.y);
+        paintBox(g, Color.LIGHT_GRAY, point.x, point.y, width);
+        if (neuron.hasActivity())
+            paintActivity(g, neuron.getActivityName(), point.x + 10, point.y + NEURON_HEIGHT - 10);
+    }
+
+    private void paintDelay(Graphics2D g, int delay, int x, int y) {
+        if (delay > 0) {
+            g.setColor(Color.LIGHT_GRAY);
+            g.fillOval(x, y, NEURON_HEIGHT, NEURON_HEIGHT);
+            g.setColor(Color.BLACK);
+            FontMetrics metrics = g.getFontMetrics();
+            String text = String.valueOf(delay);
+            x += (NEURON_HEIGHT - metrics.stringWidth(text)) / 2;
+            y += (NEURON_HEIGHT + metrics.getAscent()) / 2;
+            g.drawString(text, x, y);
         }
     }
 
@@ -475,6 +489,25 @@ public class NetworkPanel extends JPanel {
             threshold = Math.min(10, threshold);
             g.setColor(NEGATIVE_COLOUR);
             g.fillRect(point.x - threshold - 1, point.y, threshold, NEURON_HEIGHT);
+        }
+    }
+
+    private void paintValue(Graphics2D g, int neuron, Point point) {
+        if (values != null) {
+            int value = values[neuron];
+            int x = point.x + 3;
+            int y = point.y + NEURON_HEIGHT / 2;
+            if (value >= 0) {
+                g.setColor(Color.GREEN);
+                g.setStroke(new BasicStroke(4));
+                int max = world.applyActivationFunction(Integer.MAX_VALUE);
+                g.drawLine(x, y, x, y - value / max);
+            } else {
+                g.setColor(Color.RED);
+                g.setStroke(new BasicStroke(4));
+                int min = world.applyActivationFunction(Integer.MIN_VALUE);
+                g.drawLine(x, y, x, y - value / min);
+            }
         }
     }
 }

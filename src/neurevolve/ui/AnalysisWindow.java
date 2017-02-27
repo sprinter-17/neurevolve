@@ -3,6 +3,7 @@ package neurevolve.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -278,7 +279,7 @@ public class AnalysisWindow extends JFrame {
         if (row >= 0) {
             int index = speciesTable.convertRowIndexToModel(row);
             Species species = speciesModel.getSpecies(index);
-            networkPanel.showRecipe(species.describeRecipe());
+            networkPanel.showRecipe(species.describeRecipe(), null);
             selectionListeners.forEach(l -> l.accept(species));
         } else {
             selectionListeners.forEach(l -> l.accept(null));
@@ -288,6 +289,7 @@ public class AnalysisWindow extends JFrame {
 
     private void makeNetworkPanel() {
         networkPanel = new NetworkPanel(world);
+        networkPanel.setPreferredSize(new Dimension(500, 500));
         add(networkPanel, BorderLayout.CENTER);
     }
 
