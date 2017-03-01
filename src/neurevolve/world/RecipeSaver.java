@@ -71,6 +71,10 @@ public class RecipeSaver {
                     WorldActivity activity = WorldActivity.decode(toInt(values[0]));
                     setActivity.setAttribute("activity", activity.name().toLowerCase());
                     break;
+                case JUNK:
+                    Element junk = addElement("junk");
+                    setInt(junk, "value", (byte) -1);
+                    break;
                 default:
                     throw new AssertionError(instruction.name());
             }

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.IntSupplier;
+import java.util.stream.IntStream;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -55,7 +56,7 @@ public class ZoomWindow {
     private final Runnable tickListener = this::tick;
     private final JLabel snapShotCountLabel = new JLabel("0");
     private int currentSnapShot = 0;
-    private Optional<OrganismSnapShot> currentOrganism = Optional.empty();
+    private OptionalLong currentOrganism = OptionalLong.empty();
 
     @FunctionalInterface
     private interface PositionProcessor {
@@ -85,6 +86,7 @@ public class ZoomWindow {
         private final int energy;
         private final int descendents;
         private final int[] values;
+        private final int[] inputs;
         private final RecipeDescriber recipe;
         private final OptionalLong parent;
 
@@ -98,6 +100,9 @@ public class ZoomWindow {
             energy = organism.getEnergy();
             descendents = organism.getDescendents();
             values = organism.copyValues();
+            inputs = IntStream.range(0, world.getInputCodeCount())
+                    .map(c -> world.getInput(organism, c))
+                    .toArray();
             recipe = organism.describeRecipe();
             parent = organism.getParent().map(Organism::getID)
                     .map(OptionalLong::of).orElse(OptionalLong.empty());
@@ -110,6 +115,13 @@ public class ZoomWindow {
         public Point2D.Float centre() {
             return new Point2D.Float(x * PIXEL_SIZE + PIXEL_SIZE / 2, y * PIXEL_SIZE + PIXEL_SIZE / 2);
         }
+    }
+
+    private Optional<OrganismSnapShot> getCurrentOrganism() {
+        if (currentOrganism.isPresent())
+            return getOrganism(currentOrganism.getAsLong());
+        else
+            return Optional.empty();
     }
 
     private Optional<OrganismSnapShot> getOrganism(long id) {
@@ -156,7 +168,7 @@ public class ZoomWindow {
                 paintGround(g, snapShot);
                 paintOrganisms(g, snapShot);
                 paintParentage(g, snapShot);
-                paintPath(g, currentOrganism);
+                paintPath(g);
             }
         }
 
@@ -184,7 +196,7 @@ public class ZoomWindow {
                         90 * direction + 45, 270);
                 g.setColor(new Color(organism.colour));
                 g.fillArc(point.x + 1, point.y + 1, PIXEL_SIZE - 2 * MARGIN2, PIXEL_SIZE - 2 * MARGIN2, 90 * direction + 45, 270);
-                if (currentOrganism.isPresent() && currentOrganism.get().id == organism.id) {
+                if (currentOrganism.isPresent() && currentOrganism.getAsLong() == organism.id) {
                     g.setColor(Color.YELLOW);
                     g.drawRect(organism.x * PIXEL_SIZE,
                             organism.y * PIXEL_SIZE, PIXEL_SIZE - 1, PIXEL_SIZE - 1);
@@ -209,7 +221,8 @@ public class ZoomWindow {
             }
         }
 
-        private void paintPath(Graphics2D g, Optional<OrganismSnapShot> current) {
+        private void paintPath(Graphics2D g) {
+            Optional<OrganismSnapShot> current = getCurrentOrganism();
             g.setColor(Color.RED);
             g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.CAP_ROUND,
                     0, new float[]{1.0f, 3.0f}, 0.25f));
@@ -257,9 +270,9 @@ public class ZoomWindow {
         }
 
         private void update() {
-            if (currentOrganism.isPresent() && getOrganism(currentOrganism.get().id).isPresent()) {
-                OrganismSnapShot organism = getOrganism(currentOrganism.get().id).get();
-                networkDisplay.showRecipe(organism.recipe, organism.values);
+            if (getCurrentOrganism().isPresent()) {
+                OrganismSnapShot organism = getCurrentOrganism().get();
+                networkDisplay.showRecipe(organism.recipe, organism.values, organism.inputs);
                 age.setText(String.valueOf(organism.age));
                 energy.setText(String.valueOf(organism.energy));
                 descendents.setText(String.valueOf(organism.descendents));
@@ -305,6 +318,7 @@ public class ZoomWindow {
                     if (x < SIDE && y < SIDE) {
                         currentOrganism = snapShot.organisms.stream()
                                 .filter(o -> o.x == x && o.y == y)
+                                .mapToLong(o -> o.id)
                                 .findAny();
                         organismPanel.update();
                     }
@@ -341,24 +355,14 @@ public class ZoomWindow {
         return new JButton(new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                moveTo(position.getAsInt());
+                currentSnapShot = position.getAsInt();
+                currentSnapShot = Math.max(0, currentSnapShot);
+                currentSnapShot = Math.min(snapShots.size() - 1, currentSnapShot);
+                organismPanel.update();
+                updatePositionLabel();
+                frame.repaint();
             }
         });
-    }
-
-    private void moveTo(int snapShot) {
-        currentSnapShot = snapShot;
-        if (currentSnapShot < 0) {
-            currentSnapShot = 0;
-        }
-        if (currentSnapShot >= snapShots.size()) {
-            currentSnapShot = snapShots.size() - 1;
-        }
-        if (currentOrganism.isPresent())
-            currentOrganism = getOrganism(currentOrganism.get().id);
-        organismPanel.update();
-        updatePositionLabel();
-        frame.repaint();
     }
 
     private void tick() {

@@ -52,10 +52,10 @@ public class Space {
     }
 
     /**
-     * Calculate a position from cartesian coordinates
+     * Calculate a position from cartesian coordinates with origin at top left
      *
      * @param x the horizontal distance of the position from the left edge
-     * @param y the vertical distance of the position from the bottom edge
+     * @param y the vertical distance of the position from the top edge
      * @return the position of the coordinates
      * @throws IllegalArgumentException if the coordinates are not within the frame
      */
@@ -141,7 +141,7 @@ public class Space {
     }
 
     /**
-     * Calculate the vertical distance of a position from the bottom edge
+     * Calculate the vertical distance of a position from the top edge
      */
     private int y(int position) {
         return position / width;

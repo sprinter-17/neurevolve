@@ -10,29 +10,30 @@ import static neurevolve.organism.Code.toInt;
  * using the {@link #complete} method.
  */
 public enum Instruction {
+    JUNK(Instruction::doNothing, 0, 0),
     /**
      * Add a new neuron with a given threshold.
      */
-    ADD_NEURON(Instruction::addNeuron, 1, 1),
+    ADD_NEURON(Instruction::addNeuron, 1, 10),
     /**
      * Add a link to the last neuron from the neuron indexed in the next value and with the weight
      * specified in the following value. If no neuron has been added or if the next value does not
      * index an existing neuron then this instruction is ignored.
      */
-    ADD_LINK(Instruction::addLink, 2, 4),
+    ADD_LINK(Instruction::addLink, 2, 40),
     /**
      * Add an input to the last neuron. The code for the input is given in the next value.
      */
-    ADD_INPUT(Instruction::addInput, 2, 7),
+    ADD_INPUT(Instruction::addInput, 2, 70),
     /**
      * Add a delay to the last neuron. The amount to delay is given in the next value.
      */
-    ADD_DELAY(Instruction::addDelay, 1, 8),
+    ADD_DELAY(Instruction::addDelay, 1, 80),
     /**
      * Set an activity to perform if the last neuron is activated. The code for the activity is
      * given in the next value.
      */
-    SET_ACTIVITY(Instruction::setActivity, 1, 9);
+    SET_ACTIVITY(Instruction::setActivity, 1, 85);
 
     public interface Processor {
 
@@ -50,12 +51,12 @@ public enum Instruction {
 
     private final Operation operation;
     private final int valueCount;
-    private final int code;
+    private final int codeCount;
 
-    private Instruction(Operation operation, int valueCount, int code) {
+    private Instruction(Operation operation, int valueCount, int codeCount) {
         this.operation = operation;
         this.valueCount = valueCount;
-        this.code = code;
+        this.codeCount = codeCount;
     }
 
     /**
@@ -64,7 +65,7 @@ public enum Instruction {
      * @return the <code>int</code> code for this instruction
      */
     public byte getCode() {
-        return fromInt(code - 1);
+        return fromInt(codeCount - 1);
     }
 
     /**
@@ -75,12 +76,12 @@ public enum Instruction {
      * @return the instruction
      */
     public static Instruction decode(byte code) {
-        code = Code.mod(code, SET_ACTIVITY.code);
+        int position = Code.toInt(code);
         for (Instruction instruction : values()) {
-            if (code < instruction.code)
+            if (position < instruction.codeCount)
                 return instruction;
         }
-        throw new IllegalStateException("No instruction for code " + code);
+        return JUNK;
     }
 
     public int getValueCount() {
@@ -96,14 +97,17 @@ public enum Instruction {
      * @param values the values to use in performing the operation
      */
     public void complete(Organism organism, byte... values) {
+        assert values.length == valueCount;
         operation.operate(organism, values);
+    }
+
+    private static void doNothing(Organism organism, byte... values) {
     }
 
     /**
      * Add a neuron to the organism's network
      */
     private static void addNeuron(Organism organism, byte... values) {
-        assert values.length == 1;
         organism.getBrain().addNeuron();
         organism.getBrain().setThreshold(toInt(values[0]));
     }
@@ -112,9 +116,8 @@ public enum Instruction {
      * Add a link to the last neuron in the organism's network
      */
     private static void addLink(Organism organism, byte... values) {
-        assert values.length == 2;
         if (organism.getBrain().size() > 1) {
-            int from = Math.floorMod(values[0], organism.getBrain().size() - 1);
+            int from = Math.floorMod(toInt(values[0]), organism.getBrain().size() - 1);
             int weight = toInt(values[1]);
             organism.getBrain().addLink(from, weight);
         }
@@ -124,18 +127,16 @@ public enum Instruction {
      * Add an input to the last neuron in the organism's network.
      */
     private static void addInput(Organism organism, byte... values) {
-        assert values.length == 2;
         if (!organism.getBrain().isEmpty()) {
-            Input input = organism.getInput(values[0]);
+            Input input = organism.getInput(toInt(values[0]));
             int weight = toInt(values[1]);
             organism.getBrain().addInput(input, weight);
         }
     }
 
     private static void addDelay(Organism organism, byte... values) {
-        assert values.length == 1;
         if (!organism.getBrain().isEmpty()) {
-            int delay = values[0];
+            int delay = toInt(values[0]);
             if (delay > 0)
                 organism.getBrain().addDelay(delay);
         }
@@ -147,7 +148,7 @@ public enum Instruction {
     private static void setActivity(Organism organism, byte... values) {
         assert values.length == 1;
         if (!organism.getBrain().isEmpty()) {
-            Activity activity = organism.getActivity(values[0]);
+            Activity activity = organism.getActivity(toInt(values[0]));
             organism.getBrain().setActivity(activity);
         }
     }

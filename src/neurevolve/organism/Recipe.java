@@ -70,15 +70,14 @@ public class Recipe {
     public void forEachInstruction(Instruction.Processor processor) {
         int i = 0;
         while (i < size) {
-            byte code = instructions[i];
+            byte code = instructions[i++];
             Instruction instruction = Instruction.decode(code);
             int valueCount = instruction.getValueCount();
-            if (i + valueCount < size) {
-                i++;
+            if (i + valueCount <= size) {
                 byte[] values = Arrays.copyOfRange(instructions, i, i += valueCount);
                 processor.process(instruction, values);
             } else {
-                processor.junk(instructions[i++]);
+                processor.junk(code);
             }
         }
     }

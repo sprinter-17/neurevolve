@@ -14,6 +14,8 @@ import static neurevolve.world.Angle.RIGHT;
 public class WorldInput {
 
     public static final int MAX_VALUE = 100;
+    private final World world;
+    private final List<WorldValueGetter> valueGetters = new ArrayList<>();
 
     @FunctionalInterface
     private interface ValueGetter {
@@ -40,9 +42,6 @@ public class WorldInput {
         }
     }
 
-    private final World world;
-    private final List<WorldValueGetter> valueGetters = new ArrayList<>();
-
     private enum VisionField {
         LOOK_HERE("Here"),
         LOOK_FORWARD("Forward", FORWARD),
@@ -68,7 +67,7 @@ public class WorldInput {
         addInput("Own Age", Organism::getAge);
         addInput("Own Energy", Organism::getEnergy);
         addInput("Temperature Here", o -> world.getTemperature(world.getPosition(o)));
-        addVisionInput("Other Energy", (o, p) -> world.getOrganismEnergy(p));
+        addVisionInput("Other Energy", (o, p) -> world.hasOrganism(p) ? world.getOrganismEnergy(p) : -MAX_VALUE);
         addVisionInput("Other Colour", world::getColourDifference);
     }
 
@@ -92,10 +91,19 @@ public class WorldInput {
     }
 
     private int getValue(Organism organism, int position, GroundElement element) {
-        if (element == GroundElement.ELEVATION)
-            return world.getSlope(organism, position);
-        else
-            return world.getElementValue(position, element) * MAX_VALUE / element.getMaximum();
+        switch (element) {
+            case WALL:
+            case BODY:
+                return world.getElementValue(position, element) > 0 ? MAX_VALUE : -MAX_VALUE;
+            case ELEVATION:
+                return world.getSlope(organism, position);
+            case RADIATION:
+            case ACID:
+            case RESOURCES:
+                return MAX_VALUE * world.getElementValue(position, element) / element.getMaximum() - 1;
+            default:
+                throw new AssertionError(element.name());
+        }
     }
 
     public String getName(int code) {
@@ -104,6 +112,10 @@ public class WorldInput {
 
     public int getValue(Organism organism, int code) {
         return decode(code).valueGetter.getValue(organism);
+    }
+
+    public int getCodeCount() {
+        return valueGetters.size();
     }
 
     public OptionalInt getCode(String name) {

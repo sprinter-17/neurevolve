@@ -201,7 +201,7 @@ public class WorldTest {
     @Test
     public void testSplitOrganims() {
         int position = space.position(6, 9);
-        Organism organism = new Organism(world, 12);
+        Organism organism = new Organism(world, 1000);
         world.addOrganism(organism, position, EAST);
         assertThat(world.getPopulationSize(), is(1));
         world.splitOrganism(organism);
@@ -211,7 +211,7 @@ public class WorldTest {
     @Test
     public void testDoNotSplitOrganismIfNoRoom() {
         int position = space.position(6, 9);
-        Organism organism = new Organism(world, 120);
+        Organism organism = new Organism(world, 1000);
         world.addOrganism(organism, position, EAST);
         world.tick();
         assertThat(world.getPopulationSize(), is(1));

@@ -64,7 +64,7 @@ public class WorldInputTest {
     @Test
     public void testWall() {
         input.setUsedElements(EnumSet.of(GroundElement.WALL));
-        assertThat(input("Look Wall Far Forward"), is(0));
+        assertThat(input("Look Wall Far Forward"), is(-WorldInput.MAX_VALUE));
         world.setWall(world.getPosition(organism, FORWARD, FORWARD), true);
         assertThat(input("Look Wall Far Forward"), is(WorldInput.MAX_VALUE));
     }
@@ -72,17 +72,17 @@ public class WorldInputTest {
     @Test
     public void testAcid() {
         input.setUsedElements(EnumSet.of(GroundElement.ACID));
-        assertThat(input("Look Acid Forward Left"), is(0));
+        assertThat(input("Look Acid Forward Left"), is(-1));
         world.setAcidic(world.getPosition(organism, FORWARD, LEFT), true);
-        assertThat(input("Look Acid Forward Left"), is(WorldInput.MAX_VALUE));
+        assertThat(input("Look Acid Forward Left"), is(WorldInput.MAX_VALUE - 1));
     }
 
     @Test
     public void testOtherColour() {
-        assertThat(input("Look Other Colour Forward Right"), is(-100));
+        assertThat(input("Look Other Colour Forward Right"), is(-WorldInput.MAX_VALUE));
         Organism other = new Organism(world, 100, 15);
         world.addOrganism(other, world.getPosition(organism, FORWARD, RIGHT), NORTH);
-        assertThat(input("Look Other Colour Forward Right"), is(4));
+        assertThat(input("Look Other Colour Forward Right"), is(3));
     }
 
     private int input(String name) {

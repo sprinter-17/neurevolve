@@ -7,7 +7,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
-import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -82,6 +81,10 @@ public class World implements Environment {
         return usedElements.contains(element);
     }
 
+    public int getInputCodeCount() {
+        return inputs.getCodeCount();
+    }
+
     public int[] copyGroundElements() {
         return Arrays.copyOf(positionData, space.size());
     }
@@ -97,10 +100,6 @@ public class World implements Environment {
 
     public int getOrganismDirection(Organism organism) {
         return population.getDirection(organism);
-    }
-
-    private void forEachPosition(IntConsumer action) {
-        IntStream.range(0, space.size()).forEach(action);
     }
 
     /**
@@ -272,7 +271,7 @@ public class World implements Environment {
             int differences = organism.getColour() ^ population.getOrganism(position).getColour();
             return (int) IntStream.range(0, 24)
                     .filter(b -> (differences & (1 << b)) != 0)
-                    .count();
+                    .count() - 1;
         }
     }
 

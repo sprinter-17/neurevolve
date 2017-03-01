@@ -1,6 +1,7 @@
 package neurevolve.organism;
 
 import neurevolve.TestEnvironment;
+import neurevolve.network.Network;
 import static neurevolve.organism.Code.fromInt;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
@@ -113,6 +114,15 @@ public class RecipeDescriberTest {
         assertFalse(describer().getNeuron(1).isInactive());
         recipe.add(Instruction.ADD_LINK, Code.ZERO, fromInt(5));
         assertFalse(describer().getNeuron(0).isInactive());
+    }
+
+    @Test
+    public void testDescriptionEqualsNetworkSize() {
+        for (int i = 0; i < 10000; i++) {
+            recipe.add(fromInt(i % 217 - 53));
+        }
+        Network network = new Organism(new TestEnvironment(), 0, recipe).getBrain();
+        assertThat(network.size(), is(describer().getSize()));
     }
 
     private String describe() {

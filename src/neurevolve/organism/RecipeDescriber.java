@@ -21,6 +21,7 @@ public class RecipeDescriber {
     private final Environment environment;
     private final Recipe recipe;
     private final List<Neuron> neurons = new ArrayList<>();
+    private int junk = 0;
 
     /**
      * A <code>RecipeDescriber</code> contains a list of {@code Neuron} objects that contain
@@ -181,6 +182,9 @@ public class RecipeDescriber {
 
     private void process(Instruction instruction, byte... values) {
         switch (instruction) {
+            case JUNK:
+                junk++;
+                break;
             case ADD_NEURON:
                 neurons.add(new Neuron(toInt(values[0])));
                 break;
@@ -189,6 +193,8 @@ public class RecipeDescriber {
                     int from = Math.floorMod(values[0], neurons.size() - 1);
                     last().ifPresent(n -> n.links.put(from, values[1]));
                     last().ifPresent(n -> neurons.get(from).outputs.add(n.id));
+                } else {
+                    junk += 3;
                 }
                 break;
             case ADD_INPUT:

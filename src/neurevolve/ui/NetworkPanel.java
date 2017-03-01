@@ -51,8 +51,8 @@ public class NetworkPanel extends JPanel {
     private static final int NEURON_HEIGHT = 35;
 
     private static final Point FORWARD = new Point(16, 0);
-    private static final Point LEFT = new Point(0, +8);
-    private static final Point RIGHT = new Point(0, -8);
+    private static final Point LEFT = new Point(0, -8);
+    private static final Point RIGHT = new Point(0, +8);
 
     private final World world;
     private final Map<Integer, Point> inputPositions = new HashMap<>();
@@ -66,6 +66,7 @@ public class NetworkPanel extends JPanel {
 
     private Optional<RecipeDescriber> recipe = Optional.empty();
     private int[] values;
+    private int[] inputs;
 
     private Point offset = new Point(0, 0);
     private Point drag = new Point(0, 0);
@@ -189,6 +190,15 @@ public class NetworkPanel extends JPanel {
          */
         private void paintInputs(Graphics2D g) {
             neuronPositions.forEach((n, p) -> paintNeuronInputs(g, n, p));
+            if (inputs != null)
+                inputPositions.forEach((i, p) -> paintInputValue(g, i, p));
+        }
+
+        private void paintInputValue(Graphics2D g, int input, Point p) {
+            if (inputs[input] >= 0) {
+                g.setColor(Color.GREEN);
+                g.fillOval(p.x - 2, p.y - 2, 5, 5);
+            }
         }
 
         private void paintNeuronInputs(Graphics2D g, int neuron, Point point) {
@@ -328,14 +338,16 @@ public class NetworkPanel extends JPanel {
      *
      * @param recipe the recipe to display (passed as a description)
      * @param values the current values for each neuron, or null if no current values
+     * @param inputs the current values for each input code
      */
-    public void showRecipe(RecipeDescriber recipe, int[] values) {
+    public void showRecipe(RecipeDescriber recipe, int[] values, int[] inputs) {
         this.recipe = Optional.of(recipe);
         neurons.clear();
         for (int i = 0; i < recipe.getSize(); i++) {
             neurons.add(recipe.getNeuron(i));
         }
         this.values = values;
+        this.inputs = inputs;
         paintNetwork();
     }
 

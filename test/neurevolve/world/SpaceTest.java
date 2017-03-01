@@ -34,6 +34,12 @@ public class SpaceTest {
     }
 
     @Test
+    public void testPosition() {
+        assertThat(space.position(0, 0), is(0));
+        assertThat(space.position(19, 9), is(199));
+    }
+
+    @Test
     public void testMove() {
         assertThat(space.move(space.position(5, 5), SOUTH), is(space.position(5, 6)));
         assertThat(space.move(space.position(5, 5), WEST), is(space.position(4, 5)));
