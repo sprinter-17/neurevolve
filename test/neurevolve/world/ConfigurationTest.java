@@ -1,8 +1,9 @@
 package neurevolve.world;
 
+import neurevolve.world.Configuration.Value;
+import static neurevolve.world.Configuration.Value.HALF_LIFE;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.WALL;
-import static neurevolve.world.Configuration.Value.HALF_LIFE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -19,13 +20,13 @@ public class ConfigurationTest {
 
     @Test
     public void testDefaultActivityCost() {
-        config.setDefaultActivityCost(7);
+        config.setValue(Value.ACTIVITY_COST, 7);
         assertThat(config.getActivityCost(WorldActivity.DIVIDE), is(7));
     }
 
     @Test
     public void testDefaultActivityFactor() {
-        config.setDefaultActivityFactor(11);
+        config.setValue(Value.ACTIVITY_FACTOR, 11);
         assertThat(config.getActivityFactor(WorldActivity.EAT_FORWARD), is(11));
     }
 

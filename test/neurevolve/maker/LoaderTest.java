@@ -156,8 +156,8 @@ public class LoaderTest {
     @Test
     public void testDefaultActivityCost() throws SAXException {
         loadConfig("<activity_cost cost='7' factor='0'/>");
-        verify(config).setDefaultActivityCost(7);
-        verify(config).setDefaultActivityFactor(0);
+        verify(config).setValue(Value.ACTIVITY_COST, 7);
+        verify(config).setValue(Value.ACTIVITY_FACTOR, 0);
     }
 
     @Test

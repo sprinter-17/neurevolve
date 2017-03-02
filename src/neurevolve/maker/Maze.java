@@ -24,6 +24,9 @@ public class Maze {
     private final Set<Position> visited = new HashSet<>();
     private final Deque<Position> stack = new LinkedList<>();
 
+    /**
+     * A direction from one maze cell to an adjacent one
+     */
     public enum Direction {
         NORTH(p -> new Position(p.x, p.y + 1)),
         EAST(p -> new Position(p.x + 1, p.y)),
@@ -54,12 +57,18 @@ public class Maze {
             this.y = y;
         }
 
+        /**
+         * Get all neighbour positions in the maze
+         */
         private Stream<Position> neighbours(Maze maze) {
             return Arrays.stream(Direction.values())
                     .map(dir -> dir.move(this))
                     .filter(p -> p.isInMaze(maze));
         }
 
+        /**
+         * @return true, if the position is in the given maze
+         */
         private boolean isInMaze(Maze maze) {
             return x >= 0 && x < maze.width && y >= 0 && y < maze.height;
         }
@@ -102,6 +111,9 @@ public class Maze {
             this.to = to;
         }
 
+        /**
+         * @return true if the two given positions are the two positions in the path
+         */
         public boolean matches(Position position1, Position position2) {
             return from.equals(position1) && to.equals(position2)
                     || from.equals(position2) && to.equals(position1);

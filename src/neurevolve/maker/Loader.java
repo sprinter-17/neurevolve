@@ -202,6 +202,9 @@ public class Loader {
         }
     }
 
+    /**
+     * Process a configuration instruction
+     */
     private void processConfiguration(Element element) throws SAXException {
         switch (element.getNodeName()) {
             case "temperature_range":
@@ -230,9 +233,9 @@ public class Loader {
                     if (element.hasAttribute("factor"))
                         config.setActivityFactor(activity, getInt(element, "factor"));
                 } else {
-                    config.setDefaultActivityCost(getInt(element, "cost"));
+                    setConfig(ACTIVITY_COST, element, "cost");
                     if (element.hasAttribute("factor"))
-                        config.setDefaultActivityFactor(getInt(element, "factor"));
+                        setConfig(ACTIVITY_FACTOR, element, "factor");
                 }
                 break;
             case "activation_cost":
@@ -262,13 +265,14 @@ public class Loader {
                 break;
             default:
                 throw new SAXException("Illegal configuration: " + element.getNodeName());
-            /*
-        CONSUMPTION_RATE("Consumption Rate", 50),
-             */
         }
     }
 
-    private void setConfig(Configuration.Value key, Element element, String valueAttribute) throws SAXException {
+    /**
+     * Set a standard configuration value
+     */
+    private void setConfig(Configuration.Value key, Element element, String valueAttribute)
+            throws SAXException {
         int value = getInt(element, valueAttribute);
         if (value > key.getMax() || value < key.getMin())
             throw new SAXException("value " + valueAttribute
