@@ -197,48 +197,6 @@ public class Configuration {
         setValue(Value.INITIAL_ENERGY, energy);
     }
 
-    public int getMinimumSplitTime() {
-        return getValue(Value.MIN_SPLIT_TIME);
-    }
-
-    public void setMinimumSplitTime(int time) {
-        setValue(Value.MIN_SPLIT_TIME, time);
-    }
-
-    public int getMinimumSplitEnergy() {
-        return getValue(Value.MIN_SPLIT_ENERGY);
-    }
-
-    public void setMinimumSplitEnergy(int energy) {
-        setValue(Value.MIN_SPLIT_ENERGY, energy);
-    }
-
-    public int getConsumptionRate() {
-        return getValue(Value.CONSUMPTION_RATE);
-    }
-
-    /**
-     * Set the rate at which organisms consume resources.
-     *
-     * @param consumptionRate the consumption rate
-     * @throws IllegalArgumentException if <tt>consumptionRate &lt; 1</tt>
-     */
-    public void setConsumptionRate(int consumptionRate) {
-        if (consumptionRate < 1)
-            throw new IllegalArgumentException("Consumption rate must be greater than 0");
-        setValue(Value.CONSUMPTION_RATE, consumptionRate);
-    }
-
-    public int getBaseCost() {
-        return getValue(Value.BASE_COST);
-    }
-
-    public void setBaseCost(int cost) {
-        if (cost < 0)
-            throw new IllegalArgumentException("Base cost must be greater than or equal to 0");
-        setValue(Value.BASE_COST, cost);
-    }
-
     public int getDefaultActivityCost() {
         return getValue(Value.ACTIVITY_COST);
     }

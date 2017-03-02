@@ -21,8 +21,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import neurevolve.world.Configuration;
 import neurevolve.world.Configuration.Value;
-import static neurevolve.world.Configuration.Value.HALF_LIFE;
-import static neurevolve.world.Configuration.Value.MAX_ENERGY;
+import static neurevolve.world.Configuration.Value.*;
 import neurevolve.world.GroundElement;
 import neurevolve.world.WorldActivity;
 
@@ -103,20 +102,15 @@ public class ConfigPanel extends JTabbedPane {
                 config.getSeedInitialEnergy(), v -> config.setSeed(config.getSeedCount(), v));
 
         JPanel splitPanel = addGroupPanel(organismPanel, "Split Limits");
-        addValueSlider(splitPanel, "Minimum Split Time", 0, 20,
-                config.getMinimumSplitTime(), config::setMinimumSplitTime);
-        addValueSlider(splitPanel, "Minimum Split Energy", 0, 100,
-                config.getMinimumSplitEnergy(), config::setMinimumSplitEnergy);
+        new ConfigValueSlider("Minimum Split Time", MIN_SPLIT_TIME).addTo(splitPanel);
+        new ConfigValueSlider("Minimum Split Energy", MIN_SPLIT_ENERGY).addTo(splitPanel);
 
         JPanel energyPanel = addGroupPanel(organismPanel, "Energy");
-        addValueSlider(energyPanel, "Consumption Rate", 1, 100,
-                config.getConsumptionRate(), config::setConsumptionRate);
-
+        new ConfigValueSlider("Consumption Rate", CONSUMPTION_RATE).addTo(energyPanel);
         new ConfigValueSlider("Maximum Energy", MAX_ENERGY).addTo(energyPanel);
 
         JPanel costPanel = addGroupPanel(organismPanel, "Costs");
-        addValueSlider(costPanel, "Base Cost", 0, 20,
-                config.getBaseCost(), config::setBaseCost);
+        new ConfigValueSlider("Base Cost", BASE_COST).addTo(costPanel);
         new ConfigValueSlider("Aging Cost", Value.AGING_RATE).addTo(costPanel);
         new ConfigValueSlider("Size Cost", Value.SIZE_RATE).addTo(costPanel);
     }

@@ -39,7 +39,7 @@ public class WorldActivityTest {
 
     @Test
     public void testEat() {
-        config.setConsumptionRate(20);
+        config.setValue(Value.CONSUMPTION_RATE, 20);
         world.setResource(position, 100);
         WorldActivity.EAT_HERE.perform(world, organism);
         assertThat(organism.getEnergy(), is(120));
@@ -48,7 +48,7 @@ public class WorldActivityTest {
 
     @Test
     public void testEatToMaxEnergy() {
-        config.setConsumptionRate(20);
+        config.setValue(Value.CONSUMPTION_RATE, 20);
         config.setValue(Value.MAX_ENERGY, 110);
         world.setResource(position, 100);
         WorldActivity.EAT_HERE.perform(world, organism);

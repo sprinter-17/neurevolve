@@ -238,13 +238,13 @@ public class Loader {
                 setConfig(SIZE_RATE, element, "size");
                 break;
             case "minimum_split_time":
-                config.setMinimumSplitTime(getInt(element, "period"));
+                setConfig(MIN_SPLIT_TIME, element, "period");
                 break;
             case "minimum_split_energy":
-                config.setMinimumSplitEnergy(getInt(element, "energy"));
+                setConfig(MIN_SPLIT_ENERGY, element, "energy");
                 break;
             case "consumption_rate":
-                config.setConsumptionRate(getInt(element, "rate"));
+                setConfig(CONSUMPTION_RATE, element, "rate");
                 break;
             case "maximum_energy":
                 setConfig(MAX_ENERGY, element, "energy");

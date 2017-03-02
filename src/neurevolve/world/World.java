@@ -405,7 +405,7 @@ public class World implements Environment {
     public boolean feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
         if (isEmpty(position)) {
-            int consumption = config.getConsumptionRate();
+            int consumption = config.getValue(Value.CONSUMPTION_RATE);
             int amount = Math.min(getResource(position), consumption);
             int maxEnergy = config.getValue(Value.MAX_ENERGY);
             amount = Math.min(amount, maxEnergy - organism.getEnergy());
@@ -459,11 +459,11 @@ public class World implements Environment {
      * @return true if the organism split
      */
     public boolean splitOrganism(Organism organism) {
-        return splitToAnyOpenPosition(config.getMinimumSplitTime(), organism);
+        return splitToAnyOpenPosition(config.getValue(Value.MIN_SPLIT_TIME), organism);
     }
 
     private boolean splitToAnyOpenPosition(int minTime, Organism parent) {
-        if (parent.canDivide(minTime) && parent.getEnergy() >= config.getMinimumSplitEnergy()) {
+        if (parent.canDivide(minTime) && parent.getEnergy() >= config.getValue(Value.MIN_SPLIT_ENERGY)) {
             OptionalInt position = openPositionNextTo(getPosition(parent));
             if (position.isPresent()) {
                 splitTo(parent, position.getAsInt());
@@ -515,7 +515,7 @@ public class World implements Environment {
         reduceEnergyByTemperature(position, organism);
         if (isAcidic(position))
             organism.reduceEnergy(config.getAcidToxicity());
-        organism.reduceEnergy(config.getBaseCost());
+        organism.reduceEnergy(config.getValue(Value.BASE_COST));
         organism.reduceEnergy(organism.size() * config.getValue(Value.SIZE_RATE) / 10);
         organism.reduceEnergy(organism.getAge() * config.getValue(Value.AGING_RATE) / 100);
         population.resetActivityCount(organism);

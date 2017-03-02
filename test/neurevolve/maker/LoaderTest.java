@@ -160,13 +160,13 @@ public class LoaderTest {
     @Test
     public void testMinimumSplitTime() throws SAXException {
         loadConfig("<minimum_split_time period='7'/>");
-        verify(config).setMinimumSplitTime(7);
+        verify(config).setValue(Value.MIN_SPLIT_TIME, 7);
     }
 
     @Test
     public void testConsumptionRate() throws SAXException {
         loadConfig("<consumption_rate rate='80'/>");
-        verify(config).setConsumptionRate(80);
+        verify(config).setValue(Value.CONSUMPTION_RATE, 80);
     }
 
     @Test

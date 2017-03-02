@@ -8,6 +8,7 @@ import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
+import neurevolve.world.Configuration.Value;
 import static neurevolve.world.Configuration.Value.MAX_ENERGY;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.RADIATION;
@@ -151,7 +152,7 @@ public class WorldTest {
         Organism organism = new Organism(world, 50);
         world.addOrganism(organism, position, EAST);
         world.setResource(position, 50);
-        config.setConsumptionRate(18);
+        config.setValue(Value.CONSUMPTION_RATE, 18);
         config.setValue(MAX_ENERGY, 70);
         world.feedOrganism(organism);
         assertThat(world.getResource(position), is(32));
