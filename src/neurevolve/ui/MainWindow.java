@@ -87,18 +87,8 @@ public class MainWindow {
             }
         }));
 
-        tools.add(pauseButton);
-        pauseButton.setAction(new AbstractAction("Pause") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (paused)
-                    scheduleTick();
-                paused = !paused;
-            }
-        });
-
         JButton analysisButton = new JButton();
-        analysisButton.setAction(new AbstractAction("Analysis") {
+        analysisButton.setAction(new AbstractAction("Species") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 analysisWindow.setVisible(true);
@@ -113,6 +103,17 @@ public class MainWindow {
         tools.add(new JLabel(String.valueOf(delaySlider.getMinimum())));
         tools.add(delaySlider);
         tools.add(new JLabel(String.valueOf(delaySlider.getMaximum())));
+
+        tools.add(pauseButton);
+        pauseButton.setAction(new AbstractAction("Pause") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (paused)
+                    scheduleTick();
+                paused = !paused;
+            }
+        });
+
         tools.add(new JButton(new AbstractAction("Exit") {
             @Override
             public void actionPerformed(ActionEvent e) {

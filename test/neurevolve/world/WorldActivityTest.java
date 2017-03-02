@@ -4,6 +4,7 @@ import java.util.Optional;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Space.EAST;
+import neurevolve.world.WorldConfiguration.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -43,6 +44,16 @@ public class WorldActivityTest {
         WorldActivity.EAT_HERE.perform(world, organism);
         assertThat(organism.getEnergy(), is(120));
         assertThat(world.getResource(position), is(80));
+    }
+
+    @Test
+    public void testEatToMaxEnergy() {
+        config.setConsumptionRate(20);
+        Key.MAX_ENERGY.setValue(config, 110);
+        world.setResource(position, 100);
+        WorldActivity.EAT_HERE.perform(world, organism);
+        assertThat(organism.getEnergy(), is(110));
+        assertThat(world.getResource(position), is(90));
     }
 
     @Test

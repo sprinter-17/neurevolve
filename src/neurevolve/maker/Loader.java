@@ -15,6 +15,7 @@ import neurevolve.world.GroundElement;
 import neurevolve.world.Time.Season;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
+import static neurevolve.world.WorldConfiguration.Key.MAX_ENERGY;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -73,6 +74,8 @@ import org.xml.sax.SAXException;
  * an organism must have to be able to split</td></tr>
  * <tr><td>{@code <consumption_rate rate='r'/>}</td><td>Set the maximum amount of resource an
  * organism can convert to energy in a single eat activity.</td></tr>
+ * <tr><td>{@code <maximum_energy energy='e'/>}</td><td>Set the maximum amount of energy an organism
+ * can have.</td></tr>
  * <tr><td>{@code <half_life element='e' period='p/>}</td><td>Set the period over which element
  * {@code e} will, on average, reduce by 1. All elements are supported: acid, wall, radiation,
  * elevation or resource.</td></tr>
@@ -243,6 +246,9 @@ public class Loader {
             case "consumption_rate":
                 config.setConsumptionRate(getInt(element, "rate"));
                 break;
+            case "maximum_energy":
+                setConfig(MAX_ENERGY, element, "energy");
+                break;
             case "half_life":
                 String groundName = element.getAttribute("element");
                 GroundElement ground = Arrays.stream(GroundElement.values())
@@ -257,6 +263,15 @@ public class Loader {
         CONSUMPTION_RATE("Consumption Rate", 50),
              */
         }
+    }
+
+    private void setConfig(WorldConfiguration.Key key, Element element, String valueAttribute) throws SAXException {
+        int value = getInt(element, valueAttribute);
+        if (value > key.getMax() || value < key.getMin())
+            throw new SAXException("value " + valueAttribute
+                    + " for element " + element.getNodeName()
+                    + " is not in range " + key.getMin() + " - " + key.getMax());
+        key.setValue(config, value);
     }
 
     /**

@@ -25,6 +25,7 @@ import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.SOUTH;
 import static neurevolve.world.Space.WEST;
+import neurevolve.world.WorldConfiguration.Key;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -376,7 +377,7 @@ public class World implements Environment {
 
     private void halfLife(GroundElement element) {
         int halfLife = config.getHalfLife(element);
-        if (halfLife > 0) {
+        if (halfLife > 0 && halfLife < 1000) {
             for (int i = 0; i < space.size(); i++) {
                 int value = getElementValue(i, element);
                 if (value > 0 && (halfLife == 1 || random.nextInt(halfLife) == 0))
@@ -404,7 +405,10 @@ public class World implements Environment {
     public boolean feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
         if (isEmpty(position)) {
-            int amount = Math.min(getResource(position), config.getConsumptionRate());
+            int consumption = config.getConsumptionRate();
+            int amount = Math.min(getResource(position), consumption);
+            int maxEnergy = Key.MAX_ENERGY.getValue(config);
+            amount = Math.min(amount, maxEnergy - organism.getEnergy());
             organism.increaseEnergy(amount);
             addResources(position, -amount);
             return true;

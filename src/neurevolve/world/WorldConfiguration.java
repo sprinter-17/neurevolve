@@ -16,30 +16,47 @@ import neurevolve.organism.Recipe;
  */
 public class WorldConfiguration {
 
-    private enum Key {
-        NORMAL_MUTATION_RATE(10),
-        RADIATION_MUTATION_RATE(100),
-        ACID_TOXICITY(50),
-        MIN_TEMP(100),
-        MAX_TEMP(120),
-        YEAR_LENGTH(500),
-        TEMP_VARIATION(10),
-        SEED_COUNT(200),
-        INITIAL_ENERGY(1000),
-        MIN_SPLIT_TIME(10),
-        MIN_SPLIT_ENERGY(50),
-        BASE_COST(1),
-        AGING_RATE(10),
-        CONSUMPTION_RATE(50),
-        SIZE_RATE(5),
-        ACTIVITY_COST(1),
-        ACTIVITY_FACTOR(50),
-        HALF_LIFE(0);
+    public enum Key {
+        NORMAL_MUTATION_RATE(0, 10, 200),
+        RADIATION_MUTATION_RATE(0, 100, 500),
+        ACID_TOXICITY(0, 50, 500),
+        MIN_TEMP(-200, 100, 200),
+        MAX_TEMP(-200, 120, 200),
+        YEAR_LENGTH(1, 500, 2000),
+        TEMP_VARIATION(0, 10, 100),
+        SEED_COUNT(0, 200, 1000),
+        INITIAL_ENERGY(0, 200, 1000),
+        MAX_ENERGY(50, 5000, 5000),
+        MIN_SPLIT_TIME(0, 10, 100),
+        MIN_SPLIT_ENERGY(0, 50, 500),
+        BASE_COST(0, 1, 10),
+        AGING_RATE(0, 10, 20),
+        CONSUMPTION_RATE(0, 50, 100),
+        SIZE_RATE(0, 5, 10),
+        ACTIVITY_COST(0, 1, 40),
+        ACTIVITY_FACTOR(0, 50, 200),
+        HALF_LIFE(0, 1000, 1000);
 
         private final int defaultValue;
+        private final int minValue;
+        private final int maxValue;
 
-        private Key(int defaultValue) {
+        private Key(int minValue, int defaultValue, int maxValue) {
             this.defaultValue = defaultValue;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+        }
+
+        public int getMin() {
+            return minValue;
+        }
+
+        public int getDefault() {
+            return defaultValue;
+        }
+
+        public int getMax() {
+            return maxValue;
         }
 
         public int getValue(WorldConfiguration config) {
@@ -47,6 +64,10 @@ public class WorldConfiguration {
         }
 
         public void setValue(WorldConfiguration config, int value) {
+            if (value < minValue)
+                throw new IllegalArgumentException("Value is smaller than minimum for " + name());
+            if (value > maxValue)
+                throw new IllegalArgumentException("Value is larger than maximum for " + name());
             config.values.put(this, value);
         }
     }

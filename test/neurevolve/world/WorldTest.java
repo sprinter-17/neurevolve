@@ -13,6 +13,7 @@ import static neurevolve.world.GroundElement.RADIATION;
 import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.WEST;
+import static neurevolve.world.WorldConfiguration.Key.MAX_ENERGY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -151,9 +152,13 @@ public class WorldTest {
         world.addOrganism(organism, position, EAST);
         world.setResource(position, 50);
         config.setConsumptionRate(18);
+        MAX_ENERGY.setValue(config, 70);
         world.feedOrganism(organism);
         assertThat(world.getResource(position), is(32));
         assertThat(organism.getEnergy(), is(68));
+        world.feedOrganism(organism);
+        assertThat(world.getResource(position), is(30));
+        assertThat(organism.getEnergy(), is(70));
     }
 
     @Test
@@ -179,11 +184,11 @@ public class WorldTest {
 
     @Test
     public void testResourcesGrowBasedOnTemperature() {
-        config.setTemperatureRange(0, 500);
+        config.setTemperatureRange(0, 200);
         world.tick();
         assertThat(world.getResource(space.position(0, 0)), is(0));
-        assertThat(world.getResource(space.position(7, 3)), is(3));
-        assertThat(world.getResource(space.position(4, 5)), is(5));
+        assertThat(world.getResource(space.position(7, 3)), is(1));
+        assertThat(world.getResource(space.position(4, 5)), is(2));
     }
 
     @Test

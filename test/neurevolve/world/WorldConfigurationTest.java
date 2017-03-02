@@ -2,6 +2,7 @@ package neurevolve.world;
 
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.WALL;
+import static neurevolve.world.WorldConfiguration.Key.HALF_LIFE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -32,7 +33,7 @@ public class WorldConfigurationTest {
     public void testHalfLife() {
         config.setHalfLife(ACID, 8);
         assertThat(config.getHalfLife(ACID), is(8));
-        assertThat(config.getHalfLife(WALL), is(0));
+        assertThat(config.getHalfLife(WALL), is(HALF_LIFE.getDefault()));
     }
 
 }

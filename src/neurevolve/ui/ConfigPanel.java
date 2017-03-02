@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.util.Optional;
 import java.util.function.Consumer;
 import static javax.swing.BorderFactory.createEtchedBorder;
 import static javax.swing.BorderFactory.createTitledBorder;
@@ -16,9 +17,14 @@ import javax.swing.JTabbedPane;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import neurevolve.world.GroundElement;
 import neurevolve.world.WorldActivity;
 import neurevolve.world.WorldConfiguration;
+import neurevolve.world.WorldConfiguration.Key;
+import static neurevolve.world.WorldConfiguration.Key.HALF_LIFE;
+import static neurevolve.world.WorldConfiguration.Key.MAX_ENERGY;
 
 public class ConfigPanel extends JTabbedPane {
 
@@ -74,8 +80,13 @@ public class ConfigPanel extends JTabbedPane {
                 config.getAcidToxicity(), config::setAcidToxicity);
         JPanel halfLife = addGroupPanel(groundPanel, "Half Lives");
         for (GroundElement element : GroundElement.values()) {
-            addValueSlider(halfLife, element.getName(), 0, 1000,
-                    config.getHalfLife(element), v -> config.setHalfLife(element, v));
+            Consumer<Integer> setter = v -> config.setHalfLife(element, v);
+            ConfigValueSlider valueSlider = new ConfigValueSlider(element.getName(),
+                    HALF_LIFE.getMin(),
+                    config.getHalfLife(element),
+                    HALF_LIFE.getMax(),
+                    setter);
+            valueSlider.withMaxValue("None").addTo(halfLife);
         }
         layout.gridy = 0;
     }
@@ -90,18 +101,25 @@ public class ConfigPanel extends JTabbedPane {
                 config.getSeedCount(), v -> config.setSeed(v, config.getSeedInitialEnergy()));
         addValueSlider(seedPanel, "Initial Energy", 100, 1000,
                 config.getSeedInitialEnergy(), v -> config.setSeed(config.getSeedCount(), v));
-        JPanel ratePanel = addGroupPanel(organismPanel, "Rates");
-        addValueSlider(ratePanel, "Minimum Split Time", 0, 20,
+
+        JPanel splitPanel = addGroupPanel(organismPanel, "Split Limits");
+        addValueSlider(splitPanel, "Minimum Split Time", 0, 20,
                 config.getMinimumSplitTime(), config::setMinimumSplitTime);
-        addValueSlider(ratePanel, "Minimum Split Energy", 0, 100,
+        addValueSlider(splitPanel, "Minimum Split Energy", 0, 100,
                 config.getMinimumSplitEnergy(), config::setMinimumSplitEnergy);
-        addValueSlider(ratePanel, "Consumption Rate", 1, 100,
+
+        JPanel energyPanel = addGroupPanel(organismPanel, "Energy");
+        addValueSlider(energyPanel, "Consumption Rate", 1, 100,
                 config.getConsumptionRate(), config::setConsumptionRate);
-        addValueSlider(ratePanel, "Base Cost", 0, 20,
+
+        new ConfigValueSlider("Maximum Energy", MAX_ENERGY).addTo(energyPanel);
+
+        JPanel costPanel = addGroupPanel(organismPanel, "Costs");
+        addValueSlider(costPanel, "Base Cost", 0, 20,
                 config.getBaseCost(), config::setBaseCost);
-        addValueSlider(ratePanel, "Aging Cost", 0, 20,
+        addValueSlider(costPanel, "Aging Cost", 0, 20,
                 config.getAgeCost(), config::setAgeCost);
-        addValueSlider(ratePanel, "Size Cost", 0, 20,
+        addValueSlider(costPanel, "Size Cost", 0, 20,
                 config.getSizeCost(), config::setSizeCost);
     }
 
@@ -132,7 +150,69 @@ public class ConfigPanel extends JTabbedPane {
         return panel;
     }
 
-    private JSlider addValueSlider(JPanel panel, String label, int min, int max, int initial, Consumer<Integer> setter) {
+    private class ConfigValueSlider implements ChangeListener {
+
+        private final JLabel label;
+        private final JLabel value;
+        private final JSlider slider;
+        private final int min;
+        private final int max;
+        private final Consumer<Integer> setter;
+        private Optional<String> maxValue = Optional.empty();
+
+        public ConfigValueSlider(String name, int min, int initial, int max, Consumer<Integer> setter) {
+            this.min = min;
+            this.max = max;
+            this.setter = setter;
+            label = new JLabel(name);
+            value = new JLabel(toString(initial));
+            slider = new JSlider(min, max, initial);
+            slider.addChangeListener(this);
+        }
+
+        public ConfigValueSlider(String name, Key key) {
+            this(name, key.getMin(), key.getValue(config), key.getMax(), v -> key.setValue(config, v));
+        }
+
+        public ConfigValueSlider withMaxValue(String text) {
+            maxValue = Optional.of(text);
+            value.setText(toString(slider.getValue()));
+            return this;
+        }
+
+        public void addTo(JPanel panel) {
+            layout.anchor = GridBagConstraints.WEST;
+            layout.gridwidth = 1;
+            layout.gridx = 0;
+            panel.add(label, layout);
+            layout.anchor = GridBagConstraints.EAST;
+            layout.gridx = 1;
+            panel.add(value, layout);
+            layout.gridx = 0;
+            layout.gridwidth = 2;
+            layout.anchor = GridBagConstraints.WEST;
+            layout.gridy++;
+            panel.add(slider, layout);
+            layout.gridy++;
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            setter.accept(slider.getValue());
+            value.setText(toString(slider.getValue()));
+        }
+
+        private String toString(int val) {
+            if (val == max && maxValue.isPresent())
+                return maxValue.get();
+            else
+                return String.valueOf(val);
+        }
+
+    }
+
+    private JSlider addValueSlider(JPanel panel, String label,
+            int min, int max, int initial, Consumer<Integer> setter) {
         layout.anchor = GridBagConstraints.WEST;
         layout.gridwidth = 1;
         layout.gridx = 0;
