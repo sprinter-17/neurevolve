@@ -20,7 +20,7 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 
 /**
  * The main frame for displaying evolving organisms within the world.
@@ -52,7 +52,7 @@ public class MainWindow {
      * @param config the configuration for this world
      * @param newWorldDialog the dialog to use to create new worlds
      */
-    public MainWindow(String title, final World world, final Space space, final WorldConfiguration config,
+    public MainWindow(String title, final World world, final Space space, final Configuration config,
             NewWorldDialog newWorldDialog) {
         this.world = world;
         this.newWorldDialog = newWorldDialog;
@@ -125,14 +125,14 @@ public class MainWindow {
         frame.getContentPane().add(tools, BorderLayout.NORTH);
     }
 
-    private void addMapPanel(final World world, final Space space, final WorldConfiguration config) {
+    private void addMapPanel(final World world, final Space space, final Configuration config) {
         MapPanel mapPanel = new MapPanel(world, space, config);
         mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight() + 10));
         analysisWindow.addSelectionListener(mapPanel::selectSpecies);
         frame.getContentPane().add(mapPanel, BorderLayout.CENTER);
     }
 
-    private void addConfigPanel(Space space, final WorldConfiguration config) {
+    private void addConfigPanel(Space space, final Configuration config) {
         ConfigPanel configPanel = new ConfigPanel(config);
         configPanel.setPreferredSize(new Dimension(350, space.getHeight()));
         frame.getContentPane().add(configPanel, BorderLayout.EAST);

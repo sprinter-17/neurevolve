@@ -7,12 +7,12 @@ import org.junit.Test;
 
 public class TimeTest {
 
-    private WorldConfiguration config;
+    private Configuration config;
     private Time time;
 
     @Before
     public void setup() {
-        config = new WorldConfiguration();
+        config = new Configuration();
         time = new Time(config);
     }
 

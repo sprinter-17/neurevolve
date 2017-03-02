@@ -15,6 +15,7 @@ import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
+import neurevolve.world.Configuration.Value;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.BODY;
 import static neurevolve.world.GroundElement.ELEVATION;
@@ -25,7 +26,6 @@ import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.SOUTH;
 import static neurevolve.world.Space.WEST;
-import neurevolve.world.WorldConfiguration.Key;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -41,7 +41,7 @@ import neurevolve.world.WorldConfiguration.Key;
 public class World implements Environment {
 
     private final Space space;
-    private final WorldConfiguration config;
+    private final Configuration config;
     private final int[] positionData;
     private final Random random = new Random();
     private final WorldInput inputs;
@@ -63,7 +63,7 @@ public class World implements Environment {
      * @param frame the frame that defines the size of the world
      * @param configuration the configuration of the world
      */
-    public World(ActivationFunction function, Space frame, WorldConfiguration configuration) {
+    public World(ActivationFunction function, Space frame, Configuration configuration) {
         this.function = function;
         this.config = configuration;
         this.space = frame;
@@ -407,7 +407,7 @@ public class World implements Environment {
         if (isEmpty(position)) {
             int consumption = config.getConsumptionRate();
             int amount = Math.min(getResource(position), consumption);
-            int maxEnergy = Key.MAX_ENERGY.getValue(config);
+            int maxEnergy = config.getValue(Value.MAX_ENERGY);
             amount = Math.min(amount, maxEnergy - organism.getEnergy());
             organism.increaseEnergy(amount);
             addResources(position, -amount);
@@ -516,8 +516,8 @@ public class World implements Environment {
         if (isAcidic(position))
             organism.reduceEnergy(config.getAcidToxicity());
         organism.reduceEnergy(config.getBaseCost());
-        organism.reduceEnergy(organism.size() * config.getSizeCost() / 10);
-        organism.reduceEnergy(organism.getAge() * config.getAgeCost() / 100);
+        organism.reduceEnergy(organism.size() * config.getValue(Value.SIZE_RATE) / 10);
+        organism.reduceEnergy(organism.getAge() * config.getValue(Value.AGING_RATE) / 100);
         population.resetActivityCount(organism);
         organism.activate();
         stats.add(organism);

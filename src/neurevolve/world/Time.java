@@ -24,10 +24,10 @@ public class Time {
 
     }
 
-    private final WorldConfiguration config;
+    private final Configuration config;
     private int tickCount = 0;
 
-    public Time(WorldConfiguration config) {
+    public Time(Configuration config) {
         this.config = config;
     }
 

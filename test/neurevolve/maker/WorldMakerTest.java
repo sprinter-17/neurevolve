@@ -7,7 +7,7 @@ import neurevolve.maker.WorldMaker.Type;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -18,7 +18,7 @@ import org.junit.Test;
 public class WorldMakerTest {
 
     private final Space space = new Space(100, 100);
-    private final WorldConfiguration config = new TestConfiguration();
+    private final Configuration config = new TestConfiguration();
     private WorldMaker maker;
 
     @Before

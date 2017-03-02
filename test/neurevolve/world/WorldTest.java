@@ -8,12 +8,12 @@ import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
+import static neurevolve.world.Configuration.Value.MAX_ENERGY;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.RADIATION;
 import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static neurevolve.world.Space.WEST;
-import static neurevolve.world.WorldConfiguration.Key.MAX_ENERGY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -23,7 +23,7 @@ import org.junit.Test;
 
 public class WorldTest {
 
-    private WorldConfiguration config;
+    private Configuration config;
     private Space space;
     private World world;
 
@@ -152,7 +152,7 @@ public class WorldTest {
         world.addOrganism(organism, position, EAST);
         world.setResource(position, 50);
         config.setConsumptionRate(18);
-        MAX_ENERGY.setValue(config, 70);
+        config.setValue(MAX_ENERGY, 70);
         world.feedOrganism(organism);
         assertThat(world.getResource(position), is(32));
         assertThat(organism.getEnergy(), is(68));

@@ -33,7 +33,7 @@ import neurevolve.organism.Recipe;
 import neurevolve.world.RecipeSaver;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -108,7 +108,7 @@ public class NewWorldDialog extends JDialog {
                     String fileName = worldCombo.getItemAt(worldCombo.getSelectedIndex());
                     InputSource source = new InputSource(new FileInputStream(fileName));
                     Space space = new Space(width.get(), height.get());
-                    WorldConfiguration config = new WorldConfiguration();
+                    Configuration config = new Configuration();
                     WorldMaker maker = new WorldMaker(space, config);
                     loader.load(maker, config, fileName, source);
                     description.setText(loader.getDescription().orElse(" "));
@@ -129,7 +129,7 @@ public class NewWorldDialog extends JDialog {
                     String fileName = worldCombo.getItemAt(worldCombo.getSelectedIndex());
                     InputSource source = new InputSource(new FileInputStream(fileName));
                     Space space = new Space(width.get(), height.get());
-                    WorldConfiguration config = new WorldConfiguration();
+                    Configuration config = new Configuration();
                     WorldMaker maker = new WorldMaker(space, config);
                     loader.load(maker, config, fileName, source);
                     World world = maker.make();

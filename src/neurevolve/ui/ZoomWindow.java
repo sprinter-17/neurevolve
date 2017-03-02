@@ -32,7 +32,7 @@ import neurevolve.world.GroundElement;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 
 public class ZoomWindow {
 
@@ -46,7 +46,7 @@ public class ZoomWindow {
 
     private final World world;
     private final Space space;
-    private final WorldConfiguration config;
+    private final Configuration config;
     private final int centreX;
     private final int centreY;
     private final JFrame frame;
@@ -285,7 +285,7 @@ public class ZoomWindow {
         }
     }
 
-    public ZoomWindow(World world, Space space, WorldConfiguration config, int centreX, int centreY) {
+    public ZoomWindow(World world, Space space, Configuration config, int centreX, int centreY) {
         this.world = world;
         this.space = space;
         this.config = config;

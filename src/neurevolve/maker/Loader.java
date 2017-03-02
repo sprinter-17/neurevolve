@@ -11,11 +11,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.Configuration;
+import static neurevolve.world.Configuration.Value.*;
 import neurevolve.world.GroundElement;
 import neurevolve.world.Time.Season;
 import neurevolve.world.WorldActivity;
-import neurevolve.world.WorldConfiguration;
-import static neurevolve.world.WorldConfiguration.Key.MAX_ENERGY;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -24,7 +24,7 @@ import org.xml.sax.SAXException;
 
 /**
  * This class reads XML files and updates {@link WorldMaker} and
- * {@link neurevolve.world.WorldConfiguration} objects based on the information in the file. The
+ * {@link neurevolve.world.Configuration} objects based on the information in the file. The
  * information designates elements to add to the world both when it is created and as it progresses.
  *
  * The structure of the file is as follows:
@@ -133,7 +133,7 @@ public class Loader {
 
     private static final DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
     private WorldMaker maker;
-    private WorldConfiguration config;
+    private Configuration config;
     private String name;
     private Optional<String> description = Optional.empty();
 
@@ -160,7 +160,7 @@ public class Loader {
      * @param input the XML input source
      * @throws SAXException if there are errors parsing the input source
      */
-    public void load(WorldMaker maker, WorldConfiguration config,
+    public void load(WorldMaker maker, Configuration config,
             String name, InputSource input) throws SAXException {
         try {
             DocumentBuilder builder = FACTORY.newDocumentBuilder();
@@ -233,9 +233,9 @@ public class Loader {
                 }
                 break;
             case "activation_cost":
-                config.setBaseCost(getInt(element, "base"));
-                config.setAgeCost(getInt(element, "age"));
-                config.setSizeCost(getInt(element, "size"));
+                setConfig(BASE_COST, element, "base");
+                setConfig(AGING_RATE, element, "age");
+                setConfig(SIZE_RATE, element, "size");
                 break;
             case "minimum_split_time":
                 config.setMinimumSplitTime(getInt(element, "period"));
@@ -265,13 +265,13 @@ public class Loader {
         }
     }
 
-    private void setConfig(WorldConfiguration.Key key, Element element, String valueAttribute) throws SAXException {
+    private void setConfig(Configuration.Value key, Element element, String valueAttribute) throws SAXException {
         int value = getInt(element, valueAttribute);
         if (value > key.getMax() || value < key.getMin())
             throw new SAXException("value " + valueAttribute
                     + " for element " + element.getNodeName()
                     + " is not in range " + key.getMin() + " - " + key.getMax());
-        key.setValue(config, value);
+        config.setValue(key, value);
     }
 
     /**

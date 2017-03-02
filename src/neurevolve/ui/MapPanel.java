@@ -19,7 +19,7 @@ import static neurevolve.world.GroundElement.WALL;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 
 /**
  * A <code>MapPanel</code> displays a with one pixel per position in the world's space. The colour
@@ -37,7 +37,7 @@ public class MapPanel extends JPanel {
     private static final int RED_SHIFT = 16;
 
     private final World world;
-    private final WorldConfiguration config;
+    private final Configuration config;
     private final BufferedImage image;
     private final int[] pixels;
 
@@ -50,7 +50,7 @@ public class MapPanel extends JPanel {
      * @param space the space the world occupies
      * @param config the configuration for the world
      */
-    public MapPanel(World world, Space space, WorldConfiguration config) {
+    public MapPanel(World world, Space space, Configuration config) {
         this.world = world;
         this.config = config;
         image = new BufferedImage(space.getWidth(), space.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -114,7 +114,7 @@ public class MapPanel extends JPanel {
      * @param ground the packed data containing the ground elements
      * @return a colour, in RGB format, representing the status of the position
      */
-    public static int convertToColour(WorldConfiguration config, int ground) {
+    public static int convertToColour(Configuration config, int ground) {
         if (WALL.get(ground) > 0)
             return wallColour();
         else
@@ -131,7 +131,7 @@ public class MapPanel extends JPanel {
      * @param elevation the height of the position
      * @return a colour, in RGB format, representing the height of the position
      */
-    private static int elevationColour(WorldConfiguration config, int elevation) {
+    private static int elevationColour(Configuration config, int elevation) {
         return elevation << BLUE_SHIFT;
     }
 
@@ -142,15 +142,15 @@ public class MapPanel extends JPanel {
      * @param resource the number of resources
      * @return a colour, in RGB format, representing the number of resources
      */
-    private static int resourceColour(WorldConfiguration config, int resource) {
+    private static int resourceColour(Configuration config, int resource) {
         return resource << GREEN_SHIFT;
     }
 
-    private static int acidColour(WorldConfiguration config, boolean acid) {
+    private static int acidColour(Configuration config, boolean acid) {
         return acid ? 172 << GREEN_SHIFT | 172 << RED_SHIFT : 0;
     }
 
-    private static int radiationColour(WorldConfiguration config, int radiation) {
+    private static int radiationColour(Configuration config, int radiation) {
         return radiation * 64 << RED_SHIFT;
     }
 
@@ -161,11 +161,11 @@ public class MapPanel extends JPanel {
      * @param organism an organism, or null if none
      * @return a colour, in RGB format, representing the organism, if any
      */
-    public static int populationColour(WorldConfiguration config, Organism organism) {
+    public static int populationColour(Configuration config, Organism organism) {
         return organism == null ? 0 : organism.getColour();
     }
 
-    public static int bodyColour(WorldConfiguration config) {
+    public static int bodyColour(Configuration config) {
         return Color.LIGHT_GRAY.getRGB();
     }
 }

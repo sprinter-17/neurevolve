@@ -19,19 +19,19 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import neurevolve.world.Configuration;
+import neurevolve.world.Configuration.Value;
+import static neurevolve.world.Configuration.Value.HALF_LIFE;
+import static neurevolve.world.Configuration.Value.MAX_ENERGY;
 import neurevolve.world.GroundElement;
 import neurevolve.world.WorldActivity;
-import neurevolve.world.WorldConfiguration;
-import neurevolve.world.WorldConfiguration.Key;
-import static neurevolve.world.WorldConfiguration.Key.HALF_LIFE;
-import static neurevolve.world.WorldConfiguration.Key.MAX_ENERGY;
 
 public class ConfigPanel extends JTabbedPane {
 
-    private final WorldConfiguration config;
+    private final Configuration config;
     private final GridBagConstraints layout = new GridBagConstraints();
 
-    public ConfigPanel(WorldConfiguration config) {
+    public ConfigPanel(Configuration config) {
         super();
         this.config = config;
         layout.insets = new Insets(0, 8, 0, 8);
@@ -117,10 +117,8 @@ public class ConfigPanel extends JTabbedPane {
         JPanel costPanel = addGroupPanel(organismPanel, "Costs");
         addValueSlider(costPanel, "Base Cost", 0, 20,
                 config.getBaseCost(), config::setBaseCost);
-        addValueSlider(costPanel, "Aging Cost", 0, 20,
-                config.getAgeCost(), config::setAgeCost);
-        addValueSlider(costPanel, "Size Cost", 0, 20,
-                config.getSizeCost(), config::setSizeCost);
+        new ConfigValueSlider("Aging Cost", Value.AGING_RATE).addTo(costPanel);
+        new ConfigValueSlider("Size Cost", Value.SIZE_RATE).addTo(costPanel);
     }
 
     private void addActivityPanel() {
@@ -170,8 +168,8 @@ public class ConfigPanel extends JTabbedPane {
             slider.addChangeListener(this);
         }
 
-        public ConfigValueSlider(String name, Key key) {
-            this(name, key.getMin(), key.getValue(config), key.getMax(), v -> key.setValue(config, v));
+        public ConfigValueSlider(String name, Value key) {
+            this(name, key.getMin(), config.getValue(key), key.getMax(), v -> config.setValue(key, v));
         }
 
         public ConfigValueSlider withMaxValue(String text) {

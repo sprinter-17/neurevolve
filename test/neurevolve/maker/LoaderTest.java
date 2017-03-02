@@ -4,10 +4,11 @@ import java.io.StringReader;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Timing;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.Configuration;
+import neurevolve.world.Configuration.Value;
 import static neurevolve.world.GroundElement.ACID;
 import neurevolve.world.Time;
 import neurevolve.world.WorldActivity;
-import neurevolve.world.WorldConfiguration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -24,7 +25,7 @@ import org.xml.sax.SAXException;
 public class LoaderTest {
 
     private WorldMaker maker;
-    private WorldConfiguration config;
+    private Configuration config;
     private Loader loader;
     private Timing atStart;
     private Type acid;
@@ -49,7 +50,7 @@ public class LoaderTest {
         when(maker.horizontalEdges(anyInt())).thenReturn(horizontalEdges);
         when(maker.verticalDividers(anyInt(), anyInt(), anyInt())).thenReturn(verticalDivider);
 
-        config = mock(WorldConfiguration.class);
+        config = mock(Configuration.class);
         loader = new Loader();
     }
 
@@ -144,9 +145,9 @@ public class LoaderTest {
     @Test
     public void testActivationCost() throws SAXException {
         loadConfig("<activation_cost base='5' size='7' age='4'/>");
-        verify(config).setBaseCost(5);
-        verify(config).setSizeCost(7);
-        verify(config).setAgeCost(4);
+        verify(config).setValue(Value.BASE_COST, 5);
+        verify(config).setValue(Value.SIZE_RATE, 7);
+        verify(config).setValue(Value.AGING_RATE, 4);
     }
 
     @Test

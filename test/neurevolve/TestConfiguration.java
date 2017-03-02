@@ -1,8 +1,8 @@
 package neurevolve;
 
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 
-public class TestConfiguration extends WorldConfiguration {
+public class TestConfiguration extends Configuration {
 
     public TestConfiguration() {
         setYear(1, 0);

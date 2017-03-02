@@ -11,7 +11,7 @@ import neurevolve.world.GroundElement;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
-import neurevolve.world.WorldConfiguration;
+import neurevolve.world.Configuration;
 
 /**
  * This class is used to construct a new world
@@ -19,7 +19,7 @@ import neurevolve.world.WorldConfiguration;
 public class WorldMaker {
 
     private final Space space;
-    private final WorldConfiguration config;
+    private final Configuration config;
     private final List<Element> elements = new ArrayList<>();
     private final Random random = new Random();
     private final EnumSet<GroundElement> usedElements = EnumSet.noneOf(GroundElement.class);
@@ -45,7 +45,7 @@ public class WorldMaker {
         /**
          * Apply the element to a world and configuration
          */
-        public void apply(World world, WorldConfiguration config) {
+        public void apply(World world, Configuration config) {
             shape.forEachPosition((p, f) -> type.apply(world, p, f));
         }
     }
@@ -56,7 +56,7 @@ public class WorldMaker {
      * @param space the space the world will be made within
      * @param config the configuration to adjust
      */
-    public WorldMaker(Space space, WorldConfiguration config) {
+    public WorldMaker(Space space, Configuration config) {
         this.space = space;
         this.config = config;
     }

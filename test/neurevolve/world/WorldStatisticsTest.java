@@ -15,7 +15,7 @@ public class WorldStatisticsTest {
 
     @Before
     public void setup() {
-        WorldConfiguration config = new TestConfiguration();
+        Configuration config = new TestConfiguration();
         Time time = new Time(config);
         stats = new WorldStatistics(time);
     }

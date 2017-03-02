@@ -3,8 +3,8 @@ package neurevolve.world;
 import java.util.Optional;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Organism;
+import neurevolve.world.Configuration.Value;
 import static neurevolve.world.Space.EAST;
-import neurevolve.world.WorldConfiguration.Key;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class WorldActivityTest {
 
-    private WorldConfiguration config;
+    private Configuration config;
     private Space frame;
     private World world;
     private int position;
@@ -49,7 +49,7 @@ public class WorldActivityTest {
     @Test
     public void testEatToMaxEnergy() {
         config.setConsumptionRate(20);
-        Key.MAX_ENERGY.setValue(config, 110);
+        config.setValue(Value.MAX_ENERGY, 110);
         world.setResource(position, 100);
         WorldActivity.EAT_HERE.perform(world, organism);
         assertThat(organism.getEnergy(), is(110));

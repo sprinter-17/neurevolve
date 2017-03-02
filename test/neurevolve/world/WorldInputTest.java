@@ -15,7 +15,7 @@ import org.junit.Test;
 
 public class WorldInputTest {
 
-    private WorldConfiguration config;
+    private Configuration config;
     private Space frame;
     private World world;
     private int position;

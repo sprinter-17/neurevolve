@@ -14,9 +14,9 @@ import neurevolve.organism.Recipe;
  * <li>temperature range by latitude
  * </ul>
  */
-public class WorldConfiguration {
+public class Configuration {
 
-    public enum Key {
+    public enum Value {
         NORMAL_MUTATION_RATE(0, 10, 200),
         RADIATION_MUTATION_RATE(0, 100, 500),
         ACID_TOXICITY(0, 50, 500),
@@ -41,7 +41,7 @@ public class WorldConfiguration {
         private final int minValue;
         private final int maxValue;
 
-        private Key(int minValue, int defaultValue, int maxValue) {
+        private Value(int minValue, int defaultValue, int maxValue) {
             this.defaultValue = defaultValue;
             this.minValue = minValue;
             this.maxValue = maxValue;
@@ -58,21 +58,9 @@ public class WorldConfiguration {
         public int getMax() {
             return maxValue;
         }
-
-        public int getValue(WorldConfiguration config) {
-            return config.values.getOrDefault(this, defaultValue);
-        }
-
-        public void setValue(WorldConfiguration config, int value) {
-            if (value < minValue)
-                throw new IllegalArgumentException("Value is smaller than minimum for " + name());
-            if (value > maxValue)
-                throw new IllegalArgumentException("Value is larger than maximum for " + name());
-            config.values.put(this, value);
-        }
     }
 
-    private final EnumMap<Key, Integer> values = new EnumMap<>(Key.class);
+    private final EnumMap<Value, Integer> values = new EnumMap<>(Value.class);
     private final EnumMap<WorldActivity, Integer> costs = new EnumMap<>(WorldActivity.class);
     private final EnumMap<WorldActivity, Integer> factors = new EnumMap<>(WorldActivity.class);
     private final EnumMap<GroundElement, Integer> halfLives = new EnumMap<>(GroundElement.class);
@@ -82,12 +70,24 @@ public class WorldConfiguration {
         halfLives.put(GroundElement.BODY, 4);
     }
 
-    public WorldConfiguration() {
+    public Configuration() {
         seedRecipe = new Recipe(0);
         seedRecipe.add(Instruction.ADD_NEURON, Code.fromInt(0));
         seedRecipe.add(Instruction.SET_ACTIVITY, WorldActivity.EAT_HERE.code());
         seedRecipe.add(Instruction.ADD_NEURON, Code.fromInt(0));
         seedRecipe.add(Instruction.SET_ACTIVITY, WorldActivity.DIVIDE.code());
+    }
+
+    public int getValue(Value value) {
+        return values.getOrDefault(value, value.defaultValue);
+    }
+
+    public void setValue(Value value, int amount) {
+        if (amount < value.minValue)
+            throw new IllegalArgumentException("Value is smaller than minimum for " + value.name());
+        if (amount > value.maxValue)
+            throw new IllegalArgumentException("Value is larger than maximum for " + value.name());
+        values.put(value, amount);
     }
 
     public void setSeedRecipe(Recipe recipe) {
@@ -99,7 +99,7 @@ public class WorldConfiguration {
     }
 
     public int getNormalMutationRate() {
-        return Key.NORMAL_MUTATION_RATE.getValue(this);
+        return getValue(Value.NORMAL_MUTATION_RATE);
     }
 
     /**
@@ -113,33 +113,33 @@ public class WorldConfiguration {
     public void setNormalMutationRate(int rate) {
         if (rate < 0 || rate > 1000)
             throw new IllegalArgumentException("Mutation rate must be in the range 0-1000");
-        Key.NORMAL_MUTATION_RATE.setValue(this, rate);
+        setValue(Value.NORMAL_MUTATION_RATE, rate);
     }
 
     public int getRadiatedMutationRate() {
-        return Key.RADIATION_MUTATION_RATE.getValue(this);
+        return getValue(Value.RADIATION_MUTATION_RATE);
     }
 
     public void setRadiatedMutationRate(int rate) {
         if (rate < 0 || rate > 1000)
             throw new IllegalArgumentException("Radiated mutations rate must be in the range 0=1000");
-        Key.RADIATION_MUTATION_RATE.setValue(this, rate);
+        setValue(Value.RADIATION_MUTATION_RATE, rate);
     }
 
     public int getAcidToxicity() {
-        return Key.ACID_TOXICITY.getValue(this);
+        return getValue(Value.ACID_TOXICITY);
     }
 
     public void setAcidToxicity(int toxicity) {
-        Key.ACID_TOXICITY.setValue(this, toxicity);
+        setValue(Value.ACID_TOXICITY, toxicity);
     }
 
     public int getMinTemp() {
-        return Key.MIN_TEMP.getValue(this);
+        return getValue(Value.MIN_TEMP);
     }
 
     public int getMaxTemp() {
-        return Key.MAX_TEMP.getValue(this);
+        return getValue(Value.MAX_TEMP);
     }
 
     /**
@@ -154,16 +154,16 @@ public class WorldConfiguration {
     public void setTemperatureRange(int minTemp, int maxTemp) {
         if (minTemp > maxTemp)
             throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
-        Key.MIN_TEMP.setValue(this, minTemp);
-        Key.MAX_TEMP.setValue(this, maxTemp);
+        setValue(Value.MIN_TEMP, minTemp);
+        setValue(Value.MAX_TEMP, maxTemp);
     }
 
     public int getYearLength() {
-        return Key.YEAR_LENGTH.getValue(this);
+        return getValue(Value.YEAR_LENGTH);
     }
 
     public int getTempVariation() {
-        return Key.TEMP_VARIATION.getValue(this);
+        return getValue(Value.TEMP_VARIATION);
     }
 
     /**
@@ -180,41 +180,41 @@ public class WorldConfiguration {
             throw new IllegalArgumentException("Year length must be positive");
         if (tempVariation < 0)
             throw new IllegalArgumentException("Temperature variation must not be negative");
-        Key.YEAR_LENGTH.setValue(this, yearLength);;
-        Key.TEMP_VARIATION.setValue(this, tempVariation);
+        setValue(Value.YEAR_LENGTH, yearLength);
+        setValue(Value.TEMP_VARIATION, tempVariation);
     }
 
     public int getSeedCount() {
-        return Key.SEED_COUNT.getValue(this);
+        return getValue(Value.SEED_COUNT);
     }
 
     public int getSeedInitialEnergy() {
-        return Key.INITIAL_ENERGY.getValue(this);
+        return getValue(Value.INITIAL_ENERGY);
     }
 
     public void setSeed(int count, int energy) {
-        Key.SEED_COUNT.setValue(this, count);
-        Key.INITIAL_ENERGY.setValue(this, energy);
+        setValue(Value.SEED_COUNT, count);
+        setValue(Value.INITIAL_ENERGY, energy);
     }
 
     public int getMinimumSplitTime() {
-        return Key.MIN_SPLIT_TIME.getValue(this);
+        return getValue(Value.MIN_SPLIT_TIME);
     }
 
     public void setMinimumSplitTime(int time) {
-        Key.MIN_SPLIT_TIME.setValue(this, time);
+        setValue(Value.MIN_SPLIT_TIME, time);
     }
 
     public int getMinimumSplitEnergy() {
-        return Key.MIN_SPLIT_ENERGY.getValue(this);
+        return getValue(Value.MIN_SPLIT_ENERGY);
     }
 
     public void setMinimumSplitEnergy(int energy) {
-        Key.MIN_SPLIT_ENERGY.setValue(this, energy);
+        setValue(Value.MIN_SPLIT_ENERGY, energy);
     }
 
     public int getConsumptionRate() {
-        return Key.CONSUMPTION_RATE.getValue(this);
+        return getValue(Value.CONSUMPTION_RATE);
     }
 
     /**
@@ -226,33 +226,33 @@ public class WorldConfiguration {
     public void setConsumptionRate(int consumptionRate) {
         if (consumptionRate < 1)
             throw new IllegalArgumentException("Consumption rate must be greater than 0");
-        Key.CONSUMPTION_RATE.setValue(this, consumptionRate);
+        setValue(Value.CONSUMPTION_RATE, consumptionRate);
     }
 
     public int getBaseCost() {
-        return Key.BASE_COST.getValue(this);
+        return getValue(Value.BASE_COST);
     }
 
     public void setBaseCost(int cost) {
         if (cost < 0)
             throw new IllegalArgumentException("Base cost must be greater than or equal to 0");
-        Key.BASE_COST.setValue(this, cost);
+        setValue(Value.BASE_COST, cost);
     }
 
     public int getDefaultActivityCost() {
-        return Key.ACTIVITY_COST.getValue(this);
+        return getValue(Value.ACTIVITY_COST);
     }
 
     public void setDefaultActivityCost(int cost) {
-        Key.ACTIVITY_COST.setValue(this, cost);
+        setValue(Value.ACTIVITY_COST, cost);
     }
 
     public int getDefaultActivityFactor() {
-        return Key.ACTIVITY_FACTOR.getValue(this);
+        return getValue(Value.ACTIVITY_FACTOR);
     }
 
     public void setDefaultActivityFactor(int factor) {
-        Key.ACTIVITY_FACTOR.setValue(this, factor);
+        setValue(Value.ACTIVITY_FACTOR, factor);
     }
 
     public int getActivityCost(WorldActivity activity) {
@@ -271,24 +271,8 @@ public class WorldConfiguration {
         factors.put(activity, factor);
     }
 
-    public int getAgeCost() {
-        return Key.AGING_RATE.getValue(this);
-    }
-
-    public void setAgeCost(int cost) {
-        Key.AGING_RATE.setValue(this, cost);
-    }
-
-    public int getSizeCost() {
-        return Key.SIZE_RATE.getValue(this);
-    }
-
-    public void setSizeCost(int cost) {
-        Key.SIZE_RATE.setValue(this, cost);
-    }
-
     public int getHalfLife(GroundElement element) {
-        return halfLives.getOrDefault(element, Key.HALF_LIFE.defaultValue);
+        return halfLives.getOrDefault(element, Value.HALF_LIFE.defaultValue);
     }
 
     public void setHalfLife(GroundElement element, int period) {

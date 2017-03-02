@@ -2,19 +2,19 @@ package neurevolve.world;
 
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.WALL;
-import static neurevolve.world.WorldConfiguration.Key.HALF_LIFE;
+import static neurevolve.world.Configuration.Value.HALF_LIFE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-public class WorldConfigurationTest {
+public class ConfigurationTest {
 
-    private WorldConfiguration config;
+    private Configuration config;
 
     @Before
     public void setup() {
-        config = new WorldConfiguration();
+        config = new Configuration();
     }
 
     @Test
