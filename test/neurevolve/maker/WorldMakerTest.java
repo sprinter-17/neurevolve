@@ -4,10 +4,11 @@ import java.util.stream.IntStream;
 import neurevolve.TestConfiguration;
 import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Type;
+import neurevolve.world.Configuration;
+import neurevolve.world.Configuration.Value;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
-import neurevolve.world.Configuration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -111,7 +112,8 @@ public class WorldMakerTest {
 
     @Test
     public void testSeasonalElements() {
-        config.setYear(8, 0);
+        config.setValue(Value.YEAR_LENGTH, 8);
+        config.setValue(Value.TEMP_VARIATION, 0);
         maker.add(maker.duringSeason(Season.SUMMER), maker.addResources(1), maker.everywhere());
         World world = maker.make();
         assertThat(resourceCount(world), is(0));

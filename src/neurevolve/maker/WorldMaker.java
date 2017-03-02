@@ -7,11 +7,12 @@ import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 import neurevolve.network.SigmoidFunction;
+import neurevolve.world.Configuration;
+import static neurevolve.world.Configuration.Value.YEAR_LENGTH;
 import neurevolve.world.GroundElement;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
-import neurevolve.world.Configuration;
 
 /**
  * This class is used to construct a new world
@@ -293,7 +294,7 @@ public class WorldMaker {
      * @return the timing
      */
     public Timing duringSeason(Season season) {
-        return time -> Season.valueOf(time, config.getYearLength()) == season;
+        return time -> Season.valueOf(time, config.getValue(YEAR_LENGTH)) == season;
     }
 
     @FunctionalInterface

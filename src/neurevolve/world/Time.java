@@ -1,5 +1,8 @@
 package neurevolve.world;
 
+import static neurevolve.world.Configuration.Value.TEMP_VARIATION;
+import static neurevolve.world.Configuration.Value.YEAR_LENGTH;
+
 public class Time {
 
     public enum Season {
@@ -47,9 +50,9 @@ public class Time {
      * @return the name of the season
      */
     public String getSeasonName() {
-        if (config.getTempVariation() == 0 || config.getYearLength() < 4)
+        if (config.getValue(TEMP_VARIATION) == 0 || config.getValue(YEAR_LENGTH) < 4)
             return "None";
-        return Season.valueOf(tickCount, config.getYearLength()).getName();
+        return Season.valueOf(tickCount, config.getValue(YEAR_LENGTH)).getName();
     }
 
     /**
@@ -60,12 +63,12 @@ public class Time {
      * @return the variation in temperature at the current time of year
      */
     public int getSeasonalTemp() {
-        int seasonLength = config.getYearLength() / 4;
+        int seasonLength = config.getValue(YEAR_LENGTH) / 4;
         if (seasonLength == 0)
             return 0;
-        int timeFromMidYear = Math.abs(config.getYearLength() / 2 - timeOfYear());
+        int timeFromMidYear = Math.abs(config.getValue(YEAR_LENGTH) / 2 - timeOfYear());
         int timeFromMidSeason = seasonLength - timeFromMidYear;
-        return config.getTempVariation() * timeFromMidSeason / seasonLength;
+        return config.getValue(TEMP_VARIATION) * timeFromMidSeason / seasonLength;
     }
 
     /**
@@ -74,11 +77,11 @@ public class Time {
      * @return the tick within the year
      */
     public int timeOfYear() {
-        return tickCount % config.getYearLength();
+        return tickCount % config.getValue(YEAR_LENGTH);
     }
 
     public int getYear() {
-        return tickCount / config.getYearLength();
+        return tickCount / config.getValue(YEAR_LENGTH);
     }
 
     /**

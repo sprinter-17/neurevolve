@@ -6,6 +6,7 @@ import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Angle.LEFT;
 import static neurevolve.world.Angle.RIGHT;
+import neurevolve.world.Configuration.Value;
 import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static org.hamcrest.CoreMatchers.is;
@@ -48,7 +49,8 @@ public class WorldInputTest {
     @Test
     public void testOwnTemperature() {
         assertThat(input("Temperature Here"), is(0));
-        config.setTemperatureRange(50, 50);
+        config.setValue(Value.MIN_TEMP, 50);
+        config.setValue(Value.MAX_TEMP, 50);
         assertThat(input("Temperature Here"), is(50));
     }
 

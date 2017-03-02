@@ -205,18 +205,21 @@ public class Loader {
     private void processConfiguration(Element element) throws SAXException {
         switch (element.getNodeName()) {
             case "temperature_range":
-                config.setTemperatureRange(getInt(element, "min"), getInt(element, "max"));
+                setConfig(MIN_TEMP, element, "min");
+                setConfig(MAX_TEMP, element, "max");
                 break;
             case "mutation_rate":
-                config.setNormalMutationRate(getInt(element, "normal"));
+                setConfig(NORMAL_MUTATION_RATE, element, "normal");
                 if (element.hasAttribute("radiation"))
-                    config.setRadiatedMutationRate(getInt(element, "radiation"));
+                    setConfig(RADIATION_MUTATION_RATE, element, "radiation");
                 break;
             case "year":
-                config.setYear(getInt(element, "length"), getInt(element, "variation"));
+                setConfig(YEAR_LENGTH, element, "length");
+                setConfig(TEMP_VARIATION, element, "variation");
                 break;
             case "seed":
-                config.setSeed(getInt(element, "count"), getInt(element, "energy"));
+                setConfig(SEED_COUNT, element, "count");
+                setConfig(INITIAL_ENERGY, element, "energy");
                 break;
             case "activity_cost":
                 if (element.hasAttribute("activity")) {

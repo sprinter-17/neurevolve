@@ -1,5 +1,6 @@
 package neurevolve.world;
 
+import neurevolve.world.Configuration.Value;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -31,7 +32,8 @@ public class TimeTest {
 
     @Test
     public void testSeasons() {
-        config.setYear(8, 4);
+        config.setValue(Value.YEAR_LENGTH, 8);
+        config.setValue(Value.TEMP_VARIATION, 4);
         assertThat(time.getSeasonName(), is("Winter"));
         assertThat(time.getSeasonalTemp(), is(-4));
         time.tick();

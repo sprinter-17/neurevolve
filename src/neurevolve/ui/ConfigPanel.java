@@ -47,27 +47,17 @@ public class ConfigPanel extends JTabbedPane {
         addTab("World", new JScrollPane(worldPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         layout.gridy = 0;
         JPanel mutationPanel = addGroupPanel(worldPanel, "Mutation Rate");
-        addValueSlider(mutationPanel, "Normal", 0, 50,
-                config.getNormalMutationRate(), config::setNormalMutationRate);
-        addValueSlider(mutationPanel, "Radiated", 0, 300,
-                config.getRadiatedMutationRate(), config::setRadiatedMutationRate);
+        new ConfigValueSlider("Normal", NORMAL_MUTATION_RATE).addTo(mutationPanel);
+        new ConfigValueSlider("Radiated", RADIATION_MUTATION_RATE).addTo(mutationPanel);
 
         JPanel temperaturePanel = addGroupPanel(worldPanel, "Temperature");
-
-        JSlider minTemp = addValueSlider(temperaturePanel, "At Pole", -200, 400, config.getMinTemp(), (v) -> config.setTemperatureRange(v, config.getMaxTemp()));
-        JSlider maxTemp = addValueSlider(temperaturePanel, "At Equator", -200, 400, config.getMaxTemp(), (v) -> config.setTemperatureRange(config.getMinTemp(), v));
-        minTemp.addChangeListener(e -> {
-            if (minTemp.getValue() > maxTemp.getValue())
-                maxTemp.setValue(minTemp.getValue());
-        });
-        maxTemp.addChangeListener(e -> {
-            if (minTemp.getValue() > maxTemp.getValue())
-                minTemp.setValue(maxTemp.getValue());
-        });
-        addValueSlider(temperaturePanel, "Year Length", 1, 3000,
-                config.getYearLength(), v -> config.setYear(v, config.getTempVariation()));
-        addValueSlider(temperaturePanel, "Season Variation", 0, 50,
-                config.getTempVariation(), v -> config.setYear(config.getYearLength(), v));
+        ConfigValueSlider minTemp = new ConfigValueSlider("At Pole", MIN_TEMP);
+        minTemp.addTo(temperaturePanel);
+        ConfigValueSlider maxTemp = new ConfigValueSlider("At Equator", MAX_TEMP);
+        maxTemp.addTo(temperaturePanel);
+        minTemp.setLessThan(maxTemp);
+        new ConfigValueSlider("Year Length", YEAR_LENGTH).addTo(temperaturePanel);
+        new ConfigValueSlider("Season Variation", TEMP_VARIATION).addTo(temperaturePanel);
     }
 
     private void addGroundPanel() {
@@ -75,8 +65,8 @@ public class ConfigPanel extends JTabbedPane {
         groundPanel.setLayout(new BoxLayout(groundPanel, BoxLayout.Y_AXIS));
         addTab("Ground", new JScrollPane(groundPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         JPanel effectsPanel = addGroupPanel(groundPanel, "Effects");
-        addValueSlider(effectsPanel, "Acid Toxicity", 1, 100,
-                config.getAcidToxicity(), config::setAcidToxicity);
+        new ConfigValueSlider("Acid Toxicity", ACID_TOXICITY).addTo(effectsPanel);
+
         JPanel halfLife = addGroupPanel(groundPanel, "Half Lives");
         for (GroundElement element : GroundElement.values()) {
             Consumer<Integer> setter = v -> config.setHalfLife(element, v);
@@ -96,10 +86,8 @@ public class ConfigPanel extends JTabbedPane {
         organismPanel.setLayout(panelLayout);
         addTab("Organism", new JScrollPane(organismPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
         JPanel seedPanel = addGroupPanel(organismPanel, "Seed Values");
-        addValueSlider(seedPanel, "Count", 1, 1000,
-                config.getSeedCount(), v -> config.setSeed(v, config.getSeedInitialEnergy()));
-        addValueSlider(seedPanel, "Initial Energy", 100, 1000,
-                config.getSeedInitialEnergy(), v -> config.setSeed(config.getSeedCount(), v));
+        new ConfigValueSlider("Count", SEED_COUNT).addTo(seedPanel);
+        new ConfigValueSlider("Initial Energy", INITIAL_ENERGY).addTo(seedPanel);
 
         JPanel splitPanel = addGroupPanel(organismPanel, "Split Limits");
         new ConfigValueSlider("Minimum Split Time", MIN_SPLIT_TIME).addTo(splitPanel);
@@ -170,6 +158,17 @@ public class ConfigPanel extends JTabbedPane {
             maxValue = Optional.of(text);
             value.setText(toString(slider.getValue()));
             return this;
+        }
+
+        public void setLessThan(ConfigValueSlider bigger) {
+            slider.addChangeListener(e -> {
+                if (slider.getValue() > bigger.slider.getValue())
+                    bigger.slider.setValue(slider.getValue());
+            });
+            bigger.slider.addChangeListener(e -> {
+                if (slider.getValue() > bigger.slider.getValue())
+                    slider.setValue(bigger.slider.getValue());
+            });
         }
 
         public void addTo(JPanel panel) {

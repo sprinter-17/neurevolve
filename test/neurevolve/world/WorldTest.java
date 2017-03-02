@@ -96,7 +96,8 @@ public class WorldTest {
 
     @Test
     public void testTemperatureEffectByLatitude() {
-        config.setTemperatureRange(30, 80);
+        config.setValue(Value.MIN_TEMP, 30);
+        config.setValue(Value.MAX_TEMP, 80);
         assertThat(world.getTemperature(space.position(0, 5)), is(80));
         assertThat(world.getTemperature(space.position(7, 5)), is(80));
         assertThat(world.getTemperature(space.position(7, 3)), is(60));
@@ -115,7 +116,8 @@ public class WorldTest {
     @Test
     public void testTemperatureEffectByTimeOfYear() {
         int position = space.position(7, 4);
-        config.setYear(8, 50);
+        config.setValue(Value.YEAR_LENGTH, 8);
+        config.setValue(Value.TEMP_VARIATION, 50);
         assertThat(world.getTemperature(position), is(-50));
         world.tick();
         assertThat(world.getTemperature(position), is(-25));
@@ -137,7 +139,8 @@ public class WorldTest {
 
     @Test
     public void testNegativeTemperaturesConsumeEnergyFromOrganisms() {
-        config.setTemperatureRange(-30, -30);
+        config.setValue(Value.MIN_TEMP, -30);
+        config.setValue(Value.MAX_TEMP, -30);
         Organism organism = new Organism(world, 50);
         world.addOrganism(organism, space.position(4, 7), EAST);
         world.tick();
@@ -185,7 +188,8 @@ public class WorldTest {
 
     @Test
     public void testResourcesGrowBasedOnTemperature() {
-        config.setTemperatureRange(0, 200);
+        config.setValue(Value.MIN_TEMP, 0);
+        config.setValue(Value.MAX_TEMP, 200);
         world.tick();
         assertThat(world.getResource(space.position(0, 0)), is(0));
         assertThat(world.getResource(space.position(7, 3)), is(1));

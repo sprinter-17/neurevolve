@@ -108,26 +108,29 @@ public class LoaderTest {
     @Test
     public void testTemperatureRange() throws SAXException {
         loadConfig("<temperature_range min='80' max='100'/>");
-        verify(config).setTemperatureRange(80, 100);
+        verify(config).setValue(Value.MIN_TEMP, 80);
+        verify(config).setValue(Value.MAX_TEMP, 100);
     }
 
     @Test
     public void testMutationRate() throws SAXException {
         loadConfig("<mutation_rate normal='20' radiation='40'/>");
-        verify(config).setNormalMutationRate(20);
-        verify(config).setRadiatedMutationRate(40);
+        verify(config).setValue(Value.NORMAL_MUTATION_RATE, 20);
+        verify(config).setValue(Value.RADIATION_MUTATION_RATE, 40);
     }
 
     @Test
     public void testYear() throws SAXException {
         loadConfig("<year length='800' variation='10'/>");
-        verify(config).setYear(800, 10);
+        verify(config).setValue(Value.YEAR_LENGTH, 800);
+        verify(config).setValue(Value.TEMP_VARIATION, 10);
     }
 
     @Test
     public void testSeed() throws SAXException {
         loadConfig("<seed count='100' energy='400'/>");
-        verify(config).setSeed(100, 400);
+        verify(config).setValue(Value.SEED_COUNT, 100);
+        verify(config).setValue(Value.INITIAL_ENERGY, 400);
     }
 
     @Test(expected = SAXException.class)

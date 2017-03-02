@@ -341,10 +341,10 @@ public class World implements Environment {
             }
             return copy;
         });
-        if (population.size() < config.getSeedCount()) {
+        if (population.size() < config.getValue(Value.SEED_COUNT)) {
             int position = random.nextInt(space.size());
             if (!population.hasOrganism(position) && isEmpty(position)) {
-                population.addOrganism(new Organism(this, config.getSeedInitialEnergy(), recipe),
+                population.addOrganism(new Organism(this, config.getValue(Value.INITIAL_ENERGY), recipe),
                         position, random.nextInt(4));
             }
         }
@@ -478,8 +478,8 @@ public class World implements Environment {
     }
 
     private Mutator mutator(int position) {
-        int mutationRate = config.getNormalMutationRate()
-                + getRadiation(position) * config.getRadiatedMutationRate();
+        int mutationRate = config.getValue(Value.NORMAL_MUTATION_RATE)
+                + getRadiation(position) * config.getValue(Value.RADIATION_MUTATION_RATE);
         return new Mutator(mutationRate);
     }
 
@@ -514,7 +514,7 @@ public class World implements Environment {
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
         if (isAcidic(position))
-            organism.reduceEnergy(config.getAcidToxicity());
+            organism.reduceEnergy(config.getValue(Value.ACID_TOXICITY));
         organism.reduceEnergy(config.getValue(Value.BASE_COST));
         organism.reduceEnergy(organism.size() * config.getValue(Value.SIZE_RATE) / 10);
         organism.reduceEnergy(organism.getAge() * config.getValue(Value.AGING_RATE) / 100);
@@ -587,7 +587,7 @@ public class World implements Environment {
     }
 
     private int getLatitudeTemp(int position) {
-        return space.scaleByLatitude(position, config.getMinTemp(), config.getMaxTemp());
+        return space.scaleByLatitude(position, config.getValue(Value.MIN_TEMP), config.getValue(Value.MAX_TEMP));
     }
 
     /**
