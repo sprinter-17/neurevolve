@@ -28,11 +28,12 @@ import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import neurevolve.organism.Organism;
 import neurevolve.organism.RecipeDescriber;
+import neurevolve.world.Configuration;
+import neurevolve.world.Ground;
 import neurevolve.world.GroundElement;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.Configuration;
 
 public class ZoomWindow {
 
@@ -137,9 +138,9 @@ public class ZoomWindow {
         private final List<OrganismSnapShot> organisms = new ArrayList<>();
 
         public SnapShot() {
-            int[] groundCopy = world.copyGroundElements();
             Population population = world.getPopulationCopy();
-            forEachPosition((x, y, p) -> process(x, y, groundCopy[p], population.getOrganism(p)));
+            Ground groundCopy = world.copyGround();
+            forEachPosition((x, y, p) -> process(x, y, groundCopy.getTotalValue(p), population.getOrganism(p)));
         }
 
         private void process(int x, int y, int groundElement, Organism organism) {

@@ -43,7 +43,7 @@ public class World implements Environment {
 
     private final Space space;
     private final Configuration config;
-    private final int[] positionData;
+    private final Ground ground;
     private final Random random = new Random();
     private final WorldInput inputs;
 
@@ -61,17 +61,17 @@ public class World implements Environment {
      * Construct a world within a frame with a configuration
      *
      * @param function the activation function to use for all organisms in the world
-     * @param frame the frame that defines the size of the world
+     * @param space the frame that defines the size of the world
      * @param configuration the configuration of the world
      */
-    public World(ActivationFunction function, Space frame, Configuration configuration) {
+    public World(ActivationFunction function, Space space, Configuration configuration) {
         this.function = function;
         this.config = configuration;
-        this.space = frame;
+        this.space = space;
         this.time = new Time(configuration);
         this.inputs = new WorldInput(this);
         this.population = new Population(space);
-        this.positionData = new int[frame.size()];
+        this.ground = new Ground(space.size());
     }
 
     public void setUsedElements(EnumSet<GroundElement> elements) {
@@ -87,8 +87,8 @@ public class World implements Environment {
         return inputs.getCodeCount();
     }
 
-    public int[] copyGroundElements() {
-        return Arrays.copyOf(positionData, space.size());
+    public Ground copyGround() {
+        return ground.copy();
     }
 
     /**
@@ -114,7 +114,7 @@ public class World implements Environment {
     }
 
     public int getElementValue(int position, GroundElement element) {
-        return element.get(positionData[position]);
+        return ground.getElementValue(position, element);
     }
 
     public boolean hasElement(int position, GroundElement element) {
@@ -122,18 +122,7 @@ public class World implements Environment {
     }
 
     public void addElementValue(int position, GroundElement element, int value) {
-        if (value < 0)
-            throw new IllegalArgumentException("Adding negative element value");
-        value = Math.min(element.getMaximum(), value + getElementValue(position, element));
-        positionData[position] = element.set(positionData[position], value);
-    }
-
-    private void setData(int position, GroundElement data, int value) {
-        positionData[position] = data.set(positionData[position], value);
-    }
-
-    private void setData(int position, GroundElement data, boolean value) {
-        setData(position, data, value ? 1 : 0);
+        ground.addElementValue(position, element, value);
     }
 
     /**
@@ -275,11 +264,11 @@ public class World implements Environment {
             if (temp > 0) {
                 int growthPeriod = 100;
                 while (temp >= growthPeriod) {
-                    addResources(i, 1);
+                    ground.addElementValue(i, RESOURCES, 1);
                     temp -= growthPeriod;
                 }
                 if (getTime() % (growthPeriod - temp) == 0) {
-                    addResources(i, 1);
+                    ground.addElementValue(i, RESOURCES, 1);
                 }
             }
         }
@@ -294,18 +283,10 @@ public class World implements Environment {
         int halfLife = config.getHalfLife(element);
         if (halfLife > 0 && halfLife < 1000) {
             for (int i = 0; i < space.size(); i++) {
-                int value = getElementValue(i, element);
-                if (value > 0 && (halfLife == 1 || random.nextInt(halfLife) == 0))
-                    setData(i, element, value - 1);
+                if (random.nextInt(halfLife) == 0)
+                    ground.substractElementValue(i, element, 1);
             }
         }
-    }
-
-    public void addResources(int position, int amount) {
-        int resources = getElementValue(position, RESOURCES) + amount;
-        resources = Math.min(resources, RESOURCES.getMaximum());
-        resources = Math.max(resources, 0);
-        setData(position, RESOURCES, resources);
     }
 
     /**
@@ -325,7 +306,7 @@ public class World implements Environment {
             int maxEnergy = config.getValue(Value.MAX_ENERGY);
             amount = Math.min(amount, maxEnergy - organism.getEnergy());
             organism.increaseEnergy(amount);
-            addResources(position, -amount);
+            ground.substractElementValue(position, RESOURCES, amount);
             return true;
         }
         return false;
@@ -437,7 +418,7 @@ public class World implements Environment {
         stats.add(organism);
         if (organism.isDead()) {
             removeOrganism(organism);
-            setData(position, BODY, true);
+            ground.addElementValue(position, BODY, 1);
         }
     }
 

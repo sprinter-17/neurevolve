@@ -10,6 +10,8 @@ import java.util.Optional;
 import javax.swing.JPanel;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Species;
+import neurevolve.world.Configuration;
+import neurevolve.world.Ground;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.BODY;
 import static neurevolve.world.GroundElement.ELEVATION;
@@ -19,7 +21,6 @@ import static neurevolve.world.GroundElement.WALL;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.Configuration;
 
 /**
  * A <code>MapPanel</code> displays a with one pixel per position in the world's space. The colour
@@ -75,26 +76,26 @@ public class MapPanel extends JPanel {
      */
     private void redraw() {
         Population population = world.getPopulationCopy();
-        int[] ground = world.copyGroundElements();
-
-        for (int i = 0; i < ground.length; i++) {
-            int data = ground[i];
-            if (WALL.get(data) == 1) {
-                pixels[i] = Color.DARK_GRAY.getRGB();
-            } else if (population.hasOrganism(i)) {
-                Organism organism = population.getOrganism(i);
-                if (selectedSpecies.isPresent() && selectedSpecies.get().matches(organism))
-                    pixels[i] = Color.WHITE.getRGB();
-                else
-                    pixels[i] = populationColour(config, population.getOrganism(i)) | 255 << 24;
-            } else if (BODY.get(data) == 1) {
-                pixels[i] = bodyColour(config);
-            } else {
-                pixels[i] = convertToColour(config, data);
-                pixels[i] |= 255 << 24;
-            }
-        }
+        Ground ground = world.copyGround();
+        ground.forEach((p, d) -> redraw(population, p, d));
         repaint();
+    }
+
+    private void redraw(Population population, int pos, int ground) {
+        if (WALL.get(ground) == 1) {
+            pixels[pos] = Color.DARK_GRAY.getRGB();
+        } else if (population.hasOrganism(pos)) {
+            Organism organism = population.getOrganism(pos);
+            if (selectedSpecies.isPresent() && selectedSpecies.get().matches(organism))
+                pixels[pos] = Color.WHITE.getRGB();
+            else
+                pixels[pos] = populationColour(config, population.getOrganism(pos)) | 255 << 24;
+        } else if (BODY.get(ground) == 1) {
+            pixels[pos] = bodyColour(config);
+        } else {
+            pixels[pos] = convertToColour(config, ground);
+            pixels[pos] |= 255 << 24;
+        }
     }
 
     @Override

@@ -117,7 +117,8 @@ public class WorldMaker {
      */
     public Type addResources(int resources) {
         usedElements.add(GroundElement.RESOURCES);
-        return (world, position, factor) -> world.addResources(position, resources * factor / 100);
+        return (world, position, factor)
+                -> world.addElementValue(position, RESOURCES, resources * factor / 100);
     }
 
     /**

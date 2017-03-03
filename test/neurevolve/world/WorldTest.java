@@ -307,7 +307,7 @@ public class WorldTest {
         for (int i = 0; i < 10; i++) {
             world.tick();
         }
-        assertTrue(totalRadiation() < 220);
+        assertTrue(totalRadiation() < 230);
         assertTrue(totalRadiation() > 170);
     }
 
