@@ -220,10 +220,24 @@ public class Configuration {
         costs.put(activity, cost);
     }
 
+    /**
+     * Get the factor added to the energy cost of an activity on second and subsequent activations
+     * of the activity within a single tick.
+     *
+     * @param activity the activity to retrieve the factor for
+     * @return the factor
+     */
     public int getActivityFactor(WorldActivity activity) {
         return factors.getOrDefault(activity, getValue(Value.ACTIVITY_FACTOR));
     }
 
+    /**
+     * Set the factor added to the energy cost of an activity on second and subsequent activations
+     * of the activity within a single tick.
+     *
+     * @param activity the activity to set the factor for.
+     * @param factor the factor for the activity.
+     */
     public void setActivityFactor(WorldActivity activity, int factor) {
         factors.put(activity, factor);
     }

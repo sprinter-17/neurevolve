@@ -10,11 +10,8 @@ import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
 import neurevolve.world.Configuration.Value;
 import static neurevolve.world.Configuration.Value.MAX_ENERGY;
-import static neurevolve.world.GroundElement.ACID;
-import static neurevolve.world.GroundElement.RADIATION;
-import static neurevolve.world.Space.EAST;
-import static neurevolve.world.Space.NORTH;
-import static neurevolve.world.Space.WEST;
+import static neurevolve.world.GroundElement.*;
+import static neurevolve.world.Space.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -41,27 +38,27 @@ public class WorldTest {
         Organism organism = new Organism(world, 100);
         world.addOrganism(organism, position, EAST);
         assertThat(world.getSlope(organism, world.getPosition(organism, FORWARD)), is(0));
-        world.addElevation(position, 31);
+        world.addElementValue(position, ELEVATION, 31);
         assertThat(world.getSlope(organism, world.getPosition(organism, FORWARD)), is(-31));
-        world.addElevation(space.move(position, EAST), 47);
+        world.addElementValue(space.move(position, EAST), ELEVATION, 47);
         assertThat(world.getSlope(organism, world.getPosition(organism, FORWARD)), is(47 - 31));
     }
 
     @Test
     public void testResource() {
-        assertThat(world.getResource(space.position(1, 7)), is(0));
+        assertThat(world.getElementValue(space.position(1, 7), RESOURCES), is(0));
     }
 
     @Test
     public void testAcid() {
-        assertFalse(world.isAcidic(space.position(4, 5)));
+        assertThat(world.getElementValue(space.position(4, 5), ACID), is(0));
     }
 
     @Test
     public void testRadiation() {
-        assertThat(world.getRadiation(space.position(4, 7)), is(0));
-        world.addRadition(space.position(4, 7), 2);
-        assertThat(world.getRadiation(space.position(4, 7)), is(2));
+        assertThat(world.getElementValue(space.position(4, 7), RADIATION), is(0));
+        world.addElementValue(space.position(4, 7), RADIATION, 2);
+        assertThat(world.getElementValue(space.position(4, 7), RADIATION), is(2));
     }
 
     @Test
@@ -109,7 +106,7 @@ public class WorldTest {
     @Test
     public void testTemperatureEffectByElevation() {
         int position = space.position(7, 4);
-        world.addElevation(position, 8);
+        world.addElementValue(position, ELEVATION, 8);
         assertThat(world.getTemperature(position), is(- 8));
     }
 
@@ -154,14 +151,14 @@ public class WorldTest {
         int position = space.position(4, 7);
         Organism organism = new Organism(world, 50);
         world.addOrganism(organism, position, EAST);
-        world.setResource(position, 50);
+        world.addElementValue(position, RESOURCES, 50);
         config.setValue(Value.CONSUMPTION_RATE, 18);
         config.setValue(MAX_ENERGY, 70);
         world.feedOrganism(organism);
-        assertThat(world.getResource(position), is(32));
+        assertThat(world.getElementValue(position, RESOURCES), is(32));
         assertThat(organism.getEnergy(), is(68));
         world.feedOrganism(organism);
-        assertThat(world.getResource(position), is(30));
+        assertThat(world.getElementValue(position, RESOURCES), is(30));
         assertThat(organism.getEnergy(), is(70));
     }
 
@@ -191,9 +188,9 @@ public class WorldTest {
         config.setValue(Value.MIN_TEMP, 0);
         config.setValue(Value.MAX_TEMP, 200);
         world.tick();
-        assertThat(world.getResource(space.position(0, 0)), is(0));
-        assertThat(world.getResource(space.position(7, 3)), is(1));
-        assertThat(world.getResource(space.position(4, 5)), is(2));
+        assertThat(world.getElementValue(space.position(0, 0), RESOURCES), is(0));
+        assertThat(world.getElementValue(space.position(7, 3), RESOURCES), is(1));
+        assertThat(world.getElementValue(space.position(4, 5), RESOURCES), is(2));
     }
 
     @Test
@@ -237,7 +234,7 @@ public class WorldTest {
     @Test
     public void testSplitInRadiation() {
         int position = space.position(5, 5);
-        world.addRadition(space.move(position, NORTH), 3);
+        world.addElementValue(space.move(position, NORTH), RADIATION, 3);
         Organism organism = new Organism(world, 120);
         world.addOrganism(organism, position, NORTH);
         world.moveOrganism(organism);
@@ -251,7 +248,7 @@ public class WorldTest {
         world.addOrganism(organism, position, EAST);
         world.setUsedElements(EnumSet.of(GroundElement.ELEVATION));
         assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(0));
-        world.addElevation(world.getPosition(organism, FORWARD), 11);
+        world.addElementValue(world.getPosition(organism, FORWARD), ELEVATION, 11);
         assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(11));
     }
 
@@ -294,17 +291,17 @@ public class WorldTest {
     @Test
     public void testAcidHalfLife() {
         int position = space.position(4, 7);
-        world.setAcidic(position, true);
+        world.addElementValue(position, ACID, 1);
         world.tick();
-        assertTrue(world.isAcidic(position));
+        assertThat(world.getElementValue(position, ACID), is(1));
         config.setHalfLife(ACID, 1);
         world.tick();
-        assertFalse(world.isAcidic(position));
+        assertThat(world.getElementValue(position, ACID), is(0));
     }
 
     @Test
     public void testRadiationHalfLife() {
-        IntStream.range(0, space.size()).forEach(p -> world.addRadition(p, 3));
+        IntStream.range(0, space.size()).forEach(p -> world.addElementValue(p, RADIATION, 3));
         config.setHalfLife(RADIATION, 10);
         assertThat(totalRadiation(), is(300));
         for (int i = 0; i < 10; i++) {
@@ -315,6 +312,6 @@ public class WorldTest {
     }
 
     private int totalRadiation() {
-        return IntStream.range(0, space.size()).map(world::getRadiation).sum();
+        return IntStream.range(0, space.size()).map(p -> world.getElementValue(p, RADIATION)).sum();
     }
 }

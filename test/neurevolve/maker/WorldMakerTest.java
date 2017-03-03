@@ -6,11 +6,12 @@ import neurevolve.maker.WorldMaker.Shape;
 import neurevolve.maker.WorldMaker.Type;
 import neurevolve.world.Configuration;
 import neurevolve.world.Configuration.Value;
+import neurevolve.world.GroundElement;
+import static neurevolve.world.GroundElement.*;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -30,46 +31,45 @@ public class WorldMakerTest {
     @Test
     public void testEmptyWorld() {
         World world = maker.make();
-        assertTrue(allPositions().map(world::getResource).allMatch(r -> r == 0));
-        assertTrue(allPositions().map(world::getElevation).allMatch(r -> r == 0));
-        assertTrue(allPositions().noneMatch(world::isAcidic));
+        assertThat(elements(world, space, RESOURCES).sum(), is(0));
+        assertThat(elements(world, space, ELEVATION).sum(), is(0));
+        assertThat(elements(world, space, ACID).sum(), is(0));
     }
 
     @Test
     public void testAcidEverywhere() {
         maker.add(maker.atStart(), maker.acid(), maker.everywhere());
-        World world = maker.make();
-        assertTrue(allPositions().allMatch(world::isAcidic));
+        assertTrue(elements(maker.make(), space, ACID).allMatch(n -> n > 0));
     }
 
     @Test
     public void testRadiationAtVerticalEdges() {
         maker.add(maker.atStart(), maker.radiation(3), maker.verticalEdges(6));
         World world = maker.make();
-        assertThat(world.getRadiation(space.position(0, 30)), is(3));
-        assertThat(world.getRadiation(space.position(1, 30)), is(2));
-        assertThat(world.getRadiation(space.position(2, 30)), is(2));
-        assertThat(world.getRadiation(space.position(3, 30)), is(1));
-        assertThat(world.getRadiation(space.position(4, 30)), is(1));
-        assertThat(world.getRadiation(space.position(5, 30)), is(0));
+        assertThat(world.getElementValue(space.position(0, 30), RADIATION), is(3));
+        assertThat(world.getElementValue(space.position(1, 30), RADIATION), is(2));
+        assertThat(world.getElementValue(space.position(2, 30), RADIATION), is(2));
+        assertThat(world.getElementValue(space.position(3, 30), RADIATION), is(1));
+        assertThat(world.getElementValue(space.position(4, 30), RADIATION), is(1));
+        assertThat(world.getElementValue(space.position(5, 30), RADIATION), is(0));
     }
 
     @Test
     public void testWallsAtHorizontalEdges() {
         maker.add(maker.atStart(), maker.wall(), maker.horizontalEdges(5));
         World world = maker.make();
-        assertThat(allPositions().filter(world::hasWall).count(), is(1000L));
-        assertFalse(world.hasWall(space.position(0, 50)));
-        assertTrue(world.hasWall(space.position(50, 0)));
+        assertThat(elements(world, space, WALL).sum(), is(1000));
+        assertThat(world.getElementValue(space.position(0, 50), WALL), is(0));
+        assertThat(world.getElementValue(space.position(50, 0), WALL), is(1));
     }
 
     @Test
     public void testWallsAtVerticalEdges() {
         maker.add(maker.atStart(), maker.wall(), maker.verticalEdges(5));
         World world = maker.make();
-        assertThat(allPositions().filter(world::hasWall).count(), is(1000L));
-        assertTrue(world.hasWall(space.position(0, 50)));
-        assertFalse(world.hasWall(space.position(50, 0)));
+        assertThat(elements(world, space, WALL).sum(), is(1000));
+        assertThat(world.getElementValue(space.position(0, 50), WALL), is(1));
+        assertThat(world.getElementValue(space.position(50, 0), WALL), is(0));
     }
 
     @Test
@@ -81,8 +81,7 @@ public class WorldMakerTest {
     @Test
     public void testSetResourcesEverywhere() {
         maker.add(maker.atStart(), maker.addResources(7), maker.everywhere());
-        World world = maker.make();
-        assertThat(allPositions().map(world::getResource).sum(), is(70000));
+        assertThat(elements(maker.make(), space, RESOURCES).sum(), is(70000));
     }
 
     @Test
@@ -91,8 +90,7 @@ public class WorldMakerTest {
         maker = new WorldMaker(mazeSpace, config);
         maker.add(maker.atStart(), maker.elevation(200), maker.maze(25, 8));
         World world = maker.make();
-        assertTrue(IntStream.range(0, mazeSpace.size())
-                .filter(p -> world.getElevation(p) > 0).count() > 80000);
+        assertTrue(elements(world, mazeSpace, ELEVATION).filter(e -> e > 0).count() > 80000);
     }
 
     @Test
@@ -141,10 +139,6 @@ public class WorldMakerTest {
         assertThat(resourceCount(world), is(30000));
     }
 
-    private IntStream allPositions() {
-        return IntStream.range(0, space.size());
-    }
-
     private World make(Type type, Shape shape) {
         maker = new WorldMaker(space, config);
         maker.add(maker.atStart(), type, shape);
@@ -152,11 +146,14 @@ public class WorldMakerTest {
     }
 
     private int wallCount(World world) {
-        return (int) allPositions().filter(world::hasWall).count();
+        return elements(world, space, WALL).sum();
     }
 
     private int resourceCount(World world) {
-        return allPositions().map(p -> world.getResource(p)).sum();
+        return elements(world, space, RESOURCES).sum();
     }
 
+    private IntStream elements(World world, Space space, GroundElement element) {
+        return IntStream.range(0, space.size()).map(p -> world.getElementValue(p, element));
+    }
 }

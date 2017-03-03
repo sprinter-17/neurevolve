@@ -16,6 +16,7 @@ import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.FORWARD;
 import neurevolve.world.Configuration.Value;
+import static neurevolve.world.Configuration.Value.ACID_TOXICITY;
 import static neurevolve.world.GroundElement.ACID;
 import static neurevolve.world.GroundElement.BODY;
 import static neurevolve.world.GroundElement.ELEVATION;
@@ -112,50 +113,19 @@ public class World implements Environment {
         return population.size();
     }
 
-    public void addResourcesEverywhere(int amount) {
-        IntStream.range(0, space.size())
-                .forEach(pos -> addResources(pos, amount));
-    }
-
-    /**
-     * Set the amount of resource at a position. This method is primarily for testing purposes
-     *
-     * @param position the position
-     * @param amount the amount of resource to set
-     */
-    protected void setResource(int position, int amount) {
-        setData(position, RESOURCES, amount);
-    }
-
-    /**
-     * Get the amount of resource at a position
-     *
-     * @param position the position to check
-     * @return the amount of resource at the given position
-     */
-    public int getResource(int position) {
-        return getElementValue(position, RESOURCES);
-    }
-
-    public boolean isAcidic(int position) {
-        return getElementValue(position, ACID) == 1;
-    }
-
-    public void setAcidic(int position, boolean acidic) {
-        setData(position, ACID, acidic);
-    }
-
-    public int getRadiation(int position) {
-        return getElementValue(position, RADIATION);
-    }
-
-    public void addRadition(int position, int radiation) {
-        radiation += getRadiation(position);
-        setData(position, RADIATION, Math.min(radiation, RADIATION.getMaximum()));
-    }
-
     public int getElementValue(int position, GroundElement element) {
         return element.get(positionData[position]);
+    }
+
+    public boolean hasElement(int position, GroundElement element) {
+        return getElementValue(position, element) > 0;
+    }
+
+    public void addElementValue(int position, GroundElement element, int value) {
+        if (value < 0)
+            throw new IllegalArgumentException("Adding negative element value");
+        value = Math.min(element.getMaximum(), value + getElementValue(position, element));
+        positionData[position] = element.set(positionData[position], value);
     }
 
     private void setData(int position, GroundElement data, int value) {
@@ -167,29 +137,6 @@ public class World implements Environment {
     }
 
     /**
-     * Add a hill at a given position, radius and slope. Changes the elevations in an area of the
-     * frame. The position is set by the centre and radius and the elevation is set by the slope,
-     * with the highest elevation at the centre. The entire area is additionally raised by the cliff
-     * amount.
-     *
-     * @param centre the position of highest elevation
-     * @param radius the distance of the bottom of the hill from the centre
-     * @param slope the gradient of the hill
-     * @param cliff the height of the edge of the hill
-     */
-    public void addHill(int centre, int radius, int slope, int cliff) {
-        space.forAllPositionsInCircle(centre, radius,
-                (p, d) -> addElevation(p, cliff + (radius - d) * slope));
-    }
-
-    public void addHills(int hillCount, int radius, int elevation) {
-        for (int i = 0; i < hillCount; i++) {
-            int position = random.nextInt(space.size());
-            addHill(position, random.nextInt(radius) + 1, random.nextInt(elevation / radius) + 1, random.nextInt(10));
-        }
-    }
-
-    /**
      * Get the difference in elevation between an organism's position and another position
      *
      * @param organism the organism that the slope is relative to
@@ -197,36 +144,7 @@ public class World implements Environment {
      * @return the difference in elevation between the adjacent position and the organism's position
      */
     public int getSlope(Organism organism, int position) {
-        return getElevation(position) - getElevation(getPosition(organism));
-    }
-
-    /**
-     * Set the elevation of a position. This method is primarily for testing purposes.
-     *
-     * @param position the position whose elevation will be set
-     * @param value the elevation to set the position to
-     */
-    public void addElevation(int position, int value) {
-        value += getElementValue(position, ELEVATION);
-        setData(position, ELEVATION, Math.min(value, ELEVATION.getMaximum()));
-    }
-
-    /**
-     * Get the elevation at a given position
-     *
-     * @param position the position to get the elevation for
-     * @return the elevation at the given position
-     */
-    public int getElevation(int position) {
-        return getElementValue(position, ELEVATION);
-    }
-
-    public void setWall(int position, boolean wall) {
-        setData(position, WALL, wall);
-    }
-
-    public boolean hasWall(int position) {
-        return getElementValue(position, WALL) == 1;
+        return getElementValue(position, ELEVATION) - getElementValue(getPosition(organism), ELEVATION);
     }
 
     public boolean isEmpty(int position) {
@@ -289,9 +207,6 @@ public class World implements Environment {
             throw new IllegalArgumentException("Attempt to add organism in non-empty position");
         }
         population.addOrganism(organism, position, direction);
-        if (isAcidic(position)) {
-            organism.reduceEnergy(50);
-        }
     }
 
     /**
@@ -406,7 +321,7 @@ public class World implements Environment {
         int position = getPosition(organism, angles);
         if (isEmpty(position)) {
             int consumption = config.getValue(Value.CONSUMPTION_RATE);
-            int amount = Math.min(getResource(position), consumption);
+            int amount = Math.min(getElementValue(position, RESOURCES), consumption);
             int maxEnergy = config.getValue(Value.MAX_ENERGY);
             amount = Math.min(amount, maxEnergy - organism.getEnergy());
             organism.increaseEnergy(amount);
@@ -428,7 +343,7 @@ public class World implements Environment {
         if (isEmpty(position) && !population.hasOrganism(position)) {
             int slope = Math.max(0, getSlope(organism, position));
             if (population.moveOrganism(organism, slope)) {
-                if (getRadiation(population.getPosition(organism)) > 0) {
+                if (getElementValue(position, RADIATION) > 0) {
                     splitToAnyOpenPosition(0, organism);
                 }
                 return true;
@@ -479,7 +394,7 @@ public class World implements Environment {
 
     private Mutator mutator(int position) {
         int mutationRate = config.getValue(Value.NORMAL_MUTATION_RATE)
-                + getRadiation(position) * config.getValue(Value.RADIATION_MUTATION_RATE);
+                + getElementValue(position, RADIATION) * config.getValue(Value.RADIATION_MUTATION_RATE);
         return new Mutator(mutationRate);
     }
 
@@ -513,8 +428,7 @@ public class World implements Environment {
      */
     private void processPosition(int position, Organism organism) {
         reduceEnergyByTemperature(position, organism);
-        if (isAcidic(position))
-            organism.reduceEnergy(config.getValue(Value.ACID_TOXICITY));
+        organism.reduceEnergy(config.getValue(ACID_TOXICITY) * getElementValue(position, ACID));
         organism.reduceEnergy(config.getValue(Value.BASE_COST));
         organism.reduceEnergy(organism.size() * config.getValue(Value.SIZE_RATE) / 10);
         organism.reduceEnergy(organism.getAge() * config.getValue(Value.AGING_RATE) / 100);
@@ -583,7 +497,7 @@ public class World implements Environment {
      * @return the temperature
      */
     public int getTemperature(int position) {
-        return getLatitudeTemp(position) - getElevation(position) + time.getSeasonalTemp();
+        return getLatitudeTemp(position) - getElementValue(position, ELEVATION) + time.getSeasonalTemp();
     }
 
     private int getLatitudeTemp(int position) {

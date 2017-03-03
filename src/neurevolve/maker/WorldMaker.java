@@ -10,6 +10,7 @@ import neurevolve.network.SigmoidFunction;
 import neurevolve.world.Configuration;
 import static neurevolve.world.Configuration.Value.YEAR_LENGTH;
 import neurevolve.world.GroundElement;
+import static neurevolve.world.GroundElement.*;
 import neurevolve.world.Space;
 import neurevolve.world.Time.Season;
 import neurevolve.world.World;
@@ -68,8 +69,9 @@ public class WorldMaker {
      * @return a type used to place acid in the world
      */
     public Type acid() {
-        usedElements.add(GroundElement.ACID);
-        return (world, position, factor) -> world.setAcidic(position, true);
+        usedElements.add(ACID);
+        return (world, position, factor)
+                -> world.addElementValue(position, ACID, 1);
     }
 
     /**
@@ -79,8 +81,9 @@ public class WorldMaker {
      * @return a type used to place radiation in the world
      */
     public Type radiation(int radiation) {
-        usedElements.add(GroundElement.RADIATION);
-        return (world, position, factor) -> world.addRadition(position, factor * radiation / 100);
+        usedElements.add(RADIATION);
+        return (world, position, factor)
+                -> world.addElementValue(position, RADIATION, factor * radiation / 100);
     }
 
     /**
@@ -89,8 +92,9 @@ public class WorldMaker {
      * @return a type used to place walls in the world
      */
     public Type wall() {
-        usedElements.add(GroundElement.WALL);
-        return (world, position, factor) -> world.setWall(position, true);
+        usedElements.add(WALL);
+        return (world, position, factor)
+                -> world.addElementValue(position, WALL, 1);
     }
 
     /**
@@ -100,8 +104,9 @@ public class WorldMaker {
      * @return a type used to add to the elevation in the world
      */
     public Type elevation(int maxElevation) {
-        usedElements.add(GroundElement.ELEVATION);
-        return (world, position, factor) -> world.addElevation(position, factor * maxElevation / 100);
+        usedElements.add(ELEVATION);
+        return (world, position, factor)
+                -> world.addElementValue(position, ELEVATION, factor * maxElevation / 100);
     }
 
     /**

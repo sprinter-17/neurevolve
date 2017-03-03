@@ -7,6 +7,9 @@ import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Angle.LEFT;
 import static neurevolve.world.Angle.RIGHT;
 import neurevolve.world.Configuration.Value;
+import static neurevolve.world.GroundElement.ACID;
+import static neurevolve.world.GroundElement.ELEVATION;
+import static neurevolve.world.GroundElement.WALL;
 import static neurevolve.world.Space.EAST;
 import static neurevolve.world.Space.NORTH;
 import static org.hamcrest.CoreMatchers.is;
@@ -58,7 +61,7 @@ public class WorldInputTest {
     public void testSlope() {
         input.setUsedElements(EnumSet.of(GroundElement.ELEVATION));
         assertThat(input("Look Slope Forward"), is(0));
-        world.addElevation(frame.move(position, 0), 17);
+        world.addElementValue(frame.move(position, EAST), ELEVATION, 17);
         assertThat(input("Look Slope Forward"), is(17));
         assertThat(input("Look Slope Left"), is(0));
     }
@@ -67,7 +70,7 @@ public class WorldInputTest {
     public void testWall() {
         input.setUsedElements(EnumSet.of(GroundElement.WALL));
         assertThat(input("Look Wall Far Forward"), is(-WorldInput.MAX_VALUE));
-        world.setWall(world.getPosition(organism, FORWARD, FORWARD), true);
+        world.addElementValue(world.getPosition(organism, FORWARD, FORWARD), WALL, 1);
         assertThat(input("Look Wall Far Forward"), is(WorldInput.MAX_VALUE));
     }
 
@@ -75,7 +78,7 @@ public class WorldInputTest {
     public void testAcid() {
         input.setUsedElements(EnumSet.of(GroundElement.ACID));
         assertThat(input("Look Acid Forward Left"), is(-1));
-        world.setAcidic(world.getPosition(organism, FORWARD, LEFT), true);
+        world.addElementValue(world.getPosition(organism, FORWARD, LEFT), ACID, 1);
         assertThat(input("Look Acid Forward Left"), is(WorldInput.MAX_VALUE - 1));
     }
 
