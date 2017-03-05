@@ -1,6 +1,7 @@
 package neurevolve.organism;
 
 import java.util.Optional;
+import java.util.stream.IntStream;
 import neurevolve.network.Activity;
 import neurevolve.network.Input;
 import neurevolve.network.Network;
@@ -87,6 +88,13 @@ public class Organism {
 
     public int getColour() {
         return recipe.getColour();
+    }
+
+    public int getColourDifference(Organism other) {
+        int differences = getColour() ^ other.getColour();
+        return (int) IntStream.range(0, 24)
+                .filter(b -> (differences & (1 << b)) != 0)
+                .count() - 1;
     }
 
     public Optional<Organism> getParent() {

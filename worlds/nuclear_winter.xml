@@ -8,23 +8,23 @@
     <at_start>
         <add_resources amount='100'>
             <everywhere/>
-            <pools count='200' radius='20'/>
+            <pools count='200' radius='3'/>
         </add_resources>
         <elevation amount='200'>
-            <pools count='100' radius='40'/>
+            <pools count='100' radius='4'/>
         </elevation>
         <acid>
             <vertical_edges width='10'/>
             <horizontal_edges width='10'/>
-            <pools count='40' radius='60'/>
+            <pools count='40' radius='4'/>
         </acid>
         <radiation amount='3'>
-            <pools count='100' radius='50'/>
+            <pools count='100' radius='5'/>
         </radiation>
     </at_start>
     <in_season season="winter">
         <acid>
-            <pools count = '10' radius='50'/>
+            <pools count = '5' radius='1'/>
         </acid>
     </in_season>
 </world>

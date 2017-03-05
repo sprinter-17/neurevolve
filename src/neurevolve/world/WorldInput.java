@@ -87,7 +87,9 @@ public class WorldInput {
     }
 
     private void addVisionElementInput(GroundElement element) {
-        addVisionInput(element == GroundElement.ELEVATION ? "Slope" : element.getName(), (o, p) -> getValue(o, p, element));
+        addVisionInput(element == GroundElement.ELEVATION
+                ? "Slope"
+                : element.getName(), (o, p) -> getValue(o, p, element));
     }
 
     private int getValue(Organism organism, int position, GroundElement element) {

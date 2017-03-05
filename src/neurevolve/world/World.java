@@ -14,19 +14,11 @@ import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
 import neurevolve.organism.Recipe;
-import static neurevolve.world.Angle.FORWARD;
+import static neurevolve.world.Angle.*;
 import neurevolve.world.Configuration.Value;
-import static neurevolve.world.Configuration.Value.ACID_TOXICITY;
-import static neurevolve.world.GroundElement.ACID;
-import static neurevolve.world.GroundElement.BODY;
-import static neurevolve.world.GroundElement.ELEVATION;
-import static neurevolve.world.GroundElement.RADIATION;
-import static neurevolve.world.GroundElement.RESOURCES;
-import static neurevolve.world.GroundElement.WALL;
-import static neurevolve.world.Space.EAST;
-import static neurevolve.world.Space.NORTH;
-import static neurevolve.world.Space.SOUTH;
-import static neurevolve.world.Space.WEST;
+import static neurevolve.world.Configuration.Value.*;
+import static neurevolve.world.GroundElement.*;
+import static neurevolve.world.Space.*;
 
 /**
  * A <code>World</code> represents the two dimensional environment that a set of organisms exist
@@ -169,18 +161,15 @@ public class World implements Environment {
      * @return the organism's energy, or 0 if there is no organism in the given position
      */
     public int getOrganismEnergy(int position) {
-        return hasOrganism(position) ? population.getOrganism(position).getEnergy() : 0;
+        return hasOrganism(position)
+                ? population.getOrganism(position).getEnergy()
+                : 0;
     }
 
     public int getColourDifference(Organism organism, int position) {
-        if (!hasOrganism(position)) {
-            return -100;
-        } else {
-            int differences = organism.getColour() ^ population.getOrganism(position).getColour();
-            return (int) IntStream.range(0, 24)
-                    .filter(b -> (differences & (1 << b)) != 0)
-                    .count() - 1;
-        }
+        return hasOrganism(position)
+                ? organism.getColourDifference(population.getOrganism(position))
+                : -100;
     }
 
     /**
@@ -189,10 +178,10 @@ public class World implements Environment {
      * @param organism the organism to place
      * @param position the position to place the organism
      * @param direction the direction the organism will face
-     * @throws IllegalArgumentException if the position already has an organism
+     * @throws IllegalArgumentException if the position is not empty or already has an organism
      */
     public void addOrganism(Organism organism, int position, int direction) {
-        if (!isEmpty(position)) {
+        if (!isEmpty(position) || hasOrganism(position)) {
             throw new IllegalArgumentException("Attempt to add organism in non-empty position");
         }
         population.addOrganism(organism, position, direction);
@@ -305,6 +294,7 @@ public class World implements Environment {
             int amount = Math.min(getElementValue(position, RESOURCES), consumption);
             int maxEnergy = config.getValue(Value.MAX_ENERGY);
             amount = Math.min(amount, maxEnergy - organism.getEnergy());
+            amount = Math.max(amount, 0);
             organism.increaseEnergy(amount);
             ground.substractElementValue(position, RESOURCES, amount);
             return true;
@@ -408,28 +398,26 @@ public class World implements Environment {
      * Process the organism at a given position. Reduce its energy according to temperature
      */
     private void processPosition(int position, Organism organism) {
-        reduceEnergyByTemperature(position, organism);
+        adjustEnergy(position, organism);
+        population.resetActivityCount(organism);
+        organism.activate();
+        if (organism.isDead()) {
+            removeOrganism(organism);
+            ground.addElementValue(position, BODY, 1);
+        } else {
+            stats.add(organism);
+        }
+    }
+
+    private void adjustEnergy(int position, Organism organism) {
+        if (getTemperature(position) < 0)
+            organism.reduceEnergy(-getTemperature(position));
+        if (organism.getEnergy() > config.getValue(MAX_ENERGY))
+            organism.reduceEnergy(organism.getEnergy() - config.getValue(MAX_ENERGY));
         organism.reduceEnergy(config.getValue(ACID_TOXICITY) * getElementValue(position, ACID));
         organism.reduceEnergy(config.getValue(Value.BASE_COST));
         organism.reduceEnergy(organism.size() * config.getValue(Value.SIZE_RATE) / 10);
         organism.reduceEnergy(organism.getAge() * config.getValue(Value.AGING_RATE) / 100);
-        population.resetActivityCount(organism);
-        organism.activate();
-        stats.add(organism);
-        if (organism.isDead()) {
-            removeOrganism(organism);
-            ground.addElementValue(position, BODY, 1);
-        }
-    }
-
-    /**
-     * Reduce the energy of an organism by the temperature at its position only if it is negative
-     */
-    private void reduceEnergyByTemperature(int position, Organism organism) {
-        int temp = getTemperature(position);
-        if (temp < 0) {
-            organism.reduceEnergy(-temp);
-        }
     }
 
     /**
@@ -517,17 +505,20 @@ public class World implements Environment {
     @Override
     public void performActivity(Organism organism, int code) {
         WorldActivity activity = WorldActivity.decode(code);
+        int cost = getActivityCost(activity, organism);
+        if (organism.hasEnergy(cost) && activity.perform(this, organism)) {
+            population.incrementActivityCount(organism, activity);
+        } else {
+            cost /= 2;
+        }
+        organism.reduceEnergy(cost);
+    }
+
+    private int getActivityCost(WorldActivity activity, Organism organism) {
         int cost = config.getActivityCost(activity);
         int count = population.getActivityCount(organism, activity);
         cost = cost * (100 + count * config.getActivityFactor(activity)) / 100;
-        if (organism.hasEnergy(cost)) {
-            if (activity.perform(this, organism)) {
-                organism.reduceEnergy(cost);
-                population.incrementActivityCount(organism, activity);
-            }
-        } else {
-            organism.reduceEnergy(cost / 2);
-        }
+        return cost;
     }
 
     @Override
