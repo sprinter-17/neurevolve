@@ -59,7 +59,7 @@ public class WorldInputTest {
 
     @Test
     public void testSlope() {
-        input.setUsedElements(EnumSet.of(GroundElement.ELEVATION));
+        input.addUsedElements(EnumSet.of(GroundElement.ELEVATION));
         assertThat(input("Look Slope Forward"), is(0));
         world.addElementValue(frame.move(position, EAST), ELEVATION, 17);
         assertThat(input("Look Slope Forward"), is(17));
@@ -68,7 +68,7 @@ public class WorldInputTest {
 
     @Test
     public void testWall() {
-        input.setUsedElements(EnumSet.of(GroundElement.WALL));
+        input.addUsedElements(EnumSet.of(GroundElement.WALL));
         assertThat(input("Look Wall Far Forward"), is(-WorldInput.MAX_VALUE));
         world.addElementValue(world.getPosition(organism, FORWARD, FORWARD), WALL, 1);
         assertThat(input("Look Wall Far Forward"), is(WorldInput.MAX_VALUE));
@@ -76,7 +76,7 @@ public class WorldInputTest {
 
     @Test
     public void testAcid() {
-        input.setUsedElements(EnumSet.of(GroundElement.ACID));
+        input.addUsedElements(EnumSet.of(GroundElement.ACID));
         assertThat(input("Look Acid Forward Left"), is(-1));
         world.addElementValue(world.getPosition(organism, FORWARD, LEFT), ACID, 1);
         assertThat(input("Look Acid Forward Left"), is(WorldInput.MAX_VALUE - 1));

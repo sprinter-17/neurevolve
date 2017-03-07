@@ -37,7 +37,7 @@ public class WorldRecipeTest {
 
     private void testElement(GroundElement element, String name) {
         world = new World(n -> n, space, config);
-        world.setUsedElements(EnumSet.allOf(GroundElement.class));
+        world.addUsedElements(EnumSet.allOf(GroundElement.class));
         Recipe recipe = inputRecipe("Look " + name + " Forward");
         RecipeDescriber description = new RecipeDescriber(recipe, world);
         assertThat(description.toString(), is("N1+1 Turn Left Look " + name + " Forward+1"));

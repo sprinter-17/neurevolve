@@ -97,7 +97,7 @@ public class RecipeSaverTest {
 
     @Test
     public void testLoadInputs() throws SAXException {
-        world.setUsedElements(EnumSet.of(GroundElement.ACID));
+        world.addUsedElements(EnumSet.of(GroundElement.ACID));
         Recipe recipe = loadRecipe("<add_neuron weight=\"5\"/>"
                 + "<add_input input='look_acid_far_forward' weight='11'/>"
                 + "<add_input input='look_left_wall' weight='6'/>");

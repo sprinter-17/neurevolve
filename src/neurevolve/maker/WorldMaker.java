@@ -341,7 +341,7 @@ public class WorldMaker {
      */
     public World make() {
         World world = new World(new SigmoidFunction(100), space, config);
-        world.setUsedElements(usedElements);
+        world.addUsedElements(usedElements);
         process(world);
         world.addTickListener(() -> process(world));
         return world;

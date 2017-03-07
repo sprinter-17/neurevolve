@@ -246,7 +246,7 @@ public class WorldTest {
         int position = space.position(4, 7);
         Organism organism = new Organism(world, 100);
         world.addOrganism(organism, position, EAST);
-        world.setUsedElements(EnumSet.of(GroundElement.ELEVATION));
+        world.addUsedElements(EnumSet.of(GroundElement.ELEVATION));
         assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(0));
         world.addElementValue(world.getPosition(organism, FORWARD), ELEVATION, 11);
         assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(11));

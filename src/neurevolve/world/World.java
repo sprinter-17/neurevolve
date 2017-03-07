@@ -37,15 +37,12 @@ public class World implements Environment {
     private final Configuration config;
     private final Ground ground;
     private final Random random = new Random();
+    private final Population population;
     private final WorldInput inputs;
-
     private final List<Runnable> tickListeners = new ArrayList<>();
 
     private final Time time;
     private WorldStatistics stats;
-
-    private final Population population;
-    private final EnumSet<GroundElement> usedElements = EnumSet.of(GroundElement.BODY);
 
     private final ActivationFunction function;
 
@@ -66,19 +63,39 @@ public class World implements Environment {
         this.ground = new Ground(space.size());
     }
 
-    public void setUsedElements(EnumSet<GroundElement> elements) {
-        this.usedElements.addAll(elements);
-        inputs.setUsedElements(usedElements);
+    /**
+     * Add a set of ground elements to be used as inputs.
+     *
+     * @param elements the set to add.
+     */
+    public void addUsedElements(EnumSet<GroundElement> elements) {
+        inputs.addUsedElements(elements);
     }
 
+    /**
+     * Check if a ground element is available as an input.
+     *
+     * @param element the element to check
+     * @return true if the given element is available as an input.
+     */
     public boolean usesElement(GroundElement element) {
-        return usedElements.contains(element);
+        return inputs.usesElement(element);
     }
 
+    /**
+     * Get the number of input codes
+     *
+     * @return the total number of input codes.
+     */
     public int getInputCodeCount() {
         return inputs.getCodeCount();
     }
 
+    /**
+     * Makes a copy of the ground elements.
+     *
+     * @return the copy
+     */
     public Ground copyGround() {
         return ground.copy();
     }
@@ -92,6 +109,12 @@ public class World implements Environment {
         return population.copy();
     }
 
+    /**
+     * Get the direction an organism is currently facing.
+     *
+     * @param organism the organism who direction to get.
+     * @return the direction.
+     */
     public int getOrganismDirection(Organism organism) {
         return population.getDirection(organism);
     }
@@ -105,14 +128,35 @@ public class World implements Environment {
         return population.size();
     }
 
+    /**
+     * Get the value of a ground element.
+     *
+     * @param position the position of the element
+     * @param element the element to retrieve
+     * @return the value of the given element at the given position
+     */
     public int getElementValue(int position, GroundElement element) {
         return ground.getElementValue(position, element);
     }
 
+    /**
+     * Check if an element is present.
+     *
+     * @param position the position of the element
+     * @param element the element to check
+     * @return true, if the given element has a non-zero value at the given position.
+     */
     public boolean hasElement(int position, GroundElement element) {
         return getElementValue(position, element) > 0;
     }
 
+    /**
+     * Add to the value of an element.
+     *
+     * @param position the position of the element
+     * @param element the element to increase the value
+     * @param value the amount to increase the given element's value by at the given position
+     */
     public void addElementValue(int position, GroundElement element, int value) {
         ground.addElementValue(position, element, value);
     }
@@ -128,6 +172,12 @@ public class World implements Environment {
         return getElementValue(position, ELEVATION) - getElementValue(getPosition(organism), ELEVATION);
     }
 
+    /**
+     * Check if a position has any element that prevents an organism being added.
+     *
+     * @param position the position to check
+     * @return true, if the position does not have a wall or body
+     */
     public boolean isEmpty(int position) {
         return getElementValue(position, WALL) == 0 && getElementValue(position, BODY) == 0;
     }
@@ -158,14 +208,22 @@ public class World implements Environment {
      * Get the energy of the organism at a position.
      *
      * @param position the position of the organism
-     * @return the organism's energy, or 0 if there is no organism in the given position
+     * @return the organism's energy, or -100 if there is no organism in the given position
      */
     public int getOrganismEnergy(int position) {
         return hasOrganism(position)
                 ? population.getOrganism(position).getEnergy()
-                : 0;
+                : -100;
     }
 
+    /**
+     * Get the difference in colour between an organism and another organism at a position
+     *
+     * @param organism the organism whose colour to compare
+     * @param position the position to check
+     * @return the colour difference between the organisms, or -100 if there is no organism in the
+     * given position
+     */
     public int getColourDifference(Organism organism, int position) {
         return hasOrganism(position)
                 ? organism.getColourDifference(population.getOrganism(position))
@@ -194,17 +252,36 @@ public class World implements Environment {
         population.removeOrganism(organism);
     }
 
+    /**
+     * Get all current organisms from a copy of population.
+     *
+     * @return a stream of the current organisms.
+     */
     public Stream<Organism> getOrganisms() {
         Population copy = population.copy();
-        return IntStream.range(0, space.size())
+        return allPositions()
                 .filter(copy::hasOrganism)
                 .mapToObj(copy::getOrganism);
     }
 
+    private IntStream allPositions() {
+        return IntStream.range(0, space.size());
+    }
+
+    /**
+     * Add a {@code Runnable} to call after each tick.
+     *
+     * @param listner the {@code Runnable} to call
+     */
     public void addTickListener(Runnable listner) {
         tickListeners.add(listner);
     }
 
+    /**
+     * Remove a previously added {@code Runnable}
+     *
+     * @param listener the {@code Runnable} to remove
+     */
     public void removeTickListener(Runnable listener) {
         tickListeners.remove(listener);
     }
@@ -227,19 +304,27 @@ public class World implements Environment {
     }
 
     private void seedOrganisms() {
-        Recipe recipe = config.getSeedRecipe().replicate((instructions, size, c) -> {
-            Recipe copy = new Recipe(random.nextInt(1 << 24));
-            for (int i = 0; i < size; i++) {
-                copy.add(instructions[i]);
-            }
-            return copy;
-        });
-        if (population.size() < config.getValue(Value.SEED_COUNT)) {
-            int position = random.nextInt(space.size());
-            if (!population.hasOrganism(position) && isEmpty(position)) {
-                population.addOrganism(new Organism(this, config.getValue(Value.INITIAL_ENERGY), recipe),
-                        position, random.nextInt(4));
-            }
+        if (population.size() < config.getValue(Value.SEED_COUNT))
+            addSeedOrganism(createSeedRecipe());
+    }
+
+    private Recipe createSeedRecipe() {
+        return config.getSeedRecipe()
+                .replicate(this::replicateWithRandomColour);
+    }
+
+    private Recipe replicateWithRandomColour(byte[] instructions, int size, int colour) {
+        Recipe copy = new Recipe(random.nextInt(1 << 24));
+        IntStream.range(0, size)
+                .forEach(i -> copy.add(instructions[i]));
+        return copy;
+    }
+
+    private void addSeedOrganism(Recipe recipe) {
+        int position = random.nextInt(space.size());
+        if (!population.hasOrganism(position) && isEmpty(position)) {
+            population.addOrganism(new Organism(this, config.getValue(Value.INITIAL_ENERGY), recipe),
+                    position, random.nextInt(4));
         }
     }
 
@@ -248,19 +333,26 @@ public class World implements Environment {
      * by temp / 100 and a further one each temp % 100 ticks.
      */
     private void growResources() {
-        for (int i = 0; i < space.size(); i++) {
-            int temp = getTemperature(i);
-            if (temp > 0) {
-                int growthPeriod = 100;
-                while (temp >= growthPeriod) {
-                    ground.addElementValue(i, RESOURCES, 1);
-                    temp -= growthPeriod;
-                }
-                if (getTime() % (growthPeriod - temp) == 0) {
-                    ground.addElementValue(i, RESOURCES, 1);
-                }
-            }
+        allPositions().forEach(this::growResourcesAtPosition);
+    }
+
+    private void growResourcesAtPosition(int position) {
+        int temperature = getTemperature(position);
+        int resources = getResourcesForTemperature(temperature);
+        ground.addElementValue(position, RESOURCES, resources);
+    }
+
+    private int getResourcesForTemperature(int temp) {
+        int resources = 0;
+        int growthPeriod = 100;
+        while (temp >= growthPeriod) {
+            resources++;
+            temp -= growthPeriod;
         }
+        if (getTime() % (growthPeriod - temp) == 0) {
+            resources++;
+        }
+        return resources;
     }
 
     private void halfLives() {
@@ -271,10 +363,9 @@ public class World implements Environment {
     private void halfLife(GroundElement element) {
         int halfLife = config.getHalfLife(element);
         if (halfLife > 0 && halfLife < 1000) {
-            for (int i = 0; i < space.size(); i++) {
-                if (random.nextInt(halfLife) == 0)
-                    ground.substractElementValue(i, element, 1);
-            }
+            allPositions()
+                    .filter(i -> random.nextInt(halfLife) == 0)
+                    .forEach(p -> ground.substractElementValue(p, element, 1));
         }
     }
 
@@ -290,16 +381,20 @@ public class World implements Environment {
     public boolean feedOrganism(Organism organism, Angle... angles) {
         int position = getPosition(organism, angles);
         if (isEmpty(position)) {
-            int consumption = config.getValue(Value.CONSUMPTION_RATE);
-            int amount = Math.min(getElementValue(position, RESOURCES), consumption);
-            int maxEnergy = config.getValue(Value.MAX_ENERGY);
-            amount = Math.min(amount, maxEnergy - organism.getEnergy());
-            amount = Math.max(amount, 0);
-            organism.increaseEnergy(amount);
-            ground.substractElementValue(position, RESOURCES, amount);
+            consumeResources(position, organism);
             return true;
         }
         return false;
+    }
+
+    private void consumeResources(int position, Organism organism) {
+        int consumption = config.getValue(Value.CONSUMPTION_RATE);
+        int amount = Math.min(getElementValue(position, RESOURCES), consumption);
+        int maxEnergy = config.getValue(Value.MAX_ENERGY);
+        amount = Math.min(amount, maxEnergy - organism.getEnergy());
+        amount = Math.max(amount, 0);
+        organism.increaseEnergy(amount);
+        ground.substractElementValue(position, RESOURCES, amount);
     }
 
     /**

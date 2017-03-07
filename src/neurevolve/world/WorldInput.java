@@ -16,6 +16,7 @@ public class WorldInput {
     public static final int MAX_VALUE = 100;
     private final World world;
     private final List<WorldValueGetter> valueGetters = new ArrayList<>();
+    private final EnumSet<GroundElement> usedElements = EnumSet.noneOf(GroundElement.class);
 
     @FunctionalInterface
     private interface ValueGetter {
@@ -82,11 +83,18 @@ public class WorldInput {
         }
     }
 
-    public void setUsedElements(EnumSet<GroundElement> elements) {
-        elements.forEach(this::addVisionElementInput);
+    public void addUsedElements(EnumSet<GroundElement> elements) {
+        elements.stream()
+                .filter(e -> !usedElements.contains(e))
+                .forEach(this::addVisionElementInput);
+    }
+
+    public boolean usesElement(GroundElement element) {
+        return usedElements.contains(element);
     }
 
     private void addVisionElementInput(GroundElement element) {
+        usedElements.add(element);
         addVisionInput(element == GroundElement.ELEVATION
                 ? "Slope"
                 : element.getName(), (o, p) -> getValue(o, p, element));
