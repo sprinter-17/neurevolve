@@ -1,5 +1,6 @@
 package neurevolve.world;
 
+import neurevolve.TestConfiguration;
 import neurevolve.TestEnvironment;
 import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.BACKWARD;
@@ -29,7 +30,7 @@ public class PopulationTest {
     @Before
     public void setup() {
         this.space = new Space(10, 10);
-        this.population = new Population(space);
+        this.population = new Population(space, new TestConfiguration());
         this.organism = new Organism(new TestEnvironment(), 100);
         this.position = space.position(5, 7);
     }

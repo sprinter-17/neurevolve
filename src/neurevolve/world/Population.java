@@ -16,6 +16,7 @@ import static neurevolve.world.Angle.FORWARD;
 public class Population {
 
     private final Space space;
+    private final Configuration config;
     private final Organism[] organisms;
     private final Map<Organism, OrganismInfo> info = new HashMap<>();
 
@@ -39,9 +40,11 @@ public class Population {
      * Construct a new population.
      *
      * @param space the space the population will live within.
+     * @param config the configuration of the population's world.
      */
-    public Population(Space space) {
+    public Population(Space space, Configuration config) {
         this.space = space;
+        this.config = config;
         organisms = new Organism[space.size()];
     }
 
@@ -51,7 +54,7 @@ public class Population {
      * @return a copy of the population
      */
     public synchronized Population copy() {
-        Population copy = new Population(space);
+        Population copy = new Population(space, config);
         System.arraycopy(organisms, 0, copy.organisms, 0, space.size());
         info.forEach((o, i) -> copy.info.put(o, i.copy()));
         return copy;
@@ -182,6 +185,24 @@ public class Population {
         return info.get(organism).direction;
     }
 
+    public void perform(World world, Organism organism, int code) {
+        WorldActivity activity = WorldActivity.decode(code);
+        int cost = getActivityCost(activity, organism);
+        if (organism.hasEnergy(cost) && activity.perform(world, organism)) {
+            incrementActivityCount(organism, activity);
+        } else {
+            cost /= 2;
+        }
+        organism.reduceEnergy(cost);
+    }
+
+    private int getActivityCost(WorldActivity activity, Organism organism) {
+        int cost = config.getActivityCost(activity);
+        int count = getActivityCount(organism, activity);
+        cost = cost * (100 + count * config.getActivityFactor(activity)) / 100;
+        return cost;
+    }
+
     /**
      * Change an organism's direction by a given angle
      *
@@ -214,4 +235,16 @@ public class Population {
         return false;
     }
 
+    public boolean attack(Organism attacker, Angle angle) {
+        int position = getPosition(attacker, angle);
+        if (hasOrganism(position)) {
+            Organism target = getOrganism(position);
+            if (attacker.getEnergy() >= target.getEnergy()) {
+                attacker.increaseEnergy(target.getEnergy());
+                target.reduceEnergy(target.getEnergy());
+            }
+            return true;
+        }
+        return false;
+    }
 }

@@ -59,7 +59,7 @@ public class World implements Environment {
         this.space = space;
         this.time = new Time(configuration);
         this.inputs = new WorldInput(this);
-        this.population = new Population(space);
+        this.population = new Population(space, configuration);
         this.ground = new Ground(space.size());
     }
 
@@ -524,16 +524,7 @@ public class World implements Environment {
      * @return true if the organism attacked (even if unsuccessfully)
      */
     public boolean attackOrganism(Organism attacker, Angle angle) {
-        int position = getPosition(attacker, angle);
-        if (hasOrganism(position)) {
-            Organism target = population.getOrganism(position);
-            if (attacker.getEnergy() >= target.getEnergy()) {
-                attacker.increaseEnergy(target.getEnergy());
-                target.reduceEnergy(target.getEnergy());
-            }
-            return true;
-        }
-        return false;
+        return population.attack(attacker, angle);
     }
 
     /**
@@ -599,21 +590,7 @@ public class World implements Environment {
      */
     @Override
     public void performActivity(Organism organism, int code) {
-        WorldActivity activity = WorldActivity.decode(code);
-        int cost = getActivityCost(activity, organism);
-        if (organism.hasEnergy(cost) && activity.perform(this, organism)) {
-            population.incrementActivityCount(organism, activity);
-        } else {
-            cost /= 2;
-        }
-        organism.reduceEnergy(cost);
-    }
-
-    private int getActivityCost(WorldActivity activity, Organism organism) {
-        int cost = config.getActivityCost(activity);
-        int count = population.getActivityCount(organism, activity);
-        cost = cost * (100 + count * config.getActivityFactor(activity)) / 100;
-        return cost;
+        population.perform(this, organism, code);
     }
 
     @Override
