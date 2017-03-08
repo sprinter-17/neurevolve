@@ -1,19 +1,13 @@
 package neurevolve.world;
 
-import java.util.EnumSet;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Organism;
-import static neurevolve.world.Angle.FORWARD;
-import static neurevolve.world.Angle.LEFT;
-import static neurevolve.world.Angle.RIGHT;
+import static neurevolve.world.Angle.*;
 import neurevolve.world.Configuration.Value;
-import static neurevolve.world.GroundElement.ACID;
-import static neurevolve.world.GroundElement.ELEVATION;
-import static neurevolve.world.GroundElement.WALL;
-import static neurevolve.world.Space.EAST;
-import static neurevolve.world.Space.NORTH;
+import static neurevolve.world.GroundElement.*;
+import static neurevolve.world.Space.*;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,6 +29,23 @@ public class WorldInputTest {
         organism = new Organism(world, 100);
         world.addOrganism(organism, position, EAST);
         input = new WorldInput(world);
+    }
+
+    @Test
+    public void testUsesElements() {
+        assertTrue(input.usesElement(BODY));
+        assertTrue(input.getCode("Look Body Here").isPresent());
+        assertTrue(input.usesElement(RESOURCES));
+        assertTrue(input.getCode("Look Resources Here").isPresent());
+        assertFalse(input.getCode("Look Acid Here").isPresent());
+        assertFalse(input.usesElement(ACID));
+        input.addUsedElement(ACID);
+        assertTrue(input.usesElement(ACID));
+        assertTrue(input.getCode("Look Acid Here").isPresent());
+        assertFalse(input.usesElement(ELEVATION));
+        input.addUsedElement(ELEVATION);
+        assertTrue(input.usesElement(ACID));
+        assertTrue(input.usesElement(ELEVATION));
     }
 
     @Test
@@ -60,7 +71,7 @@ public class WorldInputTest {
 
     @Test
     public void testSlope() {
-        input.addUsedElements(EnumSet.of(GroundElement.ELEVATION));
+        input.addUsedElement(ELEVATION);
         assertThat(input("Look Slope Forward"), is(0));
         world.addElementValue(frame.move(position, EAST), ELEVATION, 17);
         assertThat(input("Look Slope Forward"), is(17));
@@ -69,7 +80,7 @@ public class WorldInputTest {
 
     @Test
     public void testWall() {
-        input.addUsedElements(EnumSet.of(GroundElement.WALL));
+        input.addUsedElement(WALL);
         assertThat(input("Look Wall Far Forward"), is(-WorldInput.MAX_VALUE));
         world.addElementValue(world.getPosition(organism, FORWARD, FORWARD), WALL, 1);
         assertThat(input("Look Wall Far Forward"), is(WorldInput.MAX_VALUE));
@@ -77,7 +88,7 @@ public class WorldInputTest {
 
     @Test
     public void testAcid() {
-        input.addUsedElements(EnumSet.of(GroundElement.ACID));
+        input.addUsedElement(ACID);
         assertThat(input("Look Acid Forward Left"), is(-1));
         world.addElementValue(world.getPosition(organism, FORWARD, LEFT), ACID, 1);
         assertThat(input("Look Acid Forward Left"), is(WorldInput.MAX_VALUE - 1));

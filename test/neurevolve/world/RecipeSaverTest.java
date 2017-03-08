@@ -1,7 +1,6 @@
 package neurevolve.world;
 
 import java.io.StringReader;
-import java.util.EnumSet;
 import java.util.Random;
 import neurevolve.TestConfiguration;
 import neurevolve.organism.Code;
@@ -97,7 +96,7 @@ public class RecipeSaverTest {
 
     @Test
     public void testLoadInputs() throws SAXException {
-        world.addUsedElements(EnumSet.of(GroundElement.ACID));
+        world.addUsedElement(GroundElement.ACID);
         Recipe recipe = loadRecipe("<add_neuron weight=\"5\"/>"
                 + "<add_input input='look_acid_far_forward' weight='11'/>"
                 + "<add_input input='look_left_wall' weight='6'/>");

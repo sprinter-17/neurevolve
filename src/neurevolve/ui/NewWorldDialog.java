@@ -30,10 +30,11 @@ import javax.swing.SpinnerNumberModel;
 import neurevolve.maker.Loader;
 import neurevolve.maker.WorldMaker;
 import neurevolve.organism.Recipe;
+import neurevolve.world.Configuration;
 import neurevolve.world.RecipeSaver;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.Configuration;
+import neurevolve.world.WorldTicker;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -139,7 +140,9 @@ public class NewWorldDialog extends JDialog {
                         Recipe seedRecipe = loader.load(input);
                         config.setSeedRecipe(seedRecipe);
                     }
-                    MainWindow window = new MainWindow(loader.getName(), world, space,
+                    WorldTicker ticker = new WorldTicker(world, config);
+                    ticker.addTickListener(() -> maker.process(world, ticker.getTime()));
+                    MainWindow window = new MainWindow(loader.getName(), world, ticker, space,
                             config, NewWorldDialog.this);
                     window.show();
                     setVisible(false);

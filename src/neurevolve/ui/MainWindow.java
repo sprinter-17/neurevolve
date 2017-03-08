@@ -32,7 +32,6 @@ public class MainWindow {
 
     private final NewWorldDialog newWorldDialog;
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private final World world;
     private final WorldTicker ticker;
     private final JFrame frame;
     private final AnalysisWindow analysisWindow;
@@ -54,10 +53,10 @@ public class MainWindow {
      * @param config the configuration for this world
      * @param newWorldDialog the dialog to use to create new worlds
      */
-    public MainWindow(String title, final World world, final Space space, final Configuration config,
+    public MainWindow(String title, final World world, final WorldTicker ticker, final Space space,
+            final Configuration config,
             NewWorldDialog newWorldDialog) {
-        this.world = world;
-        this.ticker = new WorldTicker(world, config);
+        this.ticker = ticker;
         this.newWorldDialog = newWorldDialog;
         frame = new JFrame("Neurevolve");
         frame.setTitle(title);

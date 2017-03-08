@@ -1,6 +1,5 @@
 package neurevolve.world;
 
-import java.util.EnumSet;
 import neurevolve.TestConfiguration;
 import static neurevolve.organism.Code.fromInt;
 import neurevolve.organism.Instruction;
@@ -182,7 +181,7 @@ public class WorldTest {
         int position = space.position(4, 7);
         Organism organism = new Organism(world, 100);
         world.addOrganism(organism, position, EAST);
-        world.addUsedElements(EnumSet.of(GroundElement.ELEVATION));
+        world.addUsedElement(ELEVATION);
         assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(0));
         world.addElementValue(world.getPosition(organism, FORWARD), ELEVATION, 11);
         assertThat(world.getInput(organism, world.getInputCode("Look Slope Forward").getAsInt()), is(11));

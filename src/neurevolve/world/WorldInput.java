@@ -10,6 +10,7 @@ import neurevolve.organism.Organism;
 import static neurevolve.world.Angle.FORWARD;
 import static neurevolve.world.Angle.LEFT;
 import static neurevolve.world.Angle.RIGHT;
+import static neurevolve.world.GroundElement.*;
 
 public class WorldInput {
 
@@ -65,6 +66,8 @@ public class WorldInput {
 
     public WorldInput(World world) {
         this.world = world;
+        addUsedElement(BODY);
+        addUsedElement(RESOURCES);
         addInput("Own Age", Organism::getAge);
         addInput("Own Energy", Organism::getEnergy);
         addInput("Temperature Here", o -> world.getTemperature(world.getPosition(o)));
@@ -83,10 +86,9 @@ public class WorldInput {
         }
     }
 
-    public void addUsedElements(EnumSet<GroundElement> elements) {
-        elements.stream()
-                .filter(e -> !usedElements.contains(e))
-                .forEach(this::addVisionElementInput);
+    public final void addUsedElement(GroundElement element) {
+        if (!usedElements.contains(element))
+            addVisionElementInput(element);
     }
 
     public boolean usesElement(GroundElement element) {

@@ -228,9 +228,8 @@ public class WorldMaker {
      * @return the shape
      */
     public Shape pools(int count, int radius) {
-        int scaledCount = scaleSize(count);
         int scaledRadius = Math.min(scaleHeight(radius), scaleWidth(radius));
-        return action -> IntStream.range(0, scaledCount).forEach(i -> makePool(scaledRadius, action));
+        return action -> IntStream.range(0, count).forEach(i -> makePool(scaledRadius, action));
     }
 
     /**
@@ -341,7 +340,7 @@ public class WorldMaker {
      */
     public World make() {
         World world = new World(new SigmoidFunction(100), space, config);
-        world.addUsedElements(usedElements);
+        usedElements.forEach(world::addUsedElement);
         process(world, 0);
         return world;
     }
@@ -364,9 +363,4 @@ public class WorldMaker {
     private int scaleHeight(int value) {
         return value * space.getHeight() / 100;
     }
-
-    private int scaleSize(int value) {
-        return value * space.size() / 10000;
-    }
-
 }

@@ -2,7 +2,6 @@ package neurevolve.world;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
@@ -57,8 +56,8 @@ public class World implements Environment {
      *
      * @param elements the set to add.
      */
-    public void addUsedElements(EnumSet<GroundElement> elements) {
-        inputs.addUsedElements(elements);
+    public void addUsedElement(GroundElement element) {
+        inputs.addUsedElement(element);
     }
 
     /**

@@ -23,9 +23,9 @@
             <horizontal_edges width='10'/>
         </acid>
     </at_start>
-    <with_period period='10'>
+    <with_period period='1'>
         <add_resources amount='200'>
-            <pools count='1' radius='1'/>
+            <pools count='1' radius='2'/>
         </add_resources>
     </with_period>
 </world>

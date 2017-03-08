@@ -1,6 +1,6 @@
 package neurevolve.world;
 
-import java.util.EnumSet;
+import java.util.Arrays;
 import neurevolve.organism.Code;
 import neurevolve.organism.Instruction;
 import neurevolve.organism.Organism;
@@ -37,7 +37,7 @@ public class WorldRecipeTest {
 
     private void testElement(GroundElement element, String name) {
         world = new World(n -> n, space, config);
-        world.addUsedElements(EnumSet.allOf(GroundElement.class));
+        Arrays.stream(GroundElement.values()).forEach(world::addUsedElement);
         Recipe recipe = inputRecipe("Look " + name + " Forward");
         RecipeDescriber description = new RecipeDescriber(recipe, world);
         assertThat(description.toString(), is("N1+1 Turn Left Look " + name + " Forward+1"));
