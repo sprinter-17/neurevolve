@@ -14,6 +14,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import neurevolve.world.World;
 import neurevolve.world.WorldStatistics;
+import neurevolve.world.WorldTicker;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -61,7 +62,7 @@ public class TrendWindow extends JFrame {
     private final JPanel chartPanel = new JPanel();
     private final AxisSpace leftSpace = new AxisSpace();
 
-    public TrendWindow(World world) throws HeadlessException {
+    public TrendWindow(World world, WorldTicker ticker) throws HeadlessException {
         super("Trend Chart");
         chartPanel.setLayout(new BoxLayout(chartPanel, BoxLayout.PAGE_AXIS));
         toolBar.add(new AbstractAction("Close") {
@@ -74,11 +75,11 @@ public class TrendWindow extends JFrame {
         add(chartPanel, BorderLayout.CENTER);
 
         leftSpace.setLeft(50);
-        Arrays.stream(Data.values()).forEach(d -> addChart(d, world));
+        Arrays.stream(Data.values()).forEach(d -> addChart(d, world, ticker));
         pack();
     }
 
-    private void addChart(Data data, World world) {
+    private void addChart(Data data, World world, WorldTicker ticker) {
         boolean selected = data == Data.POPULATION;
         JPanel chartRow = new JPanel();
         chartRow.setLayout(new BoxLayout(chartRow, BoxLayout.LINE_AXIS));
@@ -96,8 +97,8 @@ public class TrendWindow extends JFrame {
         yearChart.getCategoryPlot().getDomainAxis().setVisible(false);
         chartRow.add(new ChartPanel(yearChart, true));
 
-        world.addTickListener(() -> {
-            WorldStatistics stats = world.getStats();
+        ticker.addTickListener(() -> {
+            WorldStatistics stats = ticker.getStats();
             SwingUtilities.invokeLater(() -> {
                 data.addData(stats);
                 if (stats.isEndOfYear())

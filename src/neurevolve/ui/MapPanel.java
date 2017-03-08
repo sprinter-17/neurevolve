@@ -21,6 +21,7 @@ import static neurevolve.world.GroundElement.WALL;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
+import neurevolve.world.WorldTicker;
 
 /**
  * A <code>MapPanel</code> displays a with one pixel per position in the world's space. The colour
@@ -51,16 +52,16 @@ public class MapPanel extends JPanel {
      * @param space the space the world occupies
      * @param config the configuration for the world
      */
-    public MapPanel(World world, Space space, Configuration config) {
+    public MapPanel(World world, WorldTicker ticker, Space space, Configuration config) {
         this.world = world;
         this.config = config;
         image = new BufferedImage(space.getWidth(), space.getHeight(), BufferedImage.TYPE_INT_ARGB);
         pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-        world.addTickListener(this::redraw);
+        ticker.addTickListener(this::redraw);
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                ZoomWindow zoom = new ZoomWindow(world, space, config, e.getX(), e.getY());
+                ZoomWindow zoom = new ZoomWindow(world, ticker, space, config, e.getX(), e.getY());
                 zoom.show();
             }
         });

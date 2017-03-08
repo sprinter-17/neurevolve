@@ -40,7 +40,8 @@ public class WorldInputTest {
     @Test
     public void testOwnAge() {
         assertThat(input("Own Age"), is(0));
-        world.tick();
+        WorldTicker ticker = new WorldTicker(world, config);
+        ticker.tick();
         assertThat(input("Own Age"), is(1));
     }
 

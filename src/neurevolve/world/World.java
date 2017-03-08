@@ -1,22 +1,17 @@
 package neurevolve.world;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import neurevolve.network.ActivationFunction;
 import neurevolve.organism.Environment;
 import neurevolve.organism.Organism;
-import neurevolve.organism.Recipe;
 import static neurevolve.world.Angle.*;
 import neurevolve.world.Configuration.Value;
-import static neurevolve.world.Configuration.Value.*;
 import static neurevolve.world.GroundElement.*;
 import static neurevolve.world.Space.*;
 
@@ -36,13 +31,8 @@ public class World implements Environment {
     private final Space space;
     private final Configuration config;
     private final Ground ground;
-    private final Random random = new Random();
     private final Population population;
     private final WorldInput inputs;
-    private final List<Runnable> tickListeners = new ArrayList<>();
-
-    private final Time time;
-    private WorldStatistics stats;
 
     private final ActivationFunction function;
 
@@ -57,7 +47,6 @@ public class World implements Environment {
         this.function = function;
         this.config = configuration;
         this.space = space;
-        this.time = new Time(configuration);
         this.inputs = new WorldInput(this);
         this.population = new Population(space, configuration);
         this.ground = new Ground(space.size());
@@ -161,6 +150,14 @@ public class World implements Environment {
         ground.addElementValue(position, element, value);
     }
 
+    public void decrementElementValue(int position, GroundElement element) {
+        ground.substractElementValue(position, element, 1);
+    }
+
+    public void resetActivityCount(Organism organism) {
+        population.resetActivityCount(organism);
+    }
+
     /**
      * Get the difference in elevation between an organism's position and another position
      *
@@ -248,7 +245,7 @@ public class World implements Environment {
     /**
      * Remove an organism from the world
      */
-    private void removeOrganism(Organism organism) {
+    public void removeOrganism(Organism organism) {
         population.removeOrganism(organism);
     }
 
@@ -264,109 +261,12 @@ public class World implements Environment {
                 .mapToObj(copy::getOrganism);
     }
 
-    private IntStream allPositions() {
+    public IntStream allPositions() {
         return IntStream.range(0, space.size());
     }
 
-    /**
-     * Add a {@code Runnable} to call after each tick.
-     *
-     * @param listner the {@code Runnable} to call
-     */
-    public void addTickListener(Runnable listner) {
-        tickListeners.add(listner);
-    }
-
-    /**
-     * Remove a previously added {@code Runnable}
-     *
-     * @param listener the {@code Runnable} to remove
-     */
-    public void removeTickListener(Runnable listener) {
-        tickListeners.remove(listener);
-    }
-
-    /**
-     * Advance the world 1 time unit. Add resources at all positions based on the temperature.
-     * Process all organisms.
-     */
-    public void tick() {
-        time.tick();
-        seedOrganisms();
-        growResources();
-        halfLives();
-        processPopulation();
-        tickListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
-    }
-
-    public WorldStatistics getStats() {
-        return stats;
-    }
-
-    private void seedOrganisms() {
-        if (population.size() < config.getValue(Value.SEED_COUNT))
-            addSeedOrganism(createSeedRecipe());
-    }
-
-    private Recipe createSeedRecipe() {
-        return config.getSeedRecipe()
-                .replicate(this::replicateWithRandomColour);
-    }
-
-    private Recipe replicateWithRandomColour(byte[] instructions, int size, int colour) {
-        Recipe copy = new Recipe(random.nextInt(1 << 24));
-        IntStream.range(0, size)
-                .forEach(i -> copy.add(instructions[i]));
-        return copy;
-    }
-
-    private void addSeedOrganism(Recipe recipe) {
-        int position = random.nextInt(space.size());
-        if (!population.hasOrganism(position) && isEmpty(position)) {
-            population.addOrganism(new Organism(this, config.getValue(Value.INITIAL_ENERGY), recipe),
-                    position, random.nextInt(4));
-        }
-    }
-
-    /**
-     * Grow all resources in the world according to their temperature. The resources are increased
-     * by temp / 100 and a further one each temp % 100 ticks.
-     */
-    private void growResources() {
-        allPositions().forEach(this::growResourcesAtPosition);
-    }
-
-    private void growResourcesAtPosition(int position) {
-        int temperature = getTemperature(position);
-        int resources = getResourcesForTemperature(temperature);
-        ground.addElementValue(position, RESOURCES, resources);
-    }
-
-    private int getResourcesForTemperature(int temp) {
-        int resources = 0;
-        int growthPeriod = 100;
-        while (temp >= growthPeriod) {
-            resources++;
-            temp -= growthPeriod;
-        }
-        if (getTime() % (growthPeriod - temp) == 0) {
-            resources++;
-        }
-        return resources;
-    }
-
-    private void halfLives() {
-        Arrays.stream(GroundElement.values())
-                .forEach(this::halfLife);
-    }
-
-    private void halfLife(GroundElement element) {
-        int halfLife = config.getHalfLife(element);
-        if (halfLife > 0 && halfLife < 1000) {
-            allPositions()
-                    .filter(i -> random.nextInt(halfLife) == 0)
-                    .forEach(p -> ground.substractElementValue(p, element, 1));
-        }
+    public int getSpaceSize() {
+        return space.size();
     }
 
     /**
@@ -478,44 +378,6 @@ public class World implements Environment {
     }
 
     /**
-     * Process the population. This uses a copy of the population array so that changes that occur
-     * during processing do not interfere with the current state.
-     */
-    public void processPopulation() {
-        stats = new WorldStatistics(time);
-        Population copy = population.copy();
-        IntStream.range(0, space.size())
-                .filter(copy::hasOrganism)
-                .forEach(i -> processPosition(i, copy.getOrganism(i)));
-    }
-
-    /**
-     * Process the organism at a given position. Reduce its energy according to temperature
-     */
-    private void processPosition(int position, Organism organism) {
-        adjustEnergy(position, organism);
-        population.resetActivityCount(organism);
-        organism.activate();
-        if (organism.isDead()) {
-            removeOrganism(organism);
-            ground.addElementValue(position, BODY, 1);
-        } else {
-            stats.add(organism);
-        }
-    }
-
-    private void adjustEnergy(int position, Organism organism) {
-        if (getTemperature(position) < 0)
-            organism.reduceEnergy(-getTemperature(position));
-        if (organism.getEnergy() > config.getValue(MAX_ENERGY))
-            organism.reduceEnergy(organism.getEnergy() - config.getValue(MAX_ENERGY));
-        organism.reduceEnergy(config.getValue(ACID_TOXICITY) * getElementValue(position, ACID));
-        organism.reduceEnergy(config.getValue(Value.BASE_COST));
-        organism.reduceEnergy(organism.size() * config.getValue(Value.SIZE_RATE) / 10);
-        organism.reduceEnergy(organism.getAge() * config.getValue(Value.AGING_RATE) / 100);
-    }
-
-    /**
      * Attack an organism at a given angle. If the attacked organism does not have greater energy
      * then it dies and its energy is transfered to the attacker.
      *
@@ -528,31 +390,13 @@ public class World implements Environment {
     }
 
     /**
-     * Get the current world time.
-     *
-     * @return the number of ticks for the world.
-     */
-    public int getTime() {
-        return time.getTime();
-    }
-
-    /**
-     * Get the name of the current season as defined by the year length
-     *
-     * @return the name of the season
-     */
-    public String getSeasonName() {
-        return time.getSeasonName();
-    }
-
-    /**
      * Get the temperature of a position. Calculated based on latitude, elevation and season.
      *
      * @param position the position to retrieve the temperature for
      * @return the temperature
      */
     public int getTemperature(int position) {
-        return getLatitudeTemp(position) - getElementValue(position, ELEVATION) + time.getSeasonalTemp();
+        return getLatitudeTemp(position) - getElementValue(position, ELEVATION);
     }
 
     private int getLatitudeTemp(int position) {
@@ -606,5 +450,4 @@ public class World implements Environment {
     public String describeActivity(int activity) {
         return WorldActivity.describe(activity);
     }
-
 }

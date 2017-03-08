@@ -18,9 +18,10 @@ import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
+import neurevolve.world.Configuration;
 import neurevolve.world.Space;
 import neurevolve.world.World;
-import neurevolve.world.Configuration;
+import neurevolve.world.WorldTicker;
 
 /**
  * The main frame for displaying evolving organisms within the world.
@@ -32,6 +33,7 @@ public class MainWindow {
     private final NewWorldDialog newWorldDialog;
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final World world;
+    private final WorldTicker ticker;
     private final JFrame frame;
     private final AnalysisWindow analysisWindow;
     private final TrendWindow trendWindow;
@@ -55,12 +57,13 @@ public class MainWindow {
     public MainWindow(String title, final World world, final Space space, final Configuration config,
             NewWorldDialog newWorldDialog) {
         this.world = world;
+        this.ticker = new WorldTicker(world, config);
         this.newWorldDialog = newWorldDialog;
         frame = new JFrame("Neurevolve");
         frame.setTitle(title);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         analysisWindow = new AnalysisWindow(world);
-        trendWindow = new TrendWindow(world);
+        trendWindow = new TrendWindow(world, ticker);
         addTools();
         addMapPanel(world, space, config);
         addConfigPanel(space, config);
@@ -126,7 +129,7 @@ public class MainWindow {
     }
 
     private void addMapPanel(final World world, final Space space, final Configuration config) {
-        MapPanel mapPanel = new MapPanel(world, space, config);
+        MapPanel mapPanel = new MapPanel(world, ticker, space, config);
         mapPanel.setPreferredSize(new Dimension(space.getWidth(), space.getHeight() + 10));
         analysisWindow.addSelectionListener(mapPanel::selectSpecies);
         frame.getContentPane().add(mapPanel, BorderLayout.CENTER);
@@ -150,7 +153,7 @@ public class MainWindow {
     }
 
     private void updateLabels(World world) {
-        seasonLabel.setText(world.getSeasonName());
+        seasonLabel.setText(ticker.getSeasonName());
         populationLabel.setText(Integer.toString(world.getPopulationSize()));
     }
 
@@ -168,7 +171,7 @@ public class MainWindow {
 
     private void tick() {
         try {
-            world.tick();
+            ticker.tick();
             if (!paused)
                 scheduleTick();
         } catch (Exception exception) {

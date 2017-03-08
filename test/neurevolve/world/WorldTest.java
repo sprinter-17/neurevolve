@@ -1,7 +1,6 @@
 package neurevolve.world;
 
 import java.util.EnumSet;
-import java.util.stream.IntStream;
 import neurevolve.TestConfiguration;
 import static neurevolve.organism.Code.fromInt;
 import neurevolve.organism.Instruction;
@@ -85,13 +84,6 @@ public class WorldTest {
     }
 
     @Test
-    public void testTime() {
-        assertThat(world.getTime(), is(0));
-        world.tick();
-        assertThat(world.getTime(), is(1));
-    }
-
-    @Test
     public void testTemperatureEffectByLatitude() {
         config.setValue(Value.MIN_TEMP, 30);
         config.setValue(Value.MAX_TEMP, 80);
@@ -108,42 +100,6 @@ public class WorldTest {
         int position = space.position(7, 4);
         world.addElementValue(position, ELEVATION, 8);
         assertThat(world.getTemperature(position), is(- 8));
-    }
-
-    @Test
-    public void testTemperatureEffectByTimeOfYear() {
-        int position = space.position(7, 4);
-        config.setValue(Value.YEAR_LENGTH, 8);
-        config.setValue(Value.TEMP_VARIATION, 50);
-        assertThat(world.getTemperature(position), is(-50));
-        world.tick();
-        assertThat(world.getTemperature(position), is(-25));
-        world.tick();
-        assertThat(world.getTemperature(position), is(0));
-        world.tick();
-        assertThat(world.getTemperature(position), is(+25));
-        world.tick();
-        assertThat(world.getTemperature(position), is(+50));
-        world.tick();
-        assertThat(world.getTemperature(position), is(+25));
-        world.tick();
-        assertThat(world.getTemperature(position), is(0));
-        world.tick();
-        assertThat(world.getTemperature(position), is(-25));
-        world.tick();
-        assertThat(world.getTemperature(position), is(-50));
-    }
-
-    @Test
-    public void testNegativeTemperaturesConsumeEnergyFromOrganisms() {
-        config.setValue(Value.MIN_TEMP, -30);
-        config.setValue(Value.MAX_TEMP, -30);
-        Organism organism = new Organism(world, 50);
-        world.addOrganism(organism, space.position(4, 7), EAST);
-        world.tick();
-        assertThat(organism.getEnergy(), is(20));
-        world.tick();
-        assertThat(organism.getEnergy(), is(0));
     }
 
     @Test
@@ -175,25 +131,6 @@ public class WorldTest {
     }
 
     @Test
-    public void testRemoveDeadOrganisms() {
-        int position = space.position(4, 7);
-        Organism organism = new Organism(world, 0);
-        world.addOrganism(organism, position, EAST);
-        world.tick();
-        assertFalse(world.hasOrganism(position));
-    }
-
-    @Test
-    public void testResourcesGrowBasedOnTemperature() {
-        config.setValue(Value.MIN_TEMP, 0);
-        config.setValue(Value.MAX_TEMP, 200);
-        world.tick();
-        assertThat(world.getElementValue(space.position(0, 0), RESOURCES), is(0));
-        assertThat(world.getElementValue(space.position(7, 3), RESOURCES), is(1));
-        assertThat(world.getElementValue(space.position(4, 5), RESOURCES), is(2));
-    }
-
-    @Test
     public void testMoveOrganism() {
         int position = space.position(6, 9);
         Organism organism = new Organism(world, 12);
@@ -220,7 +157,6 @@ public class WorldTest {
         int position = space.position(6, 9);
         Organism organism = new Organism(world, 1000);
         world.addOrganism(organism, position, EAST);
-        world.tick();
         assertThat(world.getPopulationSize(), is(1));
         world.splitOrganism(organism);
         world.splitOrganism(organism);
@@ -257,7 +193,6 @@ public class WorldTest {
         int position = space.position(4, 7);
         Organism organism = new Organism(world, 50);
         world.addOrganism(organism, position, EAST);
-        world.tick();
         assertTrue(world.hasOrganism(position));
         world.performActivity(organism, WorldActivity.MOVE.ordinal());
         assertFalse(world.hasOrganism(position));
@@ -270,7 +205,7 @@ public class WorldTest {
         recipe.add(Instruction.SET_ACTIVITY, WorldActivity.MOVE.code());
         Organism organism = new Organism(world, 50, recipe);
         world.addOrganism(organism, space.position(5, 5), EAST);
-        world.tick();
+        organism.activate();
         assertFalse(world.hasOrganism(space.position(5, 5)));
     }
 
@@ -288,30 +223,4 @@ public class WorldTest {
         assertThat(organism.getEnergy(), is(925));
     }
 
-    @Test
-    public void testAcidHalfLife() {
-        int position = space.position(4, 7);
-        world.addElementValue(position, ACID, 1);
-        world.tick();
-        assertThat(world.getElementValue(position, ACID), is(1));
-        config.setHalfLife(ACID, 1);
-        world.tick();
-        assertThat(world.getElementValue(position, ACID), is(0));
-    }
-
-    @Test
-    public void testRadiationHalfLife() {
-        IntStream.range(0, space.size()).forEach(p -> world.addElementValue(p, RADIATION, 3));
-        config.setHalfLife(RADIATION, 10);
-        assertThat(totalRadiation(), is(300));
-        for (int i = 0; i < 10; i++) {
-            world.tick();
-        }
-        assertTrue(totalRadiation() < 230);
-        assertTrue(totalRadiation() > 170);
-    }
-
-    private int totalRadiation() {
-        return IntStream.range(0, space.size()).map(p -> world.getElementValue(p, RADIATION)).sum();
-    }
 }

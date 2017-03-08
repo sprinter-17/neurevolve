@@ -34,6 +34,7 @@ import neurevolve.world.GroundElement;
 import neurevolve.world.Population;
 import neurevolve.world.Space;
 import neurevolve.world.World;
+import neurevolve.world.WorldTicker;
 
 public class ZoomWindow {
 
@@ -46,6 +47,7 @@ public class ZoomWindow {
     private static final int MAX_SNAPSHOTS = 100;
 
     private final World world;
+    private final WorldTicker ticker;
     private final Space space;
     private final Configuration config;
     private final int centreX;
@@ -286,9 +288,10 @@ public class ZoomWindow {
         }
     }
 
-    public ZoomWindow(World world, Space space, Configuration config, int centreX, int centreY) {
+    public ZoomWindow(World world, WorldTicker ticker, Space space, Configuration config, int centreX, int centreY) {
         this.world = world;
         this.space = space;
+        this.ticker = ticker;
         this.config = config;
         this.centreX = centreX;
         this.centreY = centreY;
@@ -380,12 +383,12 @@ public class ZoomWindow {
     }
 
     public void show() {
-        world.addTickListener(tickListener);
+        ticker.addTickListener(tickListener);
         frame.setVisible(true);
     }
 
     public void hide() {
-        world.removeTickListener(tickListener);
+        ticker.removeTickListener(tickListener);
         frame.setVisible(false);
     }
 

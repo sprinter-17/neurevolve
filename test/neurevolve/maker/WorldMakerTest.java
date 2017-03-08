@@ -98,13 +98,13 @@ public class WorldMakerTest {
         maker.add(maker.withPeriod(2), maker.addResources(10), maker.everywhere());
         World world = maker.make();
         assertThat(resourceCount(world), is(100000));
-        world.tick();
+        maker.process(world, 1);
         assertThat(resourceCount(world), is(100000));
-        world.tick();
+        maker.process(world, 2);
         assertThat(resourceCount(world), is(200000));
-        world.tick();
+        maker.process(world, 3);
         assertThat(resourceCount(world), is(200000));
-        world.tick();
+        maker.process(world, 4);
         assertThat(resourceCount(world), is(300000));
     }
 
@@ -115,27 +115,27 @@ public class WorldMakerTest {
         maker.add(maker.duringSeason(Season.SUMMER), maker.addResources(1), maker.everywhere());
         World world = maker.make();
         assertThat(resourceCount(world), is(0));
-        world.tick();
+        maker.process(world, 1);
         assertThat(resourceCount(world), is(0));
-        world.tick();
+        maker.process(world, 2);
         assertThat(resourceCount(world), is(0));
-        world.tick();
+        maker.process(world, 3);
         assertThat(resourceCount(world), is(10000));
-        world.tick();
+        maker.process(world, 4);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 5);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 6);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 7);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 8);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 9);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 10);
         assertThat(resourceCount(world), is(20000));
-        world.tick();
+        maker.process(world, 11);
         assertThat(resourceCount(world), is(30000));
     }
 

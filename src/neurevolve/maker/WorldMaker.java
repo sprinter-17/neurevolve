@@ -342,8 +342,7 @@ public class WorldMaker {
     public World make() {
         World world = new World(new SigmoidFunction(100), space, config);
         world.addUsedElements(usedElements);
-        process(world);
-        world.addTickListener(() -> process(world));
+        process(world, 0);
         return world;
     }
 
@@ -352,9 +351,9 @@ public class WorldMaker {
      *
      * @param world the world to add the elements to
      */
-    private void process(World world) {
+    public void process(World world, int time) {
         elements.stream()
-                .filter(e -> e.timing.shouldMake(world.getTime()))
+                .filter(e -> e.timing.shouldMake(time))
                 .forEach(el -> el.apply(world, config));
     }
 
