@@ -37,6 +37,7 @@ public class GroundElementTest {
 
     @Test
     public void testResource() {
+        data = WALL.set(data, 0);
         assertThat(RESOURCES.get(RESOURCES.set(data, 80)), is(80));
     }
 
@@ -58,11 +59,22 @@ public class GroundElementTest {
 
     @Test
     public void testSeveralValues() {
-        int spot = random.nextInt();
-        spot = ELEVATION.set(spot, 17);
-        spot = RESOURCES.set(spot, 24);
-        assertThat(ELEVATION.get(spot), is(17));
-        assertThat(RESOURCES.get(spot), is(24));
+        data = WALL.set(data, 0);
+        data = ELEVATION.set(data, 17);
+        data = RESOURCES.set(data, 24);
+        assertThat(ELEVATION.get(data), is(17));
+        assertThat(RESOURCES.get(data), is(24));
+    }
+
+    @Test
+    public void testWallCancelsResources() {
+        data = WALL.set(data, 0);
+        data = RESOURCES.set(data, 5);
+        assertThat(RESOURCES.get(data), is(5));
+        data = WALL.set(data, 1);
+        assertThat(RESOURCES.get(data), is(0));
+        data = RESOURCES.set(data, 5);
+        assertThat(RESOURCES.get(data), is(0));
     }
 
 }

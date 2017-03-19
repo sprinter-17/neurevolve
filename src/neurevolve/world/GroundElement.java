@@ -8,11 +8,26 @@ package neurevolve.world;
  */
 public enum GroundElement {
     ACID("Acid", 1),
-    WALL("Wall", ACID, 1),
+    WALL("Wall", ACID, 1) {
+        @Override
+        public int set(int input, int data) {
+            if (data > 0)
+                input = RESOURCES.set(input, 0);
+            return super.set(input, data);
+        }
+    },
     BODY("Body", WALL, 1),
     RADIATION("Radiation", BODY, 2),
     ELEVATION("Elevation", RADIATION, 8),
-    RESOURCES("Resources", ELEVATION, 8);
+    RESOURCES("Resources", ELEVATION, 8) {
+        @Override
+        public int set(int input, int data) {
+            if (WALL.get(input) > 0)
+                return input;
+            else
+                return super.set(input, data);
+        }
+    };
 
     private final String name;
     private final int shift;

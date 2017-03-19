@@ -5,18 +5,20 @@
     <configuration>
         <temperature_range min='80' max='95'/>
         <minimum_split_time period='5'/>
+        <minimum_split_energy energy='150'/>
+        <consumption_rate rate='25'/>
         <year length='500' variation='15'/>
         <activity_cost activity='split' cost='5' factor='150'/>
     </configuration>
     <at_start>
-        <add_resources amount='60'>
+        <add_resources amount='160'>
             <everywhere/>
         </add_resources>
         <add_resources amount='50'>
             <pools count='20' radius='4'/>
         </add_resources>
         <wall>
-            <maze cell='50' edge='5'/>
+            <maze cell='25' edge='5'/>
         </wall>
         <acid>
             <vertical_edges width='10'/>

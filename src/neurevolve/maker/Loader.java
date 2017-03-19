@@ -160,8 +160,8 @@ public class Loader {
      * @param input the XML input source
      * @throws SAXException if there are errors parsing the input source
      */
-    public void load(WorldMaker maker, Configuration config,
-            String name, InputSource input) throws SAXException {
+    public void load(WorldMaker maker, Configuration config, String name, InputSource input)
+            throws SAXException {
         try {
             DocumentBuilder builder = FACTORY.newDocumentBuilder();
             Document doc = builder.parse(input);

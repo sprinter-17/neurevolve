@@ -49,6 +49,7 @@ public class MainWindow {
      *
      * @param title the text to put in the frame's title bar
      * @param world the world to display
+     * @param ticker the ticker for the world
      * @param space the frame for the world
      * @param config the configuration for this world
      * @param newWorldDialog the dialog to use to create new worlds

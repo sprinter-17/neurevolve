@@ -349,6 +349,7 @@ public class WorldMaker {
      * Process all the elements that have been added.
      *
      * @param world the world to add the elements to
+     * @param time the current time for the world
      */
     public void process(World world, int time) {
         elements.stream()

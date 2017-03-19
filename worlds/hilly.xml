@@ -6,8 +6,8 @@
         <add_resources amount='200'>
             <everywhere/>
         </add_resources>
-        <elevation amount='100'>
-            <pools count='50' radius='5'/>
+        <elevation amount='200'>
+            <pools count='1500' radius='5'/>
         </elevation>
     </at_start>
 </world>

@@ -52,9 +52,9 @@ public class World implements Environment {
     }
 
     /**
-     * Add a set of ground elements to be used as inputs.
+     * Add a ground element to be used as input.
      *
-     * @param elements the set to add.
+     * @param element the element to add.
      */
     public void addUsedElement(GroundElement element) {
         inputs.addUsedElement(element);
@@ -242,7 +242,9 @@ public class World implements Environment {
     }
 
     /**
-     * Remove an organism from the world
+     * Remove an organism from the world.
+     *
+     * @param organism the organism to remove.
      */
     public void removeOrganism(Organism organism) {
         population.removeOrganism(organism);

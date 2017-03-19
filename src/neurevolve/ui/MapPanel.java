@@ -49,6 +49,7 @@ public class MapPanel extends JPanel {
      * Construct a <code>MapPanel</code>
      *
      * @param world the world to display in the panel
+     * @param ticker the ticker for the world
      * @param space the space the world occupies
      * @param config the configuration for the world
      */

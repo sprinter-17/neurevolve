@@ -217,6 +217,11 @@ public class ConfigPanel extends JTabbedPane {
         layout.anchor = GridBagConstraints.WEST;
         layout.gridy++;
         JSlider slider = new JSlider(min, max, initial);
+        if (max - min > 1000) {
+            slider.setMajorTickSpacing(50);
+            slider.setPaintTicks(true);
+            slider.setSnapToTicks(true);
+        }
         panel.add(slider, layout);
         slider.addChangeListener(e -> setter.accept(slider.getValue()));
         slider.addChangeListener(e -> value.setText(String.valueOf(slider.getValue())));

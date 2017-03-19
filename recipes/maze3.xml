@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<recipe colour="13317953">
+<add_neuron weight="0"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="4"/>
+<set_activity activity="turn_right"/>
+<add_input input="look_resources_here" weight="96"/>
+<add_neuron weight="13"/>
+<add_link neuron="0" weight="-9"/>
+<add_input input="look_acid_far_forward" weight="9"/>
+<add_neuron weight="3"/>
+<set_activity activity="divide"/>
+<add_input input="look_resources_forward_right" weight="41"/>
+<add_link neuron="-41" weight="41"/>
+<add_link neuron="25" weight="0"/>
+<add_link neuron="-12" weight="0"/>
+<add_neuron weight="41"/>
+<add_link neuron="-11" weight="0"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<add_link neuron="7" weight="-68"/>
+<set_activity activity="move"/>
+<set_activity activity="turn_left"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<set_activity activity="turn_right"/>
+<junk value="-127"/>
+<add_input input="look_resources_far_right" weight="82"/>
+<junk value="-127"/>
+<add_input input="look_resources_far_right" weight="82"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<set_activity activity="turn_right"/>
+<junk value="-127"/>
+<add_input input="look_resources_far_right" weight="82"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<set_activity activity="turn_right"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<set_activity activity="turn_left"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<set_activity activity="turn_left"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<add_link neuron="-8" weight="84"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<set_activity activity="turn_left"/>
+<junk value="-127"/>
+<set_activity activity="move"/>
+<junk value="-127"/>
+<add_neuron weight="-8"/>
+<set_activity activity="attack"/>
+<add_neuron weight="-8"/>
+<set_activity activity="eat_forward"/>
+<junk value="-127"/>
+<junk value="-127"/>
+<add_link neuron="20" weight="3"/>
+<add_link neuron="20" weight="3"/>
+<set_activity activity="turn_left"/>
+<add_link neuron="-44" weight="85"/>
+<junk value="-127"/>
+<add_link neuron="3" weight="-8"/>
+<set_activity activity="eat_here"/>
+<add_neuron weight="40"/>
+<add_link neuron="3" weight="81"/>
+<add_input input="look_body_here" weight="-82"/>
+<junk value="-127"/>
+<set_activity activity="turn_left"/>
+<junk value="-127"/>
+<add_link neuron="81" weight="0"/>
+<junk value="-127"/>
+<junk value="36"/>
+<junk value="18"/>
+</recipe>

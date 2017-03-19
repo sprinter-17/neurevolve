@@ -123,10 +123,10 @@ public class Neuron {
      * activity is fired.
      */
     public void activate() {
-        activationCount++;
         int value = calculateValue();
         storeValue(value);
         performActivity();
+        activationCount++;
     }
 
     private int calculateValue() {
@@ -135,10 +135,17 @@ public class Neuron {
         return value;
     }
 
+    /**
+     * Store a given value for later recall. On the first activation the value fills the stored
+     * values to ensure delays don't start with zeroed values.
+     */
     private void storeValue(int value) {
         minVal = Math.min(minVal, value);
         maxVal = Math.max(maxVal, value);
-        values[valueIndex] = value;
+        if (activationCount == 0)
+            Arrays.fill(values, value);
+        else
+            values[valueIndex] = value;
         valueIndex = (valueIndex + 1) % values.length;
     }
 

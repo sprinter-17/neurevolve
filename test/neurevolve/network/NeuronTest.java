@@ -84,17 +84,38 @@ public class NeuronTest {
     }
 
     @Test
-    public void testMemory() {
+    public void testDelay() {
         Input input = mock(Input.class);
         when(input.getValue()).thenReturn(7);
         neuron.addInput(input, weight(1));
         neuron.addDelay(2);
         neuron.activate();
-        assertThat(neuron.getValue(), is(0));
-        neuron.activate();
-        assertThat(neuron.getValue(), is(0));
+        assertThat(neuron.getValue(), is(7));
         neuron.activate();
         assertThat(neuron.getValue(), is(7));
+        when(input.getValue()).thenReturn(9);
+        neuron.activate();
+        assertThat(neuron.getValue(), is(7));
+        neuron.activate();
+        assertThat(neuron.getValue(), is(7));
+        neuron.activate();
+        assertThat(neuron.getValue(), is(9));
+    }
+
+    @Test
+    public void testDelayWithThreshold() {
+        Input input = mock(Input.class);
+        when(input.getValue()).thenReturn(6);
+        neuron.addInput(input, weight(1));
+        neuron.addDelay(1);
+        neuron.setThreshold(-11);
+        neuron.activate();
+        assertThat(neuron.getValue(), is(17));
+        when(input.getValue()).thenReturn(4);
+        neuron.activate();
+        assertThat(neuron.getValue(), is(17));
+        neuron.activate();
+        assertThat(neuron.getValue(), is(15));
     }
 
     private int weight(int weight) {
